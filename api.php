@@ -887,6 +887,12 @@ try {
                 fail(422, 'آیتم‌های معتبری در سفارش یافت نشد.');
             }
 
+            if ($totalPrice <= 0.0) {
+                foreach ($cleanItems as $ci) {
+                    $totalPrice += (float) ($ci['qty'] * $ci['price']);
+                }
+            }
+
             $itemsJson = json_encode($cleanItems, JSON_UNESCAPED_UNICODE);
             $stmt = $db->prepare('INSERT INTO orders (table_number, items_json, total_price, customer_note, status) VALUES (?, ?, ?, ?, ?)');
             $stmt->execute([$tableNumber, $itemsJson, $totalPrice, $note, 'pending']);
