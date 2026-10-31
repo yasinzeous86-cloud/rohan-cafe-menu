@@ -154,9 +154,11 @@
       opacity: 0.5 !important;
     }
     .category-main-icon,
-    .category-main-photo {
-      transition: all 0.5s ease;
-      transform-origin: center center;
+    .category-main-photo,
+    .cat-thumb {
+      transition: all 0.5s ease !important;
+      transform-origin: center center !important;
+      will-change: transform, opacity;
     }
     /* Center timeline: coffee-texture band (background parallax) */
     .center-band {

@@ -124,6 +124,9 @@ const el = (tag, props = {}, children = []) => {
     if (value === null || value === undefined || value === false) continue;
     if (key === 'class') node.className = value;
     else if (key === 'text') node.textContent = String(value);
+    else if (key.startsWith('on') && typeof value === 'function') {
+      node.addEventListener(key.slice(2).toLowerCase(), value);
+    }
     else node.setAttribute(key, value === true ? '' : String(value));
   }
   for (const child of [].concat(children)) {
@@ -205,15 +208,29 @@ function defaultAssetForItem(name) {
   return '';
 }
 
+const CATEGORY_DEFAULT_ASSETS = {
+  'قهوه': 'assets/defaults/cappuccino.png',
+  'نوشیدنی سرد': 'assets/defaults/cold-brew.png',
+  'نان و شیرینی': 'assets/defaults/croissant.png',
+  'آشپزخانه': 'assets/defaults/smoky-burger.png',
+  'پیتزا': 'assets/defaults/pizza-pepperoni.png',
+};
+
 window.swapCategoryIcon = function(categorySection, newSrc) {
   if (!categorySection || !newSrc) return;
-  const sectionId = categorySection.id;
+  const sectionEl = typeof categorySection === 'string'
+    ? document.getElementById(categorySection)
+    : categorySection;
+  if (!sectionEl) return;
+
+  const sectionId = sectionEl.id;
   const navImg = document.querySelector(`.cat-link[data-target="${sectionId}"] .cat-thumb`);
-  const targets = [...categorySection.querySelectorAll('.category-main-icon, .category-main-photo')];
+  const targets = [...sectionEl.querySelectorAll('.category-main-icon, .category-main-photo')];
   if (navImg) targets.push(navImg);
 
   targets.forEach((img) => {
-    if (img.getAttribute('src') === newSrc) return;
+    img.classList.remove('icon-spin-swap');
+    void img.offsetWidth; // Force DOM reflow to re-trigger transition smoothly
     img.classList.add('icon-spin-swap');
     setTimeout(() => {
       img.src = newSrc;
@@ -224,14 +241,21 @@ window.swapCategoryIcon = function(categorySection, newSrc) {
 
 window.revertCategoryIcon = function(categorySection) {
   if (!categorySection) return;
-  const sectionId = categorySection.id;
+  const sectionEl = typeof categorySection === 'string'
+    ? document.getElementById(categorySection)
+    : categorySection;
+  if (!sectionEl) return;
+
+  const sectionId = sectionEl.id;
   const navImg = document.querySelector(`.cat-link[data-target="${sectionId}"] .cat-thumb`);
-  const targets = [...categorySection.querySelectorAll('.category-main-icon, .category-main-photo')];
+  const targets = [...sectionEl.querySelectorAll('.category-main-icon, .category-main-photo')];
   if (navImg) targets.push(navImg);
 
   targets.forEach((img) => {
     const defaultSrc = img.dataset.defaultSrc;
-    if (defaultSrc && img.getAttribute('src') !== defaultSrc) {
+    if (defaultSrc) {
+      img.classList.remove('icon-spin-swap');
+      void img.offsetWidth; // Force DOM reflow
       img.classList.add('icon-spin-swap');
       setTimeout(() => {
         img.src = defaultSrc;
@@ -242,6 +266,14 @@ window.revertCategoryIcon = function(categorySection) {
 };
 
 function photoFor(category, index) {
+  if (CATEGORY_DEFAULT_ASSETS[category.name]) {
+    return CATEGORY_DEFAULT_ASSETS[category.name];
+  }
+  for (const [catKey, assetPath] of Object.entries(CATEGORY_DEFAULT_ASSETS)) {
+    if (category.name.includes(catKey) || catKey.includes(category.name)) {
+      return assetPath;
+    }
+  }
   const custom = category.items.find((item) => item.image_url);
   if (custom && custom.image_url) return custom.image_url;
   for (const it of category.items) {
@@ -366,6 +398,13 @@ function renderSection(category, currency, index) {
     const soldOut = item.status === 'sold_out';
     const itemImg = item.image_url || defaultAssetForItem(item.name);
 
+    const triggerSwap = () => {
+      const section = document.getElementById(category.domId);
+      if (section && itemImg) {
+        window.swapCategoryIcon(section, itemImg);
+      }
+    };
+
     const add = el('button', {
       type: 'button',
       class: 'px-2.5 py-1 rounded-lg bg-[#dfcaa8] text-[#1c120c] font-black text-xs hover:bg-amber-200 active:scale-90 transition-all' + (soldOut ? ' opacity-40 pointer-events-none' : ''),
@@ -375,6 +414,7 @@ function renderSection(category, currency, index) {
       add.addEventListener('click', (e) => {
         e.stopPropagation();
         window.addToCart(item.name, Number(item.price) || 0);
+        triggerSwap();
       });
     }
 
@@ -383,10 +423,7 @@ function renderSection(category, currency, index) {
       'data-item-name': item.name,
       'data-item-image': itemImg,
       onclick: () => {
-        const section = document.getElementById(category.domId);
-        if (section && itemImg) {
-          window.swapCategoryIcon(section, itemImg);
-        }
+        triggerSwap();
       }
     }, [
       el('div', { class: 'flex items-center gap-2.5' }, [
