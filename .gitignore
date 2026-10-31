@@ -2,3 +2,4 @@ menu.sqlite-shm
 menu.sqlite-wal
 uploads/*
 !uploads/.gitkeep
+node_modules/

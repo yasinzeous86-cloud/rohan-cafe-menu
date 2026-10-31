@@ -141,9 +141,22 @@
       object-fit: cover;
       border: 1.5px solid rgba(222, 201, 164, 0.55);
       flex: none;
+      transition: all 0.5s ease;
+      transform-origin: center center;
     }
     .nav-pill.active .cat-thumb {
       border-color: rgba(28, 18, 12, 0.5);
+    }
+    /* Dynamic Category Icon Spin-Swap Micro-interaction */
+    .icon-spin-swap {
+      transition: all 0.5s ease !important;
+      transform: rotate(360deg) scale(0.8) !important;
+      opacity: 0.5 !important;
+    }
+    .category-main-icon,
+    .category-main-photo {
+      transition: all 0.5s ease;
+      transform-origin: center center;
     }
     /* Center timeline: coffee-texture band (background parallax) */
     .center-band {
@@ -958,6 +971,11 @@
       if (isOpen) {
         drawer.classList.remove('open');
         if (arrow) arrow.textContent = '▾';
+        // Revert to the default category icon smoothly when accordion closes
+        const section = drawer.closest('section');
+        if (section && typeof window.revertCategoryIcon === 'function') {
+          window.revertCategoryIcon(section);
+        }
       } else {
         drawer.classList.add('open');
         if (arrow) arrow.textContent = '▴';

@@ -143,6 +143,31 @@
     flex-shrink: 0;
   }
 
+  /* Perfect Circle Asset Gallery */
+  .aspect-square { aspect-ratio: 1 / 1 !important; }
+  .object-cover { object-fit: cover !important; }
+  .object-center { object-position: center !important; }
+  .rounded-full { border-radius: 9999px !important; }
+
+  .asset-card {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 0.65rem;
+    padding: 0.35rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid transparent;
+  }
+  .asset-card:hover {
+    border-color: var(--accent);
+    background: rgba(224, 163, 61, 0.12);
+    transform: translateY(-2px);
+  }
+  .asset-card.active {
+    border-color: var(--accent);
+    background: rgba(224, 163, 61, 0.22);
+    box-shadow: 0 0 10px rgba(224, 163, 61, 0.4);
+  }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -796,7 +821,7 @@
             
             <!-- Image preview container -->
             <div id="image-preview-container" class="panel border rounded-lg p-2.5 flex items-center gap-3" hidden>
-              <img id="image-preview" src="" alt="پیش‌نمایش تصویر" class="w-14 h-14 object-cover rounded border border-[var(--line)]">
+              <img id="image-preview" src="" alt="پیش‌نمایش تصویر" class="w-14 h-14 aspect-square object-cover object-center rounded-full border border-[var(--line)] shrink-0">
               <div class="flex-1 min-w-0">
                 <p id="image-preview-name" class="text-xs font-medium truncate"></p>
                 <p id="image-preview-size" class="text-[0.65rem] muted"></p>
@@ -806,11 +831,25 @@
               </button>
             </div>
 
+            <!-- Default Asset Gallery -->
+            <div class="space-y-1.5 border-t hair pt-2.5">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>🎨</span>
+                  <span>گالری تصاویر آماده منو (Default Asset Gallery)</span>
+                </label>
+                <span class="text-[10px] text-amber-300 font-medium">کلیک برای انتخاب سریع</span>
+              </div>
+              <div id="default-asset-gallery" class="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl border hair bg-black/40 scroll-smooth">
+                <!-- Javascript dynamically populates images using aspect-square object-cover object-center rounded-full -->
+              </div>
+            </div>
+
             <!-- Direct URL input (optional fallback / displays current path) -->
-            <details class="text-[0.7rem] muted">
+            <details class="text-[0.7rem] muted pt-1">
               <summary class="cursor-pointer hover:text-[var(--accent)]">یا آدرس مستقیم اینترنتی تصویر (اختیاری)</summary>
               <div class="mt-1.5">
-                <input id="f-image_url" maxlength="500" placeholder="uploads/... یا https://…" class="w-full text-xs">
+                <input id="f-image_url" maxlength="500" placeholder="assets/defaults/... یا uploads/... یا https://…" class="w-full text-xs">
               </div>
             </details>
           </div>
@@ -1132,6 +1171,112 @@ function renderCategories() {
 }
 
 /* ---------------------------------------------------------------- *
+ *  Default Asset Gallery
+ * ---------------------------------------------------------------- */
+const DEFAULT_ASSETS = [
+  { name: 'اسپرسو', file: 'espresso.png' },
+  { name: 'لاته', file: 'latte.png' },
+  { name: 'کاپوچینو', file: 'cappuccino.png' },
+  { name: 'موکا', file: 'mocha.png' },
+  { name: 'فلت وایت', file: 'flat-white.png' },
+  { name: 'کلد برو', file: 'cold-brew.png' },
+  { name: 'وی‌۶۰', file: 'v60.png' },
+  { name: 'آمریکانو', file: 'americano.png' },
+  { name: 'اسپرسو دوبل', file: 'espresso-doppio.png' },
+  { name: 'کارامل ماکیاتو', file: 'caramel-macchiato.png' },
+  { name: 'فراپه', file: 'frappe.png' },
+  { name: 'لیموناد', file: 'lemonade.png' },
+  { name: 'موهیتو', file: 'mojito.png' },
+  { name: 'آب پرتقال', file: 'orange-juice.png' },
+  { name: 'شیک وانیل', file: 'vanilla-shake.png' },
+  { name: 'شکلات گلاسه', file: 'iced-chocolate.png' },
+  { name: 'پیتزا گوشت و قارچ', file: 'pizza-meat-mushroom.png' },
+  { name: 'پیتزا پپرونی', file: 'pizza-pepperoni.png' },
+  { name: 'پیتزا سبزیجات', file: 'pizza-vegetable.png' },
+  { name: 'اسموکی برگر', file: 'smoky-burger.png' },
+  { name: 'سیب‌زمینی سرخ‌شده', file: 'french-fries.png' },
+  { name: 'سالاد سزار', file: 'caesar-salad.png' },
+  { name: 'تست هلومی', file: 'halloumi-toast.png' },
+  { name: 'تست آووکادو', file: 'avocado-toast.png' },
+  { name: 'شکشوعا', file: 'shakshuka.png' },
+  { name: 'بیگل کره‌ای', file: 'bagel.png' },
+  { name: 'کروسان', file: 'croissant.png' },
+  { name: 'چیزکیک', file: 'cheesecake.png' },
+  { name: 'کیک شکلاتی', file: 'chocolate-cake.png' },
+  { name: 'کیک هویج و گردو', file: 'date-cake.png' },
+  { name: 'وافل با توت', file: 'waffle.png' },
+  { name: 'پنکیک', file: 'pancakes.png' },
+  { name: 'براونی', file: 'brownie.png' },
+  { name: 'سینامون رول', file: 'cinnamon-roll.png' },
+  { name: 'مافین بلوبری', file: 'blueberry-muffin.png' },
+  { name: 'کوکی شکلاتی', file: 'cookies.png' },
+  { name: 'آیس لاته', file: 'iced-latte.png' },
+  { name: 'ماچا لاته', file: 'matcha-latte.png' },
+  { name: 'پینک لاته', file: 'pink-latte.png' },
+  { name: 'سودای گلاب', file: 'rose-soda.png' },
+  { name: 'چای ترش', file: 'hibiscus-tea.png' },
+  { name: 'دمنوش نعنا', file: 'mint-tea.png' },
+  { name: 'چای سیاه', file: 'black-tea.png' },
+];
+
+function initDefaultAssetGallery() {
+  const container = document.getElementById('default-asset-gallery');
+  if (!container || container.children.length > 0) return;
+  
+  DEFAULT_ASSETS.forEach(asset => {
+    const assetPath = `assets/defaults/${asset.file}`;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'asset-card flex flex-col items-center gap-1 p-1 rounded-xl transition-all cursor-pointer';
+    btn.dataset.path = assetPath;
+    btn.title = asset.name;
+
+    btn.innerHTML = `
+      <img src="${assetPath}" alt="${asset.name}" class="w-12 h-12 aspect-square object-cover object-center rounded-full border border-stone-700/60 shadow-sm" loading="lazy">
+      <span class="text-[9px] text-stone-300 font-medium truncate max-w-full text-center">${asset.name}</span>
+    `;
+
+    btn.addEventListener('click', () => {
+      const imgInput = document.getElementById('f-image_url');
+      if (imgInput) imgInput.value = assetPath;
+      
+      const fileInput = document.getElementById('item_image_file');
+      if (fileInput) fileInput.value = '';
+
+      const previewBox = document.getElementById('image-preview-container');
+      const previewImg = document.getElementById('image-preview');
+      const previewName = document.getElementById('image-preview-name');
+      const previewSize = document.getElementById('image-preview-size');
+
+      if (previewBox && previewImg) {
+        previewImg.src = assetPath;
+        if (previewName) previewName.textContent = asset.name;
+        if (previewSize) previewSize.textContent = 'تصویر پیش‌فرض انتخاب‌شده';
+        previewBox.hidden = false;
+      }
+
+      container.querySelectorAll('.asset-card').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+
+    container.appendChild(btn);
+  });
+}
+
+function highlightDefaultAsset(currentPath) {
+  const container = document.getElementById('default-asset-gallery');
+  if (!container) return;
+  container.querySelectorAll('.asset-card').forEach(b => {
+    if (currentPath && b.dataset.path === currentPath) {
+      b.classList.add('active');
+      b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      b.classList.remove('active');
+    }
+  });
+}
+
+/* ---------------------------------------------------------------- *
  *  Item modal
  * ---------------------------------------------------------------- */
 function openModal(item = null) {
@@ -1179,6 +1324,9 @@ function openModal(item = null) {
     previewImg.src = '';
     previewBox.hidden = true;
   }
+
+  initDefaultAssetGallery();
+  highlightDefaultAsset(item?.image_url);
 
   $('#modal').hidden = false;
   document.body.style.overflow = 'hidden';

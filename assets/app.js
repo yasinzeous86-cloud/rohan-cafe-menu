@@ -160,9 +160,95 @@ const FALLBACK_PHOTOS = [
   'https://lh3.googleusercontent.com/aida-public/AB6AXuBJeRZNSaUvZV22rIKFGrSST7wYvsxVswj_e_D4xvalNEw545EsBTiw8aibpxLkTkil9J0mInxV73qmBpwZbc-98wwcMd6O4ScCsFBqO8X3_eweNBlRIp763sVTKkrCbO3OYejWBZ1AsKh6_tKQC9ubMXK6ZqUd1QPIaxweYhenU8swIS8A59-20dq6OzmgYfUS2DHhuVWoFr03ieMGLUJ2Wx5KqGSlRxzJ7CUcOG16',
 ];
 
+const DEFAULT_ASSET_MAP = {
+  'اسپرسو': 'assets/defaults/espresso.png',
+  'لاته': 'assets/defaults/latte.png',
+  'کاپوچینو': 'assets/defaults/cappuccino.png',
+  'موکا': 'assets/defaults/mocha.png',
+  'فلت وایت': 'assets/defaults/flat-white.png',
+  'کلد برو': 'assets/defaults/cold-brew.png',
+  'وی‌۶۰': 'assets/defaults/v60.png',
+  'وی 60': 'assets/defaults/v60.png',
+  'آمریکانو': 'assets/defaults/americano.png',
+  'لیموناد نعنایی': 'assets/defaults/lemonade.png',
+  'سودای گلاب': 'assets/defaults/rose-soda.png',
+  'شیک نوتلا': 'assets/defaults/vanilla-shake.png',
+  'کروسان کره‌ای': 'assets/defaults/croissant.png',
+  'کیک خرمایی': 'assets/defaults/date-cake.png',
+  'کیک شکلاتی': 'assets/defaults/chocolate-cake.png',
+  'چیزکیک': 'assets/defaults/cheesecake.png',
+  'تست هلومی': 'assets/defaults/halloumi-toast.png',
+  'شکشوعا': 'assets/defaults/shakshuka.png',
+  'اسموکی برگر': 'assets/defaults/smoky-burger.png',
+  'فرایز ترافل': 'assets/defaults/french-fries.png',
+  'پیتزا گوشت و قارچ': 'assets/defaults/pizza-meat-mushroom.png',
+  'پیتزا پپرونی': 'assets/defaults/pizza-pepperoni.png',
+  'پیتزا سبزیجات': 'assets/defaults/pizza-vegetable.png',
+  'سالاد سزار': 'assets/defaults/caesar-salad.png',
+  'وافل': 'assets/defaults/waffle.png',
+  'پنکیک': 'assets/defaults/pancakes.png',
+  'کوکی': 'assets/defaults/cookies.png',
+  'مافین بلوبری': 'assets/defaults/blueberry-muffin.png',
+  'تست آووکادو': 'assets/defaults/avocado-toast.png',
+  'سینامون رول': 'assets/defaults/cinnamon-roll.png',
+  'براونی': 'assets/defaults/brownie.png',
+  'بیگل': 'assets/defaults/bagel.png',
+};
+
+function defaultAssetForItem(name) {
+  if (!name) return '';
+  const trimmed = name.trim();
+  if (DEFAULT_ASSET_MAP[trimmed]) return DEFAULT_ASSET_MAP[trimmed];
+  for (const [k, v] of Object.entries(DEFAULT_ASSET_MAP)) {
+    if (trimmed.includes(k) || k.includes(trimmed)) return v;
+  }
+  return '';
+}
+
+window.swapCategoryIcon = function(categorySection, newSrc) {
+  if (!categorySection || !newSrc) return;
+  const sectionId = categorySection.id;
+  const navImg = document.querySelector(`.cat-link[data-target="${sectionId}"] .cat-thumb`);
+  const targets = [...categorySection.querySelectorAll('.category-main-icon, .category-main-photo')];
+  if (navImg) targets.push(navImg);
+
+  targets.forEach((img) => {
+    if (img.getAttribute('src') === newSrc) return;
+    img.classList.add('icon-spin-swap');
+    setTimeout(() => {
+      img.src = newSrc;
+      img.classList.remove('icon-spin-swap');
+    }, 250);
+  });
+};
+
+window.revertCategoryIcon = function(categorySection) {
+  if (!categorySection) return;
+  const sectionId = categorySection.id;
+  const navImg = document.querySelector(`.cat-link[data-target="${sectionId}"] .cat-thumb`);
+  const targets = [...categorySection.querySelectorAll('.category-main-icon, .category-main-photo')];
+  if (navImg) targets.push(navImg);
+
+  targets.forEach((img) => {
+    const defaultSrc = img.dataset.defaultSrc;
+    if (defaultSrc && img.getAttribute('src') !== defaultSrc) {
+      img.classList.add('icon-spin-swap');
+      setTimeout(() => {
+        img.src = defaultSrc;
+        img.classList.remove('icon-spin-swap');
+      }, 250);
+    }
+  });
+};
+
 function photoFor(category, index) {
   const custom = category.items.find((item) => item.image_url);
-  return (custom && custom.image_url) || FALLBACK_PHOTOS[index % FALLBACK_PHOTOS.length];
+  if (custom && custom.image_url) return custom.image_url;
+  for (const it of category.items) {
+    const matched = defaultAssetForItem(it.name);
+    if (matched) return matched;
+  }
+  return FALLBACK_PHOTOS[index % FALLBACK_PHOTOS.length];
 }
 
 /* One mockup row matching user reference exactly: circular photo + dual-capsule card + expandable price drawer. */
@@ -175,6 +261,7 @@ function renderSection(category, currency, index) {
   );
 
   const isEven = index % 2 === 0;
+  const defaultPhoto = photoFor(category, index);
 
   // Category Section Header Pill (above each row, matching reference image)
   const categoryBadge = el('div', { class: 'flex justify-center mb-6' }, [
@@ -182,7 +269,12 @@ function renderSection(category, currency, index) {
       class: 'px-5 py-2 rounded-full bg-[#1e0f09]/92 text-[#dfcaa8] font-bold text-xs shadow-xl border-[1.5px] border-[#dfcaa8]/40 flex items-center gap-2.5 backdrop-blur-sm',
     }, [
       el('span', { class: 'w-5 h-5 rounded-full overflow-hidden border border-[#dfcaa8]/60 inline-flex items-center justify-center shrink-0' }, [
-        el('img', { src: photoFor(category, index), class: 'w-full h-full object-cover', alt: '' }),
+        el('img', { 
+          src: defaultPhoto, 
+          class: 'category-main-icon w-full h-full object-cover rounded-full', 
+          alt: category.name,
+          'data-default-src': defaultPhoto,
+        }),
       ]),
       el('span', { text: category.name }),
     ]),
@@ -198,8 +290,9 @@ function renderSection(category, currency, index) {
       el('div', { class: 'photo-circle-frame' }, [
         el('img', {
           alt: category.name,
-          class: 'w-full h-full object-cover',
-          src: photoFor(category, index),
+          class: 'category-main-photo w-full h-full object-cover rounded-full',
+          src: defaultPhoto,
+          'data-default-src': defaultPhoto,
         }),
       ]),
       el('div', {
@@ -271,29 +364,54 @@ function renderSection(category, currency, index) {
   const rows = category.items.map((item) => {
     const price = formatPrice(item.price, currency);
     const soldOut = item.status === 'sold_out';
+    const itemImg = item.image_url || defaultAssetForItem(item.name);
+
     const add = el('button', {
       type: 'button',
       class: 'px-2.5 py-1 rounded-lg bg-[#dfcaa8] text-[#1c120c] font-black text-xs hover:bg-amber-200 active:scale-90 transition-all' + (soldOut ? ' opacity-40 pointer-events-none' : ''),
       text: '+ افزودن',
     });
     if (!soldOut) {
-      add.addEventListener('click', () => window.addToCart(item.name, Number(item.price) || 0));
+      add.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.addToCart(item.name, Number(item.price) || 0);
+      });
     }
-    return el('div', { class: 'flex items-center justify-between pt-2' }, [
-      el('div', {}, [
-        el('div', { class: 'font-extrabold text-sm text-stone-50' }, [
-          el('span', { text: item.name }),
-          soldOut ? el('span', { class: 'ms-2 text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-800/60', text: 'تمام شد' }) : null,
+
+    const itemRow = el('div', { 
+      class: 'item-card flex items-center justify-between pt-2 cursor-pointer transition-all hover:bg-white/5 p-1.5 rounded-lg active:scale-[0.98]',
+      'data-item-name': item.name,
+      'data-item-image': itemImg,
+      onclick: () => {
+        const section = document.getElementById(category.domId);
+        if (section && itemImg) {
+          window.swapCategoryIcon(section, itemImg);
+        }
+      }
+    }, [
+      el('div', { class: 'flex items-center gap-2.5' }, [
+        itemImg ? el('img', {
+          src: itemImg,
+          alt: item.name,
+          class: 'w-7 h-7 aspect-square object-cover object-center rounded-full border border-amber-300/40 shrink-0'
+        }) : null,
+        el('div', {}, [
+          el('div', { class: 'font-extrabold text-sm text-stone-50' }, [
+            el('span', { text: item.name }),
+            soldOut ? el('span', { class: 'ms-2 text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-800/60', text: 'تمام شد' }) : null,
+          ]),
+          item.description
+            ? el('div', { class: 'text-[11px] text-amber-200/80 font-medium', text: item.description })
+            : null,
         ]),
-        item.description
-          ? el('div', { class: 'text-[11px] text-amber-200/80 font-medium', text: item.description })
-          : null,
       ]),
       el('div', { class: 'flex items-center gap-2' }, [
         el('span', { class: 'font-black text-sm text-amber-300', text: price }),
         add,
       ]),
     ]);
+
+    return itemRow;
   });
 
   const drawer = el('div', {
@@ -323,7 +441,15 @@ function renderNav(categories) {
           class: 'cat-link nav-pill px-3 py-2 text-sm font-bold rounded-full bg-black/35 hover:bg-black/50 text-stone-200 border-[1.5px] border-[#dfcaa8]/40 whitespace-nowrap transition-all flex items-center gap-2',
           'data-target': category.domId,
         }, [
-          el('img', { class: 'cat-thumb', alt: '', src: photoFor(category, index) }),
+          (() => {
+            const navPhoto = photoFor(category, index);
+            return el('img', { 
+              class: 'cat-thumb', 
+              alt: category.name, 
+              src: navPhoto,
+              'data-default-src': navPhoto,
+            });
+          })(),
           el('span', { text: category.name }),
         ]),
       ]),
