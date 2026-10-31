@@ -131,6 +131,10 @@
     <nav class="flex-1 py-3" aria-label="بخش‌ها">
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="items" aria-current="page">آیتم‌های منو</button>
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="categories">دسته‌بندی‌ها</button>
+      <button class="nav-item w-full text-right px-5 py-2.5 text-sm flex items-center justify-between" data-view="orders">
+        <span>سفارشات آنلاین</span>
+        <span id="orders-badge" class="badge badge-sold_out text-[10px] px-1.5 py-0.5" hidden>۰</span>
+      </button>
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="settings">قالب و تنظیمات منو</button>
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="qr">کیوآر و منوی آفلاین</button>
     </nav>
@@ -226,6 +230,44 @@
             </table>
           </div>
         </div>
+      </section>
+
+      <!-- ORDERS -->
+      <section id="view-orders" hidden>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="فیلتر سفارشات">
+            <button class="btn btn-ghost order-filter-btn" data-order-filter="all" aria-pressed="true">همه</button>
+            <button class="btn btn-ghost order-filter-btn" data-order-filter="pending" aria-pressed="false">در انتظار بررسی</button>
+            <button class="btn btn-ghost order-filter-btn" data-order-filter="completed" aria-pressed="false">تکمیل شده</button>
+            <button class="btn btn-ghost order-filter-btn" data-order-filter="cancelled" aria-pressed="false">لغو شده</button>
+          </div>
+          <button class="btn btn-ghost text-xs flex items-center gap-1.5" id="refresh-orders-btn" type="button">
+            <span>🔄</span>
+            <span>به‌روزرسانی سفارشات</span>
+          </button>
+        </div>
+
+        <div class="panel border rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[50rem]">
+              <thead>
+                <tr class="mono text-[0.62rem] muted border-b hair">
+                  <th class="text-right font-normal px-4 py-3">شماره سفارش</th>
+                  <th class="text-right font-normal px-4 py-3">میز / تحویل</th>
+                  <th class="text-right font-normal px-4 py-3">اقلام سفارش</th>
+                  <th class="text-left font-normal px-4 py-3">مبلغ کل</th>
+                  <th class="text-right font-normal px-4 py-3">وضعیت</th>
+                  <th class="text-right font-normal px-4 py-3">زمان ثبت</th>
+                  <th class="text-left font-normal px-4 py-3 w-48">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="orders-body" class="divide-y" style="border-color:var(--line)"></tbody>
+            </table>
+          </div>
+        </div>
+        <p id="orders-empty" class="panel border rounded-xl p-10 text-center text-sm muted" hidden>
+          هنوز سفارشی با این فیلتر ثبت نشده است.
+        </p>
       </section>
 
       <!-- SETTINGS -->
@@ -336,6 +378,64 @@
             </p>
           </div>
 
+          <!-- ── Telegram Bot Card ─────────────────────────────────────── -->
+          <div class="lg:col-span-2 panel border rounded-xl p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5">
+                <span class="text-2xl">🤖</span>
+                <div>
+                  <h2 class="text-sm font-semibold">ربات تلگرام و نوتیفیکیشن سفارشات (Telegram Bot)</h2>
+                  <p class="text-xs muted">ارسال لحظه‌ای سفارشات مشتریان، تغییر وضعیت موجودی آیتم‌ها و مشاهده گزارشات روزانه در تلگرام</p>
+                </div>
+              </div>
+              <label class="flex items-center gap-2 text-xs muted cursor-pointer whitespace-nowrap bg-[var(--panel-2)] px-3 py-1.5 rounded-lg border hair">
+                <input type="checkbox" id="set-telegram_notifications_enabled" style="width:1rem;height:1rem">
+                <span>فعال‌سازی نوتیفیکیشن تلگرام</span>
+              </label>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label class="text-xs muted block mb-1.5" for="set-telegram_bot_token">
+                  توکن ربات تلگرام (Bot Token)
+                </label>
+                <input id="set-telegram_bot_token" dir="ltr" class="mono text-xs" maxlength="120" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+                <p class="text-[11px] muted mt-1">از طریق ربات رسمی <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="underline text-[var(--accent)]">BotFather@</a> با دستور newbot/ دریافت کنید.</p>
+              </div>
+              <div>
+                <label class="text-xs muted block mb-1.5" for="set-telegram_chat_id">
+                  شناسه عددی چت یا گروه مدیر (Chat ID)
+                </label>
+                <input id="set-telegram_chat_id" dir="ltr" class="mono text-xs" maxlength="60" placeholder="مثال: 123456789 یا -100123456789">
+                <p class="text-[11px] muted mt-1">با ارسال پیام به ربات <a href="https://t.me/userinfobot" target="_blank" rel="noopener" class="underline text-[var(--accent)]">userinfobot@</a> شناسه (Id) خود را بردارید.</p>
+              </div>
+            </div>
+
+            <div class="pt-2 flex flex-wrap items-center gap-3 border-t hair">
+              <button type="button" id="test-telegram-btn" class="btn btn-ghost text-xs flex items-center gap-2">
+                <span>📨</span>
+                <span>ارسال پیام آزمایشی به تلگرام</span>
+              </button>
+              <button type="button" id="set-webhook-btn" class="btn btn-ghost text-xs flex items-center gap-2">
+                <span>🔗</span>
+                <span>ثبت و فعال‌سازی وب‌هوک ربات (Webhook)</span>
+              </button>
+              <span id="telegram-action-status" class="text-xs muted" aria-live="polite"></span>
+            </div>
+
+            <details class="text-xs muted bg-[var(--panel-2)] p-3.5 rounded-lg border hair">
+              <summary class="cursor-pointer font-medium hover:text-[var(--accent)]">راهنمای مرحله‌به‌مرحله راه‌اندازی ربات تلگرام</summary>
+              <ol class="list-decimal list-inside space-y-1.5 mt-2.5 leading-relaxed text-[11px]">
+                <li>وارد تلگرام شوید و به ربات <strong class="text-stone-200">@BotFather</strong> پیام دهید.</li>
+                <li>دستور <code class="mono bg-black/40 px-1 rounded">/newbot</code> را بفرستید، سپس یک نام و یک یوزرنیم (که به bot ختم شود) انتخاب کنید.</li>
+                <li>توکن ارائه‌شده (API token) را کپی کرده و در فیلد «توکن ربات تلگرام» در بالا وارد کنید.</li>
+                <li>به ربات <strong class="text-stone-200">@userinfobot</strong> یک پیام بفرستید تا عدد شناسه شما (<code class="mono bg-black/40 px-1 rounded">Id</code>) را نمایش دهد؛ آن را در فیلد «شناسه عددی چت» قرار دهید.</li>
+                <li>ابتدا دکمه «ذخیره‌ی تغییرات» پنل را بزنید، سپس وارد ربات تلگرام خود شوید و دکمه <strong class="text-stone-200">Start/</strong> را بزنید.</li>
+                <li>روی دکمه‌ی «ثبت و فعال‌سازی وب‌هوک ربات» کلیک کنید تا پنل مدیریت دوطرفه تلگرام (سفارشات فعال، موجودی آیتم‌ها، گزارش فروش و نظرات) بلافاصله فعال شود.</li>
+              </ol>
+            </details>
+          </div>
+
           <div class="lg:col-span-2 flex items-center gap-3">
             <button class="btn btn-primary" type="submit">ذخیره‌ی تغییرات</button>
             <span id="settings-note" class="text-xs muted" aria-live="polite"></span>
@@ -442,80 +542,85 @@
 </div>
 
 <!-- ── Item modal ─────────────────────────────────────────────── -->
-<div id="modal" class="fixed inset-0 z-50" hidden>
-  <div class="absolute inset-0 bg-black/70" data-close></div>
-  <div class="relative mx-auto my-8 sm:my-16 w-[min(94vw,32rem)] panel border rounded-xl shadow-2xl">
-    <div class="flex items-center justify-between px-5 py-4 border-b hair">
+<div id="modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" hidden>
+  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity" data-close></div>
+  <div class="relative w-full max-w-lg panel border rounded-xl shadow-2xl flex flex-col max-h-[90vh] my-auto overflow-hidden z-10">
+    <div class="flex items-center justify-between px-5 py-4 border-b hair shrink-0 bg-[#170e0a]">
       <h2 id="modal-title" class="font-semibold">افزودن آیتم</h2>
       <button class="btn btn-ghost px-2.5" data-close aria-label="بستن">✕</button>
     </div>
-    <form id="item-form" class="p-5 space-y-4">
-      <div>
-        <label class="text-xs muted block mb-1.5" for="f-name">نام</label>
-        <input id="f-name" maxlength="120" placeholder="فلت وایت" required>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
+    <form id="item-form" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <!-- Scrollable Form Content Body -->
+      <div class="p-5 space-y-4 overflow-y-auto scroll-smooth flex-1">
         <div>
-          <label class="text-xs muted block mb-1.5" for="f-category">دسته‌بندی</label>
-          <select id="f-category" required></select>
+          <label class="text-xs muted block mb-1.5" for="f-name">نام</label>
+          <input id="f-name" maxlength="120" placeholder="فلت وایت" required>
         </div>
-        <div>
-          <label class="text-xs muted block mb-1.5" for="f-price">قیمت</label>
-          <input id="f-price" type="number" min="0" step="0.05" inputmode="decimal" placeholder="4.00" required>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs muted block mb-1.5" for="f-status">وضعیت</label>
-          <select id="f-status">
-            <option value="available">موجود</option>
-            <option value="sold_out">تمام شد — با نشان نمایش داده می‌شود</option>
-            <option value="hidden">مخفی — از منو حذف می‌شود</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs muted block mb-1.5" for="f-sort">ترتیب</label>
-          <input id="f-sort" type="number" min="0" max="100000" value="0">
-        </div>
-      </div>
-      <div>
-        <label class="text-xs muted block mb-1.5" for="f-description">توضیحات</label>
-        <textarea id="f-description" rows="3" maxlength="500" placeholder="رسترتوی دوبل با کف شیر ابریشمی."></textarea>
-      </div>
-      <div>
-        <label class="text-xs muted block mb-1.5">تصویر آیتم</label>
-        <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <label class="btn btn-ghost border border-dashed border-[var(--line)] hover:border-[var(--accent)] cursor-pointer flex-1 text-center py-2.5 px-3 text-xs flex items-center justify-center gap-2 transition-colors">
-              <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              <span>انتخاب و بارگذاری تصویر (JPG، PNG، WEBP تا ۲ مگابایت)</span>
-              <input type="file" id="item_image_file" accept="image/png, image/jpeg, image/webp" class="hidden">
-            </label>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs muted block mb-1.5" for="f-category">دسته‌بندی</label>
+            <select id="f-category" required></select>
           </div>
-          
-          <!-- Image preview container -->
-          <div id="image-preview-container" class="panel border rounded-lg p-2.5 flex items-center gap-3" hidden>
-            <img id="image-preview" src="" alt="پیش‌نمایش تصویر" class="w-14 h-14 object-cover rounded border border-[var(--line)]">
-            <div class="flex-1 min-w-0">
-              <p id="image-preview-name" class="text-xs font-medium truncate"></p>
-              <p id="image-preview-size" class="text-[0.65rem] muted"></p>
+          <div>
+            <label class="text-xs muted block mb-1.5" for="f-price">قیمت</label>
+            <input id="f-price" type="number" min="0" step="0.05" inputmode="decimal" placeholder="4.00" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs muted block mb-1.5" for="f-status">وضعیت</label>
+            <select id="f-status">
+              <option value="available">موجود</option>
+              <option value="sold_out">تمام شد — با نشان نمایش داده می‌شود</option>
+              <option value="hidden">مخفی — از منو حذف می‌شود</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs muted block mb-1.5" for="f-sort">ترتیب</label>
+            <input id="f-sort" type="number" min="0" max="100000" value="0">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs muted block mb-1.5" for="f-description">توضیحات</label>
+          <textarea id="f-description" rows="3" maxlength="500" placeholder="رسترتوی دوبل با کف شیر ابریشمی."></textarea>
+        </div>
+        <div>
+          <label class="text-xs muted block mb-1.5">تصویر آیتم</label>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <label class="btn btn-ghost border border-dashed border-[var(--line)] hover:border-[var(--accent)] cursor-pointer flex-1 text-center py-2.5 px-3 text-xs flex items-center justify-center gap-2 transition-colors">
+                <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>انتخاب و بارگذاری تصویر (JPG، PNG، WEBP تا ۲ مگابایت)</span>
+                <input type="file" id="item_image_file" accept="image/png, image/jpeg, image/webp" class="hidden">
+              </label>
             </div>
-            <button type="button" id="clear-image-btn" class="btn btn-ghost text-xs text-[var(--danger)] hover:text-red-300 px-2 py-1" title="حذف تصویر">
-              ✕ حذف تصویر
-            </button>
-          </div>
+            
+            <!-- Image preview container -->
+            <div id="image-preview-container" class="panel border rounded-lg p-2.5 flex items-center gap-3" hidden>
+              <img id="image-preview" src="" alt="پیش‌نمایش تصویر" class="w-14 h-14 object-cover rounded border border-[var(--line)]">
+              <div class="flex-1 min-w-0">
+                <p id="image-preview-name" class="text-xs font-medium truncate"></p>
+                <p id="image-preview-size" class="text-[0.65rem] muted"></p>
+              </div>
+              <button type="button" id="clear-image-btn" class="btn btn-ghost text-xs text-[var(--danger)] hover:text-red-300 px-2 py-1" title="حذف تصویر">
+                ✕ حذف تصویر
+              </button>
+            </div>
 
-          <!-- Direct URL input (optional fallback / displays current path) -->
-          <details class="text-[0.7rem] muted">
-            <summary class="cursor-pointer hover:text-[var(--accent)]">یا آدرس مستقیم اینترنتی تصویر (اختیاری)</summary>
-            <div class="mt-1.5">
-              <input id="f-image_url" maxlength="500" placeholder="uploads/... یا https://…" class="w-full text-xs">
-            </div>
-          </details>
+            <!-- Direct URL input (optional fallback / displays current path) -->
+            <details class="text-[0.7rem] muted">
+              <summary class="cursor-pointer hover:text-[var(--accent)]">یا آدرس مستقیم اینترنتی تصویر (اختیاری)</summary>
+              <div class="mt-1.5">
+                <input id="f-image_url" maxlength="500" placeholder="uploads/... یا https://…" class="w-full text-xs">
+              </div>
+            </details>
+          </div>
         </div>
+        <p id="modal-error" class="text-sm" style="color:var(--danger)" hidden></p>
       </div>
-      <p id="modal-error" class="text-sm" style="color:var(--danger)" hidden></p>
-      <div class="flex justify-end gap-2 pt-1">
+
+      <!-- Sticky Action Footer -->
+      <div class="sticky bottom-0 z-20 bg-[#1a0f0a] border-t border-[#3d251a] p-4 flex justify-end gap-2 shrink-0">
         <button class="btn btn-ghost" type="button" data-close>انصراف</button>
         <button class="btn btn-primary" type="submit" id="modal-save">ذخیره‌ی آیتم</button>
       </div>
@@ -536,6 +641,7 @@ const TOKEN_KEY = 'menu_admin_token';
 const state = {
   token: '', data: null, view: 'items', filter: 'all', editing: null, pendingTheme: null,
   categoryEdit: null,
+  orders: [], orderFilter: 'all',
   // live edits of the two card sections, sent as JSON when settings are saved
   draft: { reviews: null, highlights: null },
 };
@@ -547,7 +653,8 @@ const STATUS_LABEL = { available: 'موجود', sold_out: 'تمام شد', hidde
 const VIEW_TITLE = {
   items: ['آیتم‌های منو', 'هر آنچه در منو هست'],
   categories: ['دسته‌بندی‌ها', 'منو چطور گروه‌بندی شده'],
-  settings: ['قالب و تنظیمات منو', 'آنچه مشتری می‌بیند'],
+  orders: ['سفارشات آنلاین', 'مدیریت و پیگیری سفارشات ثبت‌شده مشتریان'],
+  settings: ['قالب و تنظیمات منو', 'آنچه مشتری می‌بیند و ربات تلگرام'],
   qr: ['کیوآر و منوی آفلاین', 'کیوآر لینک، منوی آفلاین و PWA'],
 };
 
@@ -660,6 +767,7 @@ async function load() {
   };
   if (state.pendingTheme === null) state.pendingTheme = state.data.settings.theme || 'espresso';
   renderAll();
+  loadOrders();
 }
 
 function renderAll() {
@@ -1089,8 +1197,142 @@ $('#seed-iranian').addEventListener('click', async () => {
 });
 
 /* ---------------------------------------------------------------- *
- *  Settings + theme grid
+ *  Orders (Live customer orders & table management)
  * ---------------------------------------------------------------- */
+async function loadOrders() {
+  try {
+    const res = await api('/orders');
+    state.orders = res.orders || [];
+    renderOrders();
+    updateOrdersBadge();
+  } catch (err) {
+    console.error('Failed to load orders', err);
+  }
+}
+
+function updateOrdersBadge() {
+  const badge = $('#orders-badge');
+  if (!badge) return;
+  const pending = (state.orders || []).filter((o) => o.status === 'pending').length;
+  if (pending > 0) {
+    badge.textContent = pending.toLocaleString('fa-IR');
+    badge.hidden = false;
+  } else {
+    badge.hidden = true;
+  }
+}
+
+function renderOrders() {
+  const body = $('#orders-body');
+  const empty = $('#orders-empty');
+  if (!body) return;
+  body.textContent = '';
+
+  const filtered = (state.orders || []).filter((o) => {
+    if (state.orderFilter === 'all') return true;
+    return o.status === state.orderFilter;
+  });
+
+  if (filtered.length === 0) {
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  const ORDER_STATUS_LABEL = {
+    pending: { text: 'در انتظار بررسی', class: 'badge-sold_out' },
+    completed: { text: 'تکمیل شده', class: 'badge-available' },
+    cancelled: { text: 'لغو شده', class: 'badge-hidden' },
+  };
+
+  for (const o of filtered) {
+    const tr = document.createElement('tr');
+    const st = ORDER_STATUS_LABEL[o.status] || { text: o.status, class: 'badge-hidden' };
+    const itemsSummary = (o.items || []).map((i) => `${i.name} (${(i.qty || i.count || 1).toLocaleString('fa-IR')}×)`).join('، ');
+
+    const tdId = document.createElement('td');
+    tdId.className = 'px-4 py-3 font-semibold mono text-xs';
+    tdId.textContent = `#${o.id}`;
+
+    const tdTable = document.createElement('td');
+    tdTable.className = 'px-4 py-3 font-bold text-stone-100';
+    tdTable.textContent = o.table_number || 'میز عمومی';
+
+    const tdItems = document.createElement('td');
+    tdItems.className = 'px-4 py-3 text-xs leading-relaxed max-w-xs';
+    tdItems.innerHTML = `<p class="font-medium text-stone-200">${itemsSummary || '—'}</p>` +
+      (o.customer_note ? `<p class="text-[11px] muted mt-1 bg-[var(--panel-2)] p-1 rounded border hair">📝 یادداشت: ${o.customer_note}</p>` : '');
+
+    const tdPrice = document.createElement('td');
+    tdPrice.className = 'px-4 py-3 text-left font-bold mono text-xs';
+    tdPrice.textContent = `${Number(o.total_price).toLocaleString('fa-IR')} ${state.data?.settings?.currency || 'تومان'}`;
+
+    const tdStatus = document.createElement('td');
+    tdStatus.className = 'px-4 py-3';
+    tdStatus.innerHTML = `<span class="badge ${st.class}">${st.text}</span>`;
+
+    const tdTime = document.createElement('td');
+    tdTime.className = 'px-4 py-3 mono text-[11px] muted';
+    tdTime.textContent = o.created_at || '—';
+
+    const tdActions = document.createElement('td');
+    tdActions.className = 'px-4 py-3 text-left whitespace-nowrap';
+
+    const btnGroup = document.createElement('div');
+    btnGroup.className = 'flex items-center gap-1.5 justify-end';
+
+    if (o.status === 'pending') {
+      const btnDone = document.createElement('button');
+      btnDone.type = 'button';
+      btnDone.className = 'btn btn-ghost text-xs px-2.5 py-1 text-emerald-400 hover:text-emerald-300 border border-emerald-900/50';
+      btnDone.textContent = '✓ تکمیل';
+      btnDone.addEventListener('click', () => updateOrderStatus(o.id, 'completed'));
+      btnGroup.append(btnDone);
+
+      const btnCancel = document.createElement('button');
+      btnCancel.type = 'button';
+      btnCancel.className = 'btn btn-ghost text-xs px-2 py-1 text-rose-400 hover:text-rose-300 border border-rose-900/50';
+      btnCancel.textContent = '✕ لغو';
+      btnCancel.addEventListener('click', () => updateOrderStatus(o.id, 'cancelled'));
+      btnGroup.append(btnCancel);
+    } else {
+      const btnReset = document.createElement('button');
+      btnReset.type = 'button';
+      btnReset.className = 'btn btn-ghost text-xs px-2 py-1 muted';
+      btnReset.textContent = 'تغییر به در انتظار';
+      btnReset.addEventListener('click', () => updateOrderStatus(o.id, 'pending'));
+      btnGroup.append(btnReset);
+    }
+
+    tdActions.append(btnGroup);
+    tr.append(tdId, tdTable, tdItems, tdPrice, tdStatus, tdTime, tdActions);
+    body.append(tr);
+  }
+}
+
+async function updateOrderStatus(orderId, status) {
+  try {
+    await api(`/orders/${orderId}`, { method: 'PUT', body: { status } });
+    toast('وضعیت سفارش تغییر یافت');
+    await loadOrders();
+  } catch (err) {
+    toast(err.message, true);
+  }
+}
+
+$$('.order-filter-btn').forEach((button) => {
+  button.addEventListener('click', () => {
+    $$('.order-filter-btn').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    button.setAttribute('aria-pressed', 'true');
+    state.orderFilter = button.dataset.orderFilter;
+    renderOrders();
+  });
+});
+
+$('#refresh-orders-btn')?.addEventListener('click', async () => {
+  toast('در حال به‌روزرسانی لیست سفارشات…');
+  await loadOrders();
+});
 
 const MAX_CARDS = 8;
 
@@ -1279,7 +1521,7 @@ function cardSettings() {
 
 function fillSettings() {
   const settings = state.data.settings;
-  for (const key of ['shop_name', 'tagline', 'currency', 'footer_note', 'custom_bg_url', 'font_family']) {
+  for (const key of ['shop_name', 'tagline', 'currency', 'footer_note', 'custom_bg_url', 'font_family', 'telegram_bot_token', 'telegram_chat_id']) {
     const field = $(`#set-${key}`);
     if (field) field.value = settings[key] || '';
   }
@@ -1291,6 +1533,8 @@ function fillSettings() {
   $('#set-reviews_title').value = settings.reviews_title || '';
   $('#set-reviews_enabled').checked = settings.reviews_enabled !== '0';
   $('#set-highlights_enabled').checked = settings.highlights_enabled !== '0';
+  const telegramToggle = $('#set-telegram_notifications_enabled');
+  if (telegramToggle) telegramToggle.checked = settings.telegram_notifications_enabled !== '0';
   state.draft.reviews = parseSettingCards(settings.reviews) || [];
   state.draft.highlights = parseSettingCards(settings.highlights) || [];
   renderReviewsEditor();
@@ -1347,6 +1591,9 @@ $('#settings-form').addEventListener('submit', async (event) => {
     reviews_title: $('#set-reviews_title').value.trim(),
     reviews_enabled: $('#set-reviews_enabled').checked ? '1' : '0',
     highlights_enabled: $('#set-highlights_enabled').checked ? '1' : '0',
+    telegram_bot_token: $('#set-telegram_bot_token')?.value.trim() || '',
+    telegram_chat_id: $('#set-telegram_chat_id')?.value.trim() || '',
+    telegram_notifications_enabled: $('#set-telegram_notifications_enabled')?.checked ? '1' : '0',
     ...cardSettings(),
   };
   try {
@@ -1357,6 +1604,64 @@ $('#settings-form').addEventListener('submit', async (event) => {
   } catch (error) {
     $('#settings-note').textContent = error.message;
     toast(error.message, true);
+  }
+});
+
+/* ---------------------------------------------------------------- *
+ *  Telegram Bot Actions (Test message & Webhook registration)
+ * ---------------------------------------------------------------- */
+$('#test-telegram-btn')?.addEventListener('click', async () => {
+  const token = $('#set-telegram_bot_token')?.value.trim();
+  const chatId = $('#set-telegram_chat_id')?.value.trim();
+  const statusNote = $('#telegram-action-status');
+  if (!token || !chatId) {
+    toast('لطفاً ابتدا توکن ربات و شناسه چت را وارد نمایید.', true);
+    if (statusNote) statusNote.textContent = 'خطا: فیلدهای توکن یا شناسه چت خالی هستند.';
+    return;
+  }
+  const btn = $('#test-telegram-btn');
+  btn.disabled = true;
+  if (statusNote) statusNote.textContent = 'در حال ارسال پیام به تلگرام…';
+  try {
+    const res = await api('/telegram/test', {
+      method: 'POST',
+      body: { token, chat_id: chatId },
+    });
+    if (statusNote) statusNote.textContent = res.message || 'پیام تستی با موفقیت در تلگرام دریافت شد!';
+    toast('پیام آزمایشی تلگرام ارسال شد');
+  } catch (err) {
+    if (statusNote) statusNote.textContent = 'خطا در ارتباط با تلگرام: ' + err.message;
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('#set-webhook-btn')?.addEventListener('click', async () => {
+  const token = $('#set-telegram_bot_token')?.value.trim();
+  const statusNote = $('#telegram-action-status');
+  if (!token) {
+    toast('لطفاً ابتدا توکن ربات تلگرام را وارد نمایید.', true);
+    if (statusNote) statusNote.textContent = 'خطا: توکن ربات خالی است.';
+    return;
+  }
+  const btn = $('#set-webhook-btn');
+  btn.disabled = true;
+  if (statusNote) statusNote.textContent = 'در حال ثبت وب‌هوک در سرور تلگرام…';
+  try {
+    const base = window.location.href.split('?')[0].split('#')[0];
+    const webhookUrl = base.substring(0, base.lastIndexOf('/') + 1) + 'webhook.php';
+    const res = await api('/telegram/set-webhook', {
+      method: 'POST',
+      body: { token, webhook_url: webhookUrl },
+    });
+    if (statusNote) statusNote.textContent = (res.message || 'وب‌هوک با موفقیت فعال گردید!') + ` (${webhookUrl})`;
+    toast('وب‌هوک تلگرام تنظیم شد');
+  } catch (err) {
+    if (statusNote) statusNote.textContent = 'خطا در تنظیم وب‌هوک: ' + err.message;
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false;
   }
 });
 
@@ -1375,6 +1680,9 @@ function show(view) {
   $('#page-title').textContent = VIEW_TITLE[view][0];
   $('#page-sub').textContent = VIEW_TITLE[view][1];
   $('#primary-action').hidden = view !== 'items';
+  if (view === 'orders') {
+    loadOrders();
+  }
   if (view === 'qr' && typeof window.renderPermanentQR === 'function') {
     window.renderPermanentQR();
   }

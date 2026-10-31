@@ -853,7 +853,7 @@
             </span>
 </div>
 <div>
-<div class="text-[11px] text-stone-300 font-medium">سفارش میز ۴</div>
+<div class="text-[11px] text-stone-300 font-medium" id="cart-table-label">سفارش میز ۴</div>
 <div class="text-sm font-black text-amber-200" id="cart-total-price">۰ تومان</div>
 </div>
 </div>
@@ -869,6 +869,75 @@
 <span id="toast-message" class="">به سفارش افزوده شد</span>
 </div>
 </div>
+
+<!-- ── Checkout Modal ─────────────────────────────────────────────── -->
+<div id="checkout-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" hidden>
+  <div class="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity" onclick="closeCheckoutModal()"></div>
+  <div class="relative w-full max-w-md bg-[#180f0a] border border-[#855137]/60 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] my-auto overflow-hidden z-10 text-stone-100">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-[#3d251a] bg-[#140b07] shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🛍️</span>
+        <h3 class="text-base font-black text-amber-100">ثبت نهایی سفارش</h3>
+      </div>
+      <button type="button" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-stone-400 hover:text-white transition-colors" onclick="closeCheckoutModal()" aria-label="بستن">✕</button>
+    </div>
+
+    <!-- Scrollable Body -->
+    <div class="p-5 space-y-4 overflow-y-auto scroll-smooth flex-1 text-xs">
+      <!-- Table Selector -->
+      <div>
+        <label class="block text-amber-200/90 font-bold mb-1.5" for="checkout-table">انتخاب میز یا وضعیت تحویل</label>
+        <select id="checkout-table" class="w-full bg-[#20120b] border border-[#523323] rounded-xl px-3 py-2.5 text-stone-100 font-medium focus:border-amber-400 focus:outline-none">
+          <option value="میز ۱">میز ۱</option>
+          <option value="میز ۲">میز ۲</option>
+          <option value="میز ۳">میز ۳</option>
+          <option value="میز ۴" selected>میز ۴</option>
+          <option value="میز ۵">میز ۵</option>
+          <option value="میز ۶">میز ۶</option>
+          <option value="میز ۷">میز ۷</option>
+          <option value="میز ۸">میز ۸</option>
+          <option value="میز ۹">میز ۹</option>
+          <option value="میز ۱۰">میز ۱۰</option>
+          <option value="سفارش بیرون‌بر (Takeout)">سفارش بیرون‌بر (Takeout)</option>
+        </select>
+      </div>
+
+      <!-- Itemized list -->
+      <div>
+        <div class="flex items-center justify-between text-stone-400 font-medium mb-2">
+          <span>اقلام انتخابی شما</span>
+          <span id="checkout-items-count" class="text-[11px] text-amber-300 font-bold"></span>
+        </div>
+        <div id="checkout-items-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- Customer Notes -->
+      <div>
+        <label class="block text-amber-200/90 font-bold mb-1.5" for="checkout-note">توضیحات و ترجیحات شما (اختیاری)</label>
+        <textarea id="checkout-note" rows="2" maxlength="300" placeholder="مثال: کم‌شکر، شیر بادام، اسپرسو دبل، بدون یخ..." class="w-full bg-[#20120b] border border-[#523323] rounded-xl p-2.5 text-stone-100 placeholder:text-stone-500 focus:border-amber-400 focus:outline-none"></textarea>
+      </div>
+
+      <!-- Total Price summary box -->
+      <div class="bg-[#120a06] border border-[#3d251a] rounded-xl p-3 flex items-center justify-between">
+        <span class="text-stone-400 font-medium">مبلغ کل سفارش:</span>
+        <span id="checkout-final-price" class="text-base font-black text-amber-300">۰ تومان</span>
+      </div>
+
+      <!-- Error / Status message -->
+      <p id="checkout-error" class="text-rose-400 text-xs" hidden></p>
+    </div>
+
+    <!-- Sticky Footer -->
+    <div class="sticky bottom-0 z-20 bg-[#140b07] border-t border-[#3d251a] p-4 flex gap-2 shrink-0">
+      <button type="button" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 font-bold transition-colors" onclick="closeCheckoutModal()">انصراف</button>
+      <button type="button" id="submit-order-btn" class="flex-1 py-2.5 rounded-xl bg-[color:var(--brand)] hover:bg-amber-200 text-[#1c120c] font-black shadow-lg active:scale-95 transition-all text-center" onclick="submitOrder()">
+        تأیید و ارسال سفارش به کافه ←
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Interactive Scripts -->
 <script>
     // Smooth Scroll to Timeline Nodes
@@ -895,24 +964,75 @@
       }
     }
 
-    // Cart Management
-    let cartCount = 0;
-    let totalPrice = 0;
+    // Dynamic Table Parameter Detection from URL (?table=5)
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableParam = urlParams.get('table');
+    if (tableParam) {
+      const tableLabel = `میز ${tableParam}`;
+      const barLabel = document.getElementById('cart-table-label');
+      if (barLabel) barLabel.textContent = `سفارش ${tableLabel}`;
+      const tableSelect = document.getElementById('checkout-table');
+      if (tableSelect) {
+        let matched = false;
+        for (const opt of tableSelect.options) {
+          if (opt.value === tableLabel) {
+            opt.selected = true;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          const newOpt = new Option(tableLabel, tableLabel, true, true);
+          tableSelect.add(newOpt);
+        }
+      }
+    }
 
-    function addToCart(itemName, price) {
-      cartCount += 1;
-      totalPrice += price;
+    // Cart Management
+    const cart = {}; // { [itemName]: { name, price, qty } }
+
+    window.addToCart = function(itemName, price) {
+      if (!cart[itemName]) {
+        cart[itemName] = { name: itemName, price: Number(price) || 0, qty: 0 };
+      }
+      cart[itemName].qty += 1;
+      updateCartUI();
+      showNotification(`${itemName} به سفارش اضافه شد`);
+    };
+
+    window.changeCartQty = function(itemName, delta) {
+      if (!cart[itemName]) return;
+      cart[itemName].qty += delta;
+      if (cart[itemName].qty <= 0) {
+        delete cart[itemName];
+      }
+      updateCartUI();
+      renderCheckoutList();
+    };
+
+    function getCartCount() {
+      return Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
+    }
+
+    function getCartTotal() {
+      return Object.values(cart).reduce((sum, item) => sum + (item.qty * item.price), 0);
+    }
+
+    function updateCartUI() {
+      const count = getCartCount();
+      const total = getCartTotal();
 
       const counter = document.getElementById('cart-counter');
-      const total = document.getElementById('cart-total-price');
+      const totalEl = document.getElementById('cart-total-price');
 
-      counter.textContent = cartCount.toLocaleString('fa-IR');
-      total.textContent = `${totalPrice.toLocaleString('fa-IR')} تومان`;
-
-      counter.classList.add('scale-125');
-      setTimeout(() => counter.classList.remove('scale-125'), 180);
-
-      showNotification(`${itemName} به سفارش اضافه شد`);
+      if (counter) {
+        counter.textContent = count.toLocaleString('fa-IR');
+        counter.classList.add('scale-125');
+        setTimeout(() => counter.classList.remove('scale-125'), 180);
+      }
+      if (totalEl) {
+        totalEl.textContent = `${total.toLocaleString('fa-IR')} تومان`;
+      }
     }
 
     function showNotification(msg) {
@@ -926,15 +1046,129 @@
       setTimeout(() => {
         toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
         toast.classList.remove('opacity-100', 'translate-y-0');
-      }, 2200);
+      }, 2400);
+    }
+
+    function openCheckoutModal() {
+      const count = getCartCount();
+      if (count === 0) {
+        showNotification('سبد سفارش خالی است. لطفاً آیتمی انتخاب کنید.');
+        return;
+      }
+      renderCheckoutList();
+      const modal = document.getElementById('checkout-modal');
+      if (modal) modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCheckoutModal() {
+      const modal = document.getElementById('checkout-modal');
+      if (modal) modal.hidden = true;
+      document.body.style.overflow = '';
+      const err = document.getElementById('checkout-error');
+      if (err) err.hidden = true;
+    }
+
+    function renderCheckoutList() {
+      const list = document.getElementById('checkout-items-list');
+      const countEl = document.getElementById('checkout-items-count');
+      const finalPriceEl = document.getElementById('checkout-final-price');
+      if (!list) return;
+
+      list.innerHTML = '';
+      const items = Object.values(cart);
+      const totalCount = getCartCount();
+      const totalPrice = getCartTotal();
+
+      if (countEl) countEl.textContent = `${totalCount.toLocaleString('fa-IR')} آیتم`;
+      if (finalPriceEl) finalPriceEl.textContent = `${totalPrice.toLocaleString('fa-IR')} تومان`;
+
+      if (items.length === 0) {
+        list.innerHTML = '<p class="text-stone-500 py-3 text-center">سبد سفارش خالی است.</p>';
+        return;
+      }
+
+      items.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between bg-[#22140c] p-2.5 rounded-xl border border-[#3d251a]';
+        row.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <p class="font-bold text-stone-100 truncate">${item.name}</p>
+            <p class="text-[11px] text-amber-200/70 font-mono">${(item.price * item.qty).toLocaleString('fa-IR')} تومان</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" class="w-6 h-6 rounded-lg bg-[#381f13] hover:bg-[#4a2a1b] text-amber-200 font-black flex items-center justify-center text-xs active:scale-90 transition-transform" onclick="changeCartQty('${item.name.replace(/'/g, "\\'")}', -1)">-</button>
+            <span class="font-bold text-xs w-4 text-center text-stone-100">${item.qty.toLocaleString('fa-IR')}</span>
+            <button type="button" class="w-6 h-6 rounded-lg bg-[#381f13] hover:bg-[#4a2a1b] text-amber-200 font-black flex items-center justify-center text-xs active:scale-90 transition-transform" onclick="changeCartQty('${item.name.replace(/'/g, "\\'")}', 1)">+</button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    async function submitOrder() {
+      const items = Object.values(cart);
+      if (items.length === 0) {
+        showNotification('سبد سفارش خالی است.');
+        return;
+      }
+
+      const tableSelect = document.getElementById('checkout-table');
+      const tableNumber = tableSelect ? tableSelect.value : 'میز ۴';
+      const noteInput = document.getElementById('checkout-note');
+      const note = noteInput ? noteInput.value.trim() : '';
+      const totalPrice = getCartTotal();
+
+      const btn = document.getElementById('submit-order-btn');
+      const errBox = document.getElementById('checkout-error');
+      if (errBox) errBox.hidden = true;
+
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = 'در حال ارسال به باریستا…';
+
+      try {
+        const payload = {
+          table_number: tableNumber,
+          customer_note: note,
+          total_price: totalPrice,
+          items: items.map((i) => ({ name: i.name, qty: i.qty, price: i.price })),
+        };
+
+        const res = await fetch('api.php?path=/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok || data?.ok === false) {
+          throw new Error(data?.error || `خطا در ثبت سفارش (${res.status})`);
+        }
+
+        // Clear cart
+        for (const k in cart) delete cart[k];
+        updateCartUI();
+        closeCheckoutModal();
+
+        // Celebration Toast
+        showNotification(`🎉 سفارش ${tableNumber} با موفقیت ثبت شد و به باریستا ارسال گردید!`);
+      } catch (err) {
+        if (errBox) {
+          errBox.textContent = err.message || 'خطا در برقراری ارتباط با سرور.';
+          errBox.hidden = false;
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     }
 
     function handleCheckout() {
-      if (cartCount === 0) {
-        showNotification('سبد سفارش خالی است. لطفاً آیتمی انتخاب کنید.');
-      } else {
-        showNotification(`سفارش میز ۴ با مبلغ ${totalPrice.toLocaleString('fa-IR')} تومان ثبت گردید.`);
-      }
+      openCheckoutModal();
     }
 
     // Nav active state is driven by app.js watchSections() (IntersectionObserver).

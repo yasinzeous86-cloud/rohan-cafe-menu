@@ -222,6 +222,10 @@ const SETTING_RULES = [
     'reviews'            => 6000,
     'highlights_enabled' => 3,
     'highlights'         => 6000,
+    // Telegram bot integration & notifications
+    'telegram_bot_token'             => 120,
+    'telegram_chat_id'               => 60,
+    'telegram_notifications_enabled' => 3,
 ];
 
 /**
@@ -258,11 +262,14 @@ function default_settings(): array
     ];
 
     return [
-        'reviews_enabled'    => '1',
-        'reviews_title'      => 'مشتری‌ها درباره ما چی میگن',
-        'reviews'            => json_encode($reviews, JSON_UNESCAPED_UNICODE),
-        'highlights_enabled' => '1',
-        'highlights'         => json_encode($highlights, JSON_UNESCAPED_UNICODE),
+        'reviews_enabled'                => '1',
+        'reviews_title'                  => 'مشتری‌ها درباره ما چی میگن',
+        'reviews'                        => json_encode($reviews, JSON_UNESCAPED_UNICODE),
+        'highlights_enabled'             => '1',
+        'highlights'                     => json_encode($highlights, JSON_UNESCAPED_UNICODE),
+        'telegram_bot_token'             => '',
+        'telegram_chat_id'               => '',
+        'telegram_notifications_enabled' => '1',
     ];
 }
 
@@ -275,9 +282,9 @@ const FONT_CHOICES = ['Vazirmatn', 'Lalezar', 'Dana', 'YekanBakh'];
  */
 function check_setting(string $key, string $text): void
 {
-    if (in_array($key, ['reviews_enabled', 'highlights_enabled'], true)) {
+    if (in_array($key, ['reviews_enabled', 'highlights_enabled', 'telegram_notifications_enabled'], true)) {
         if ($text !== '' && !in_array($text, ['0', '1'], true)) {
-            fail(422, "Setting '$key' must be 0 (hidden) or 1 (shown)");
+            fail(422, "Setting '$key' must be 0 (hidden/off) or 1 (shown/on)");
         }
         return;
     }
@@ -474,6 +481,21 @@ function db(): PDO
         } catch (Throwable $e) {
             // column already exists
         }
+        try {
+            $pdo->exec('CREATE TABLE IF NOT EXISTS orders (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                table_number  TEXT    NOT NULL DEFAULT \'میز عمومی\',
+                items_json    TEXT    NOT NULL DEFAULT \'[]\',
+                total_price   REAL    NOT NULL DEFAULT 0,
+                status        TEXT    NOT NULL DEFAULT \'pending\',
+                customer_note TEXT    NOT NULL DEFAULT \'\',
+                created_at    TEXT    NOT NULL DEFAULT (datetime(\'now\', \'localtime\')),
+                updated_at    TEXT    NOT NULL DEFAULT (datetime(\'now\', \'localtime\'))
+            )');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_status  ON orders(status)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)');
+        } catch (Throwable $e) {
+        }
     }
     return $pdo;
 }
@@ -507,6 +529,20 @@ function create_schema(PDO $pdo): void
         setting_key   TEXT PRIMARY KEY,
         setting_value TEXT NOT NULL DEFAULT \'\'
     )');
+
+    $pdo->exec('CREATE TABLE IF NOT EXISTS orders (
+        id            INTEGER PRIMARY KEY AUTOINCREMENT,
+        table_number  TEXT    NOT NULL DEFAULT \'میز عمومی\',
+        items_json    TEXT    NOT NULL DEFAULT \'[]\',
+        total_price   REAL    NOT NULL DEFAULT 0,
+        status        TEXT    NOT NULL DEFAULT \'pending\',
+        customer_note TEXT    NOT NULL DEFAULT \'\',
+        created_at    TEXT    NOT NULL DEFAULT (datetime(\'now\', \'localtime\')),
+        updated_at    TEXT    NOT NULL DEFAULT (datetime(\'now\', \'localtime\'))
+    )');
+
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_status  ON orders(status)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)');
 }
 
 /** First-run demo menu — delete or edit freely, it only runs once. */
@@ -646,8 +682,9 @@ $resource = $segments[0] ?? '';
 $id       = isset($segments[1]) ? (int) $segments[1] : null;
 
 $is_read  = ($method === 'GET' || $method === 'HEAD');
-// Only the root payload is public. Every other route needs the admin token.
-$needs_auth = !($is_read && $resource === '');
+$is_public_order = ($method === 'POST' && $resource === 'orders');
+// Root payload (GET /) and customer checkout (POST /orders) are public.
+$needs_auth = !(($is_read && $resource === '') || $is_public_order);
 if ($needs_auth) {
     require_admin();
 }
@@ -819,6 +856,132 @@ try {
             }
             ok(['settings' => all_settings($db)]);
         }
+        fail(404, 'Not found');
+    }
+
+    /* ---- orders ---- */
+    if ($resource === 'orders') {
+        if ($method === 'POST' && $id === null) {
+            $in          = body();
+            $tableNumber = str_field($in, 'table_number', 'میز عمومی', 50);
+            $note        = str_field($in, 'customer_note', '', 300);
+            $totalPrice  = price_field($in, 'total_price', 0.0);
+            $items       = $in['items'] ?? [];
+
+            if (!is_array($items) || empty($items)) {
+                fail(422, 'سبد سفارش نمی‌تواند خالی باشد.');
+            }
+
+            $cleanItems = [];
+            foreach ($items as $it) {
+                if (!is_array($it)) continue;
+                $cleanItems[] = [
+                    'name'  => trim((string) ($it['name'] ?? 'آیتم')),
+                    'qty'   => max(1, (int) ($it['qty'] ?? $it['count'] ?? 1)),
+                    'price' => max(0.0, (float) ($it['price'] ?? 0)),
+                ];
+            }
+            if (empty($cleanItems)) {
+                fail(422, 'آیتم‌های معتبری در سفارش یافت نشد.');
+            }
+
+            $itemsJson = json_encode($cleanItems, JSON_UNESCAPED_UNICODE);
+            $stmt = $db->prepare('INSERT INTO orders (table_number, items_json, total_price, customer_note, status) VALUES (?, ?, ?, ?, ?)');
+            $stmt->execute([$tableNumber, $itemsJson, $totalPrice, $note, 'pending']);
+            $orderId = (int) $db->lastInsertId();
+
+            $telegramSent = notify_telegram_new_order($db, $orderId, $tableNumber, $cleanItems, $totalPrice, $note);
+
+            ok([
+                'order_id'      => $orderId,
+                'table_number'  => $tableNumber,
+                'total_price'   => $totalPrice,
+                'telegram_sent' => $telegramSent,
+                'message'       => 'سفارش شما با موفقیت ثبت شد و به باریستا ارسال گردید.',
+            ]);
+        }
+
+        if ($method === 'GET') {
+            $stmt = $db->query('SELECT id, table_number, items_json, total_price, status, customer_note, created_at FROM orders ORDER BY id DESC LIMIT 50');
+            $rows = $stmt->fetchAll();
+            foreach ($rows as &$r) {
+                $r['id'] = (int) $r['id'];
+                $r['total_price'] = (float) $r['total_price'];
+                $r['items'] = json_decode((string) $r['items_json'], true) ?: [];
+            }
+            unset($r);
+            ok(['orders' => $rows]);
+        }
+
+        if (($method === 'PUT' || ($method === 'POST' && $id !== null)) && $id !== null) {
+            $in     = body();
+            $status = str_field($in, 'status', 'pending', 20);
+            if (!in_array($status, ['pending', 'completed', 'cancelled'], true)) {
+                fail(422, 'وضعیت سفارش نامعتبر است.');
+            }
+            $db->prepare('UPDATE orders SET status = ?, updated_at = datetime(\'now\', \'localtime\') WHERE id = ?')
+               ->execute([$status, $id]);
+            ok(['updated' => $id, 'status' => $status]);
+        }
+
+        fail(404, 'Not found');
+    }
+
+    /* ---- telegram actions ---- */
+    if ($resource === 'telegram') {
+        $sub = $segments[1] ?? '';
+        if ($sub === 'test' && $method === 'POST') {
+            $in       = body();
+            $settings = all_settings($db);
+            $token    = trim((string) ($in['token'] ?? $settings['telegram_bot_token'] ?? ''));
+            $chatId   = trim((string) ($in['chat_id'] ?? $settings['telegram_chat_id'] ?? ''));
+
+            if ($token === '' || $chatId === '') {
+                fail(422, 'توکن ربات یا شناسه چت تنظیم نشده است.');
+            }
+
+            $testMsg = "☕️ <b>تست اتصال ربات منوی کافه رُهان</b>\n\n" .
+                       "اتصال با موفقیت برقرار شد! سیستم ارسال نوتیفیکیشن سفارشات آنلاین آماده به کار است.\n\n" .
+                       "🕒 زمان تست: " . date('Y/m/d H:i:s');
+
+            $res = send_telegram_request($token, 'sendMessage', [
+                'chat_id'    => $chatId,
+                'text'       => $testMsg,
+                'parse_mode' => 'HTML',
+            ]);
+
+            if (empty($res['ok'])) {
+                fail(400, 'خطا در ارتباط با تلگرام: ' . ($res['description'] ?? $res['error'] ?? 'خطای نامشخص'));
+            }
+
+            ok(['telegram_response' => $res, 'message' => 'پیام آزمایشی به تلگرام ارسال شد!']);
+        }
+
+        if ($sub === 'set-webhook' && $method === 'POST') {
+            $in       = body();
+            $settings = all_settings($db);
+            $token    = trim((string) ($in['token'] ?? $settings['telegram_bot_token'] ?? ''));
+            $url      = trim((string) ($in['webhook_url'] ?? ''));
+
+            if ($token === '') {
+                fail(422, 'توکن ربات تنظیم نشده است.');
+            }
+            if ($url === '') {
+                fail(422, 'آدرس وب‌هوک ارسال نشده است.');
+            }
+
+            $res = send_telegram_request($token, 'setWebhook', [
+                'url' => $url,
+                'allowed_updates' => ['message', 'callback_query'],
+            ]);
+
+            if (empty($res['ok'])) {
+                fail(400, 'خطا در ثبت وب‌هوک: ' . ($res['description'] ?? $res['error'] ?? 'خطای نامشخص'));
+            }
+
+            ok(['telegram_response' => $res, 'message' => 'وب‌هوک ربات تلگرام با موفقیت ثبت شد!']);
+        }
+
         fail(404, 'Not found');
     }
 
@@ -1059,4 +1222,119 @@ function item_values(PDO $db, array $in, ?array $current): array
     }
 
     return [$category_id, $name, $description, $price, $status, $sort_order, $image_url];
+}
+
+/* ------------------------------------------------------------------ *
+ *  Telegram Bot API Integration
+ * ------------------------------------------------------------------ */
+
+/**
+ * Send an HTTP request to the Telegram Bot API.
+ */
+function send_telegram_request(string $botToken, string $method, array $params = []): array
+{
+    $botToken = trim($botToken);
+    if ($botToken === '') {
+        return ['ok' => false, 'error' => 'Bot token is empty'];
+    }
+
+    $url = "https://api.telegram.org/bot{$botToken}/{$method}";
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($params, JSON_UNESCAPED_UNICODE),
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 6,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err !== '' || $response === false) {
+            return ['ok' => false, 'error' => $err ?: 'Network error'];
+        }
+        $data = json_decode((string) $response, true);
+        return is_array($data) ? $data : ['ok' => false, 'error' => 'Invalid JSON from Telegram'];
+    }
+
+    $opts = [
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json; charset=utf-8\r\n",
+            'content' => json_encode($params, JSON_UNESCAPED_UNICODE),
+            'timeout' => 6,
+            'ignore_errors' => true,
+        ],
+    ];
+    $ctx = stream_context_create($opts);
+    $response = @file_get_contents($url, false, $ctx);
+    if ($response === false) {
+        return ['ok' => false, 'error' => 'Connection to Telegram API failed'];
+    }
+    $data = json_decode($response, true);
+    return is_array($data) ? $data : ['ok' => false, 'error' => 'Invalid JSON from Telegram'];
+}
+
+/**
+ * Format and dispatch real-time Telegram order notification to admin.
+ */
+function notify_telegram_new_order(PDO $db, int $orderId, string $tableNumber, array $items, float $totalPrice, string $note = ''): bool
+{
+    $settings = all_settings($db);
+    $enabled  = ($settings['telegram_notifications_enabled'] ?? '1') !== '0';
+    $token    = trim((string) ($settings['telegram_bot_token'] ?? ''));
+    $chatId   = trim((string) ($settings['telegram_chat_id'] ?? ''));
+
+    if (!$enabled || $token === '' || $chatId === '') {
+        return false;
+    }
+
+    $currency = $settings['currency'] ?? 'تومان';
+    $time     = date('H:i');
+    $date     = date('Y/m/d');
+
+    $msg  = "🔔 <b>سفارش جدید ثبت شد! (#{$orderId})</b>\n\n";
+    $msg .= "📍 <b>شماره میز:</b> <code>{$tableNumber}</code>\n";
+    $msg .= "🕒 <b>زمان ثبت:</b> {$time} — {$date}\n\n";
+    $msg .= "📋 <b>اقلام سفارش:</b>\n";
+
+    foreach ($items as $item) {
+        $name  = htmlspecialchars((string) ($item['name'] ?? 'آیتم'), ENT_QUOTES, 'UTF-8');
+        $qty   = max(1, (int) ($item['qty'] ?? 1));
+        $price = (float) ($item['price'] ?? 0);
+        $itemTotal = number_format($price * $qty) . ' ' . $currency;
+        $msg .= "▫️ <b>{$qty}×</b> {$name} (<code>{$itemTotal}</code>)\n";
+    }
+
+    $formattedTotal = number_format($totalPrice) . ' ' . $currency;
+    $msg .= "\n💰 <b>مبلغ کل:</b> <code>{$formattedTotal}</code>\n";
+
+    if ($note !== '') {
+        $safeNote = htmlspecialchars($note, ENT_QUOTES, 'UTF-8');
+        $msg .= "📝 <b>یادداشت مشتری:</b> <i>{$safeNote}</i>\n";
+    }
+
+    $msg .= "\n⚡️ <i>وضعیت: در انتظار آماده‌سازی</i>";
+
+    $keyboard = [
+        'inline_keyboard' => [
+            [
+                ['text' => '✅ تأیید و آماده‌سازی', 'callback_data' => "order_complete_{$orderId}"],
+                ['text' => '❌ لغو سفارش',         'callback_data' => "order_cancel_{$orderId}"],
+            ],
+        ],
+    ];
+
+    $res = send_telegram_request($token, 'sendMessage', [
+        'chat_id'      => $chatId,
+        'text'         => $msg,
+        'parse_mode'   => 'HTML',
+        'reply_markup' => $keyboard,
+    ]);
+
+    return !empty($res['ok']);
 }
