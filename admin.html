@@ -79,6 +79,70 @@
 
   .filter-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 
+  /* Modal Explicit Classes — 100% Reliable & Fully Responsive */
+  #modal:not([hidden]) {
+    display: flex !important;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  .modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 32rem;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 0.85rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
+    overflow: hidden;
+    margin: auto;
+    z-index: 10;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+    flex-shrink: 0;
+  }
+  .modal-body {
+    padding: 1.25rem;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    background: var(--panel-2);
+    border-top: 1px solid var(--line);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -134,6 +198,10 @@
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm flex items-center justify-between" data-view="orders">
         <span>سفارشات آنلاین</span>
         <span id="orders-badge" class="badge badge-sold_out text-[10px] px-1.5 py-0.5" hidden>۰</span>
+      </button>
+      <button class="nav-item w-full text-right px-5 py-2.5 text-sm flex items-center justify-between" data-view="telegram">
+        <span>ربات تلگرام</span>
+        <span class="mono text-xs">🤖</span>
       </button>
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="settings">قالب و تنظیمات منو</button>
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="qr">کیوآر و منوی آفلاین</button>
@@ -268,6 +336,123 @@
         <p id="orders-empty" class="panel border rounded-xl p-10 text-center text-sm muted" hidden>
           هنوز سفارشی با این فیلتر ثبت نشده است.
         </p>
+      </section>
+
+      <!-- ── TELEGRAM BOT PANEL ─────────────────────────────────────── -->
+      <section id="view-telegram" hidden class="space-y-6">
+        <!-- Status & Overview Banner -->
+        <div class="panel border rounded-xl p-5 sm:p-6 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span class="w-12 h-12 rounded-xl grid place-items-center text-2xl" style="background:var(--panel-2);border:1px solid var(--line)">🤖</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-base sm:text-lg font-bold text-white">پنل اختصاصی ربات تلگرام</h2>
+                  <span id="tg-status-badge" class="badge badge-sold_out">در انتظار تنظیم</span>
+                </div>
+                <p class="text-xs muted mt-0.5">دریافت لحظه‌ای فاکتورها، ارسال نوتیفیکیشن صوتی به موبایل و مدیریت سفارشات و موجودی آیتم‌ها</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" id="tg-panel-test-btn" class="btn btn-ghost text-xs flex items-center gap-1.5">
+                <span>📨</span>
+                <span>ارسال پیام تستی به تلگرام</span>
+              </button>
+              <button type="button" id="tg-panel-webhook-btn" class="btn btn-primary text-xs flex items-center gap-1.5">
+                <span>🔗</span>
+                <span>فعال‌سازی وب‌هوک ربات</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Webhook live URL display -->
+          <div class="p-3.5 rounded-lg border hair bg-[var(--panel-2)] flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="min-w-0 flex-1">
+              <span class="mono text-[0.62rem] muted block mb-1">آدرس زنده وب‌هوک اختصاصی ربات (Webhook Endpoint):</span>
+              <code id="tg-webhook-url" class="mono text-xs select-all text-amber-200 truncate block" dir="ltr">...</code>
+            </div>
+            <button type="button" id="tg-copy-webhook-btn" class="btn btn-ghost text-xs whitespace-nowrap">کپی آدرس وب‌هوک</button>
+          </div>
+
+          <div id="tg-feedback-alert" class="text-xs p-3 rounded-lg border hair" style="background:#132018;border-color:var(--ok);color:var(--ok)" hidden></div>
+        </div>
+
+        <!-- Configuration Grid -->
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] items-start">
+          <!-- Credentials Form Card -->
+          <form id="telegram-panel-form" class="panel border rounded-xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between border-b hair pb-3">
+              <h3 class="text-sm font-bold text-white">مشخصات و توکن اتصال</h3>
+              <label class="flex items-center gap-2 text-xs muted cursor-pointer whitespace-nowrap">
+                <input type="checkbox" id="tg-notify-toggle" style="width:1rem;height:1rem">
+                <span>هشدار سفارش جدید</span>
+              </label>
+            </div>
+
+            <div>
+              <label class="text-xs muted block mb-1.5 font-medium" for="tg-token-input">توکن ربات تلگرام (Bot Token)</label>
+              <input id="tg-token-input" dir="ltr" class="mono text-xs" maxlength="120" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" required>
+              <p class="text-[11px] muted mt-1">از طریق ربات رسمی <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">BotFather@</a> با دستور newbot/ دریافت کنید.</p>
+            </div>
+
+            <div>
+              <label class="text-xs muted block mb-1.5 font-medium" for="tg-chat-input">شناسه عددی چت یا گروه مدیر (Chat ID)</label>
+              <input id="tg-chat-input" dir="ltr" class="mono text-xs" maxlength="60" placeholder="مثلاً: 123456789 یا برای گروه: 100123456789-" required>
+              <p class="text-[11px] muted mt-1">با ارسال یک پیام به ربات <a href="https://t.me/userinfobot" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">userinfobot@</a> عدد شناسه (Id) خود را بردارید.</p>
+            </div>
+
+            <div class="pt-2 flex items-center justify-between gap-3">
+              <button class="btn btn-primary" type="submit">ذخیره‌ی تنظیمات تلگرام</button>
+              <span id="tg-save-note" class="text-xs muted" aria-live="polite"></span>
+            </div>
+          </form>
+
+          <!-- Interactive Menu Commands Card -->
+          <div class="panel border rounded-xl p-5 sm:p-6 space-y-4">
+            <div class="border-b hair pb-3">
+              <h3 class="text-sm font-bold text-white">امکانات پنل تعاملی ربات در تلگرام</h3>
+              <p class="text-xs muted mt-0.5">پس از زدن دستور <code class="mono px-1 rounded bg-black/40">/start</code>، این منوی دکمه‌ای در تلگرام شما ظاهر می‌شود:</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-lg border hair bg-[var(--panel-2)] space-y-1">
+                <p class="font-bold text-amber-200">📦 سفارشات فعال</p>
+                <p class="text-muted leading-relaxed text-[11px]">مشاهده صف سفارشات در انتظار با دکمه‌های شیشه‌ای برای «تکمیل و تحویل ✅» یا «لغو سفارش ❌»</p>
+              </div>
+
+              <div class="p-3 rounded-lg border hair bg-[var(--panel-2)] space-y-1">
+                <p class="font-bold text-amber-200">🍔 مدیریت آیتم‌ها</p>
+                <p class="text-muted leading-relaxed text-[11px]">تغییر آنی وضعیت موجودی اقلام (موجود / تمام شد) به صورت زنده از تلگرام بدون نیاز به باز کردن سایت</p>
+              </div>
+
+              <div class="p-3 rounded-lg border hair bg-[var(--panel-2)] space-y-1">
+                <p class="font-bold text-amber-200">📊 گزارش فروش امروز</p>
+                <p class="text-muted leading-relaxed text-[11px]">محاسبه خودکار مجموع مبلغ فروش روز، تعداد فاکتورهای تحویل‌شده، فعال و لغو شده</p>
+              </div>
+
+              <div class="p-3 rounded-lg border hair bg-[var(--panel-2)] space-y-1">
+                <p class="font-bold text-amber-200">💬 بررسی نظرات</p>
+                <p class="text-muted leading-relaxed text-[11px]">مشاهده جدیدترین نظرات و امتیازات ستاره‌ای ثبت‌شده توسط مشتریان</p>
+              </div>
+
+              <div class="p-3 rounded-lg border hair bg-[var(--panel-2)] space-y-1 sm:col-span-2">
+                <p class="font-bold text-amber-200">🔔 تنظیمات نوتیفیکیشن</p>
+                <p class="text-muted leading-relaxed text-[11px]">روشن یا خاموش کردن دریافت هشدار سفارش جدید از طریق خود ربات تلگرام</p>
+              </div>
+            </div>
+
+            <!-- 4-step quick guide -->
+            <div class="border-t hair pt-4">
+              <h4 class="text-xs font-bold text-stone-200 mb-2">راهنمای راه‌اندازی ۴ مرحله‌ای:</h4>
+              <ol class="list-decimal list-inside space-y-1 text-[11px] text-stone-400 leading-relaxed">
+                <li>در تلگرام به <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">@BotFather</a> پیام داده و با دستور <code class="mono bg-black/40 px-1 rounded">/newbot</code> ربات بسازید و توکن آن را کپی کنید.</li>
+                <li>به <a href="https://t.me/userinfobot" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">@userinfobot</a> پیام دهید و عدد شناسه عددی (Id) را دریافت کنید.</li>
+                <li>توکن و شناسه را در فرم سمت راست وارد کرده و دکمه‌ی «ذخیره تنظیمات تلگرام» را بزنید.</li>
+                <li>وارد ربات ساخته‌شده شوید، دکمه <code class="mono bg-black/40 px-1 rounded">/start</code> را بزنید، سپس در این صفحه روی «فعال‌سازی وب‌هوک ربات» کلیک کنید.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- SETTINGS -->
@@ -542,18 +727,18 @@
 </div>
 
 <!-- ── Item modal ─────────────────────────────────────────────── -->
-<div id="modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" hidden>
-  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity" data-close></div>
-  <div class="relative w-full max-w-lg panel border rounded-xl shadow-2xl flex flex-col max-h-[90vh] my-auto overflow-hidden z-10">
-    <div class="flex items-center justify-between px-5 py-4 border-b hair shrink-0 bg-[#170e0a]">
-      <h2 id="modal-title" class="font-semibold">افزودن آیتم</h2>
+<div id="modal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modal-title" class="font-semibold text-sm sm:text-base">افزودن آیتم</h2>
       <button class="btn btn-ghost px-2.5" data-close aria-label="بستن">✕</button>
     </div>
     <form id="item-form" class="flex flex-col flex-1 min-h-0 overflow-hidden">
       <!-- Scrollable Form Content Body -->
-      <div class="p-5 space-y-4 overflow-y-auto scroll-smooth flex-1">
+      <div class="modal-body">
         <div>
-          <label class="text-xs muted block mb-1.5" for="f-name">نام</label>
+          <label class="text-xs muted block mb-1.5" for="f-name">نام آیتم</label>
           <input id="f-name" maxlength="120" placeholder="فلت وایت" required>
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -620,10 +805,13 @@
       </div>
 
       <!-- Sticky Action Footer -->
-      <div class="sticky bottom-0 z-20 bg-[#1a0f0a] border-t border-[#3d251a] p-4 flex justify-end gap-2 shrink-0">
+      <div class="modal-footer">
         <button class="btn btn-ghost" type="button" data-close>انصراف</button>
         <button class="btn btn-primary" type="submit" id="modal-save">ذخیره‌ی آیتم</button>
       </div>
+    </form>
+  </div>
+</div>
     </form>
   </div>
 </div>
@@ -654,7 +842,8 @@ const VIEW_TITLE = {
   items: ['آیتم‌های منو', 'هر آنچه در منو هست'],
   categories: ['دسته‌بندی‌ها', 'منو چطور گروه‌بندی شده'],
   orders: ['سفارشات آنلاین', 'مدیریت و پیگیری سفارشات ثبت‌شده مشتریان'],
-  settings: ['قالب و تنظیمات منو', 'آنچه مشتری می‌بیند و ربات تلگرام'],
+  telegram: ['ربات تلگرام و نوتیفیکیشن‌ها', 'اتصال ربات، نوتیفیکیشن زنده و مدیریت دوطرفه سفارشات'],
+  settings: ['قالب و تنظیمات منو', 'شخصی‌سازی ظاهر، رنگ‌ها و بخش‌های منو'],
   qr: ['کیوآر و منوی آفلاین', 'کیوآر لینک، منوی آفلاین و PWA'],
 };
 
@@ -1535,6 +1724,33 @@ function fillSettings() {
   $('#set-highlights_enabled').checked = settings.highlights_enabled !== '0';
   const telegramToggle = $('#set-telegram_notifications_enabled');
   if (telegramToggle) telegramToggle.checked = settings.telegram_notifications_enabled !== '0';
+
+  // Dedicated Telegram Dashboard Panel Fields
+  const tgToken = $('#tg-token-input');
+  const tgChat = $('#tg-chat-input');
+  const tgToggle = $('#tg-notify-toggle');
+  const tgBadge = $('#tg-status-badge');
+  const tgUrl = $('#tg-webhook-url');
+
+  if (tgToken) tgToken.value = settings.telegram_bot_token || '';
+  if (tgChat) tgChat.value = settings.telegram_chat_id || '';
+  if (tgToggle) tgToggle.checked = settings.telegram_notifications_enabled !== '0';
+
+  if (tgBadge) {
+    if (settings.telegram_bot_token && settings.telegram_chat_id) {
+      tgBadge.textContent = 'متصل و فعال ✅';
+      tgBadge.className = 'badge badge-available';
+    } else {
+      tgBadge.textContent = 'در انتظار تنظیم توکن 🟡';
+      tgBadge.className = 'badge badge-sold_out';
+    }
+  }
+
+  if (tgUrl) {
+    const base = window.location.href.split('?')[0].split('#')[0];
+    tgUrl.textContent = base.substring(0, base.lastIndexOf('/') + 1) + 'webhook.php';
+  }
+
   state.draft.reviews = parseSettingCards(settings.reviews) || [];
   state.draft.highlights = parseSettingCards(settings.highlights) || [];
   renderReviewsEditor();
@@ -1666,22 +1882,162 @@ $('#set-webhook-btn')?.addEventListener('click', async () => {
 });
 
 /* ---------------------------------------------------------------- *
+ *  Dedicated Telegram Bot Dashboard Actions
+ * ---------------------------------------------------------------- */
+$('#telegram-panel-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const token = $('#tg-token-input')?.value.trim() || '';
+  const chatId = $('#tg-chat-input')?.value.trim() || '';
+  const notify = $('#tg-notify-toggle')?.checked ? '1' : '0';
+  const saveNote = $('#tg-save-note');
+
+  try {
+    await api('/settings', {
+      method: 'POST',
+      body: {
+        telegram_bot_token: token,
+        telegram_chat_id: chatId,
+        telegram_notifications_enabled: notify,
+      },
+    });
+    if (saveNote) saveNote.textContent = 'تنظیمات ربات تلگرام با موفقیت ذخیره شد!';
+    toast('تنظیمات ربات تلگرام با موفقیت ذخیره شد');
+    await load();
+  } catch (err) {
+    if (saveNote) saveNote.textContent = err.message;
+    toast(err.message, true);
+  }
+});
+
+$('#tg-panel-test-btn')?.addEventListener('click', async () => {
+  const token = $('#tg-token-input')?.value.trim();
+  const chatId = $('#tg-chat-input')?.value.trim();
+  const alertBox = $('#tg-feedback-alert');
+
+  if (!token || !chatId) {
+    toast('لطفاً توکن ربات و شناسه چت را وارد نمایید.', true);
+    if (alertBox) {
+      alertBox.textContent = '⚠️ خطا: ابتدا فیلدهای توکن ربات و شناسه چت را تکمیل کنید.';
+      alertBox.style.color = 'var(--danger)';
+      alertBox.style.borderColor = 'var(--danger)';
+      alertBox.style.background = '#221114';
+      alertBox.hidden = false;
+    }
+    return;
+  }
+
+  const btn = $('#tg-panel-test-btn');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'در حال ارسال…';
+
+  try {
+    const res = await api('/telegram/test', {
+      method: 'POST',
+      body: { token, chat_id: chatId },
+    });
+    if (alertBox) {
+      alertBox.textContent = '✅ ' + (res.message || 'پیام تستی با موفقیت در تلگرام شما دریافت شد!');
+      alertBox.style.color = 'var(--ok)';
+      alertBox.style.borderColor = 'var(--ok)';
+      alertBox.style.background = '#132018';
+      alertBox.hidden = false;
+    }
+    toast('پیام آزمایشی تلگرام ارسال شد');
+  } catch (err) {
+    if (alertBox) {
+      alertBox.textContent = '❌ خطا در ارسال پیام به تلگرام: ' + err.message;
+      alertBox.style.color = 'var(--danger)';
+      alertBox.style.borderColor = 'var(--danger)';
+      alertBox.style.background = '#221114';
+      alertBox.hidden = false;
+    }
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+});
+
+$('#tg-panel-webhook-btn')?.addEventListener('click', async () => {
+  const token = $('#tg-token-input')?.value.trim();
+  const alertBox = $('#tg-feedback-alert');
+
+  if (!token) {
+    toast('لطفاً ابتدا توکن ربات تلگرام را وارد نمایید.', true);
+    if (alertBox) {
+      alertBox.textContent = '⚠️ خطا: فیلد توکن ربات تلگرام خالی است.';
+      alertBox.style.color = 'var(--danger)';
+      alertBox.style.borderColor = 'var(--danger)';
+      alertBox.style.background = '#221114';
+      alertBox.hidden = false;
+    }
+    return;
+  }
+
+  const btn = $('#tg-panel-webhook-btn');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'در حال ثبت…';
+
+  try {
+    const base = window.location.href.split('?')[0].split('#')[0];
+    const webhookUrl = base.substring(0, base.lastIndexOf('/') + 1) + 'webhook.php';
+    const res = await api('/telegram/set-webhook', {
+      method: 'POST',
+      body: { token, webhook_url: webhookUrl },
+    });
+    if (alertBox) {
+      alertBox.textContent = '✅ وب‌هوک با موفقیت در سرورهای تلگرام فعال شد: ' + webhookUrl;
+      alertBox.style.color = 'var(--ok)';
+      alertBox.style.borderColor = 'var(--ok)';
+      alertBox.style.background = '#132018';
+      alertBox.hidden = false;
+    }
+    toast('وب‌هوک تلگرام فعال گردید');
+  } catch (err) {
+    if (alertBox) {
+      alertBox.textContent = '❌ خطا در تنظیم وب‌هوک: ' + err.message;
+      alertBox.style.color = 'var(--danger)';
+      alertBox.style.borderColor = 'var(--danger)';
+      alertBox.style.background = '#221114';
+      alertBox.hidden = false;
+    }
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+});
+
+$('#tg-copy-webhook-btn')?.addEventListener('click', () => {
+  const url = $('#tg-webhook-url')?.textContent || '';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast('آدرس وب‌هوک کپی شد')).catch(() => {});
+  }
+});
+
+/* ---------------------------------------------------------------- *
  *  Shell: nav, sidebar, toast, helpers
  * ---------------------------------------------------------------- */
 function show(view) {
   state.view = view;
   for (const name of Object.keys(VIEW_TITLE)) {
-    $(`#view-${name}`).hidden = name !== view;
+    const targetView = $(`#view-${name}`);
+    if (targetView) targetView.hidden = name !== view;
   }
   $$('.nav-item').forEach((button) => {
     if (button.dataset.view === view) button.setAttribute('aria-current', 'page');
     else button.removeAttribute('aria-current');
   });
-  $('#page-title').textContent = VIEW_TITLE[view][0];
-  $('#page-sub').textContent = VIEW_TITLE[view][1];
+  $('#page-title').textContent = VIEW_TITLE[view]?.[0] || 'مدیریت منو';
+  $('#page-sub').textContent = VIEW_TITLE[view]?.[1] || '';
   $('#primary-action').hidden = view !== 'items';
   if (view === 'orders') {
     loadOrders();
+  }
+  if (view === 'telegram' || view === 'settings') {
+    fillSettings();
   }
   if (view === 'qr' && typeof window.renderPermanentQR === 'function') {
     window.renderPermanentQR();
