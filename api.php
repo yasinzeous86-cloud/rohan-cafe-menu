@@ -226,6 +226,7 @@ const SETTING_RULES = [
     'telegram_bot_token'             => 120,
     'telegram_chat_id'               => 60,
     'telegram_notifications_enabled' => 3,
+    'telegram_proxy'                 => 255,
 ];
 
 /**
@@ -270,6 +271,7 @@ function default_settings(): array
         'telegram_bot_token'             => '',
         'telegram_chat_id'               => '',
         'telegram_notifications_enabled' => '1',
+        'telegram_proxy'                 => '',
     ];
 }
 
@@ -935,6 +937,7 @@ try {
             $settings = all_settings($db);
             $token    = trim((string) ($in['token'] ?? $settings['telegram_bot_token'] ?? ''));
             $chatId   = trim((string) ($in['chat_id'] ?? $settings['telegram_chat_id'] ?? ''));
+            $proxy    = trim((string) ($in['proxy'] ?? $settings['telegram_proxy'] ?? ''));
 
             if ($token === '' || $chatId === '') {
                 fail(422, 'توکن ربات یا شناسه چت تنظیم نشده است.');
@@ -942,13 +945,14 @@ try {
 
             $testMsg = "☕️ <b>تست اتصال ربات منوی کافه رُهان</b>\n\n" .
                        "اتصال با موفقیت برقرار شد! سیستم ارسال نوتیفیکیشن سفارشات آنلاین آماده به کار است.\n\n" .
+                       ($proxy !== '' ? "🌐 پروکسی فعال: <code>" . htmlspecialchars($proxy, ENT_QUOTES, 'UTF-8') . "</code>\n\n" : '') .
                        "🕒 زمان تست: " . date('Y/m/d H:i:s');
 
             $res = send_telegram_request($token, 'sendMessage', [
                 'chat_id'    => $chatId,
                 'text'       => $testMsg,
                 'parse_mode' => 'HTML',
-            ]);
+            ], $proxy);
 
             if (empty($res['ok'])) {
                 fail(400, 'خطا در ارتباط با تلگرام: ' . ($res['description'] ?? $res['error'] ?? 'خطای نامشخص'));
@@ -962,6 +966,7 @@ try {
             $settings = all_settings($db);
             $token    = trim((string) ($in['token'] ?? $settings['telegram_bot_token'] ?? ''));
             $url      = trim((string) ($in['webhook_url'] ?? ''));
+            $proxy    = trim((string) ($in['proxy'] ?? $settings['telegram_proxy'] ?? ''));
 
             if ($token === '') {
                 fail(422, 'توکن ربات تنظیم نشده است.');
@@ -973,7 +978,7 @@ try {
             $res = send_telegram_request($token, 'setWebhook', [
                 'url' => $url,
                 'allowed_updates' => ['message', 'callback_query'],
-            ]);
+            ], $proxy);
 
             if (empty($res['ok'])) {
                 fail(400, 'خطا در ثبت وب‌هوک: ' . ($res['description'] ?? $res['error'] ?? 'خطای نامشخص'));
@@ -1229,9 +1234,9 @@ function item_values(PDO $db, array $in, ?array $current): array
  * ------------------------------------------------------------------ */
 
 /**
- * Send an HTTP request to the Telegram Bot API.
+ * Send an HTTP request to the Telegram Bot API with optional proxy and resilient SSL.
  */
-function send_telegram_request(string $botToken, string $method, array $params = []): array
+function send_telegram_request(string $botToken, string $method, array $params = [], string $proxy = ''): array
 {
     $botToken = trim($botToken);
     if ($botToken === '') {
@@ -1242,38 +1247,62 @@ function send_telegram_request(string $botToken, string $method, array $params =
 
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
-        curl_setopt_array($ch, [
+        $curlOpts = [
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => json_encode($params, JSON_UNESCAPED_UNICODE),
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 6,
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
+            CURLOPT_TIMEOUT        => 12,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+        ];
+
+        $proxy = trim($proxy);
+        if ($proxy !== '') {
+            $curlOpts[CURLOPT_PROXY] = $proxy;
+            if (stripos($proxy, 'socks5://') === 0 || stripos($proxy, 'socks5h://') === 0) {
+                $curlOpts[CURLOPT_PROXYTYPE] = CURLPROXY_SOCKS5_HOSTNAME;
+            } elseif (stripos($proxy, 'http://') === 0 || stripos($proxy, 'https://') === 0) {
+                $curlOpts[CURLOPT_PROXYTYPE] = CURLPROXY_HTTP;
+            }
+        }
+
+        curl_setopt_array($ch, $curlOpts);
         $response = curl_exec($ch);
         $err = curl_error($ch);
         curl_close($ch);
 
         if ($err !== '' || $response === false) {
-            return ['ok' => false, 'error' => $err ?: 'Network error'];
+            return ['ok' => false, 'error' => $err ?: 'Network error connecting to Telegram API'];
         }
         $data = json_decode((string) $response, true);
         return is_array($data) ? $data : ['ok' => false, 'error' => 'Invalid JSON from Telegram'];
     }
 
-    $opts = [
-        'http' => [
-            'method'  => 'POST',
-            'header'  => "Content-Type: application/json; charset=utf-8\r\n",
-            'content' => json_encode($params, JSON_UNESCAPED_UNICODE),
-            'timeout' => 6,
-            'ignore_errors' => true,
-        ],
+    $httpOpts = [
+        'method'        => 'POST',
+        'header'        => "Content-Type: application/json; charset=utf-8\r\n",
+        'content'       => json_encode($params, JSON_UNESCAPED_UNICODE),
+        'timeout'       => 12,
+        'ignore_errors' => true,
     ];
-    $ctx = stream_context_create($opts);
+    $proxy = trim($proxy);
+    if ($proxy !== '') {
+        $httpOpts['proxy'] = $proxy;
+        $httpOpts['request_fulluri'] = true;
+    }
+    $ctx = stream_context_create([
+        'http' => $httpOpts,
+        'ssl'  => [
+            'verify_peer'      => false,
+            'verify_peer_name' => false,
+        ],
+    ]);
     $response = @file_get_contents($url, false, $ctx);
     if ($response === false) {
-        return ['ok' => false, 'error' => 'Connection to Telegram API failed'];
+        $lastErr = error_get_last();
+        return ['ok' => false, 'error' => 'Connection to Telegram API failed: ' . ($lastErr['message'] ?? 'Network unreachable')];
     }
     $data = json_decode($response, true);
     return is_array($data) ? $data : ['ok' => false, 'error' => 'Invalid JSON from Telegram'];
@@ -1288,6 +1317,7 @@ function notify_telegram_new_order(PDO $db, int $orderId, string $tableNumber, a
     $enabled  = ($settings['telegram_notifications_enabled'] ?? '1') !== '0';
     $token    = trim((string) ($settings['telegram_bot_token'] ?? ''));
     $chatId   = trim((string) ($settings['telegram_chat_id'] ?? ''));
+    $proxy    = trim((string) ($settings['telegram_proxy'] ?? ''));
 
     if (!$enabled || $token === '' || $chatId === '') {
         return false;
@@ -1334,7 +1364,7 @@ function notify_telegram_new_order(PDO $db, int $orderId, string $tableNumber, a
         'text'         => $msg,
         'parse_mode'   => 'HTML',
         'reply_markup' => $keyboard,
-    ]);
+    ], $proxy);
 
     return !empty($res['ok']);
 }

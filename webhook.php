@@ -43,6 +43,7 @@ foreach ($db->query('SELECT setting_key, setting_value FROM settings') as $row) 
 
 $botToken = trim((string) ($settings['telegram_bot_token'] ?? ''));
 $adminChatId = trim((string) ($settings['telegram_chat_id'] ?? ''));
+$proxy = trim((string) ($settings['telegram_proxy'] ?? ''));
 $currency = $settings['currency'] ?? 'تومان';
 
 // If bot token is not configured yet
@@ -67,36 +68,65 @@ if (!is_array($update)) {
 }
 
 /**
- * Send request to Telegram Bot API
+ * Send request to Telegram Bot API with optional proxy support.
  */
-function tg_call(string $botToken, string $method, array $params = []): array
+function tg_call(string $botToken, string $method, array $params = [], string $proxy = ''): array
 {
+    if ($proxy === '' && !empty($GLOBALS['proxy'])) {
+        $proxy = (string) $GLOBALS['proxy'];
+    }
+
     $url = "https://api.telegram.org/bot{$botToken}/{$method}";
 
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
-        curl_setopt_array($ch, [
+        $curlOpts = [
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => json_encode($params, JSON_UNESCAPED_UNICODE),
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 6,
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
+            CURLOPT_TIMEOUT        => 12,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+        ];
+
+        $proxy = trim($proxy);
+        if ($proxy !== '') {
+            $curlOpts[CURLOPT_PROXY] = $proxy;
+            if (stripos($proxy, 'socks5://') === 0 || stripos($proxy, 'socks5h://') === 0) {
+                $curlOpts[CURLOPT_PROXYTYPE] = CURLPROXY_SOCKS5_HOSTNAME;
+            } elseif (stripos($proxy, 'http://') === 0 || stripos($proxy, 'https://') === 0) {
+                $curlOpts[CURLOPT_PROXYTYPE] = CURLPROXY_HTTP;
+            }
+        }
+
+        curl_setopt_array($ch, $curlOpts);
         $res = curl_exec($ch);
         curl_close($ch);
         return is_string($res) ? (json_decode($res, true) ?: []) : [];
     }
 
-    $opts = [
-        'http' => [
-            'method'  => 'POST',
-            'header'  => "Content-Type: application/json; charset=utf-8\r\n",
-            'content' => json_encode($params, JSON_UNESCAPED_UNICODE),
-            'timeout' => 6,
-        ],
+    $httpOpts = [
+        'method'        => 'POST',
+        'header'        => "Content-Type: application/json; charset=utf-8\r\n",
+        'content'       => json_encode($params, JSON_UNESCAPED_UNICODE),
+        'timeout'       => 12,
+        'ignore_errors' => true,
     ];
-    $res = @file_get_contents($url, false, stream_context_create($opts));
+    $proxy = trim($proxy);
+    if ($proxy !== '') {
+        $httpOpts['proxy'] = $proxy;
+        $httpOpts['request_fulluri'] = true;
+    }
+    $ctx = stream_context_create([
+        'http' => $httpOpts,
+        'ssl'  => [
+            'verify_peer'      => false,
+            'verify_peer_name' => false,
+        ],
+    ]);
+    $res = @file_get_contents($url, false, $ctx);
     return is_string($res) ? (json_decode($res, true) ?: []) : [];
 }
 

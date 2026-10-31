@@ -401,6 +401,14 @@
               <p class="text-[11px] muted mt-1">با ارسال یک پیام به ربات <a href="https://t.me/userinfobot" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">userinfobot@</a> عدد شناسه (Id) خود را بردارید.</p>
             </div>
 
+            <div>
+              <label class="text-xs muted block mb-1.5 font-medium" for="tg-proxy-input">🌐 پروکسی اتصال به تلگرام (اختیاری — ویژه هاست‌ها و اینترنت ایران)</label>
+              <input id="tg-proxy-input" dir="ltr" class="mono text-xs" maxlength="200" placeholder="socks5://127.0.0.1:10808 یا http://127.0.0.1:10809">
+              <p class="text-[11px] muted mt-1 leading-relaxed">
+                برای عبور از فیلترینگ تلگرام روی سیستم یا هاست‌های ایران. پروکسی‌های مرسوم (مانند v2rayN) معمولاً <code class="mono text-amber-300">socks5://127.0.0.1:10808</code> یا <code class="mono text-amber-300">http://127.0.0.1:10809</code> هستند. در صورتی که سرور خارج از کشور است خالی بگذارید.
+              </p>
+            </div>
+
             <div class="pt-2 flex items-center justify-between gap-3">
               <button class="btn btn-primary" type="submit">ذخیره‌ی تنظیمات تلگرام</button>
               <span id="tg-save-note" class="text-xs muted" aria-live="polite"></span>
@@ -593,6 +601,12 @@
                 </label>
                 <input id="set-telegram_chat_id" dir="ltr" class="mono text-xs" maxlength="60" placeholder="مثال: 123456789 یا -100123456789">
                 <p class="text-[11px] muted mt-1">با ارسال پیام به ربات <a href="https://t.me/userinfobot" target="_blank" rel="noopener" class="underline text-[var(--accent)]">userinfobot@</a> شناسه (Id) خود را بردارید.</p>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="text-xs muted block mb-1.5" for="set-telegram_proxy">
+                  🌐 پروکسی اتصال به تلگرام (اختیاری — socks5://127.0.0.1:10808 یا http://127.0.0.1:10809)
+                </label>
+                <input id="set-telegram_proxy" dir="ltr" class="mono text-xs" maxlength="200" placeholder="socks5://127.0.0.1:10808 یا http://127.0.0.1:10809">
               </div>
             </div>
 
@@ -1710,7 +1724,7 @@ function cardSettings() {
 
 function fillSettings() {
   const settings = state.data.settings;
-  for (const key of ['shop_name', 'tagline', 'currency', 'footer_note', 'custom_bg_url', 'font_family', 'telegram_bot_token', 'telegram_chat_id']) {
+  for (const key of ['shop_name', 'tagline', 'currency', 'footer_note', 'custom_bg_url', 'font_family', 'telegram_bot_token', 'telegram_chat_id', 'telegram_proxy']) {
     const field = $(`#set-${key}`);
     if (field) field.value = settings[key] || '';
   }
@@ -1728,12 +1742,14 @@ function fillSettings() {
   // Dedicated Telegram Dashboard Panel Fields
   const tgToken = $('#tg-token-input');
   const tgChat = $('#tg-chat-input');
+  const tgProxy = $('#tg-proxy-input');
   const tgToggle = $('#tg-notify-toggle');
   const tgBadge = $('#tg-status-badge');
   const tgUrl = $('#tg-webhook-url');
 
   if (tgToken) tgToken.value = settings.telegram_bot_token || '';
   if (tgChat) tgChat.value = settings.telegram_chat_id || '';
+  if (tgProxy) tgProxy.value = settings.telegram_proxy || '';
   if (tgToggle) tgToggle.checked = settings.telegram_notifications_enabled !== '0';
 
   if (tgBadge) {
@@ -1809,6 +1825,7 @@ $('#settings-form').addEventListener('submit', async (event) => {
     highlights_enabled: $('#set-highlights_enabled').checked ? '1' : '0',
     telegram_bot_token: $('#set-telegram_bot_token')?.value.trim() || '',
     telegram_chat_id: $('#set-telegram_chat_id')?.value.trim() || '',
+    telegram_proxy: $('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '',
     telegram_notifications_enabled: $('#set-telegram_notifications_enabled')?.checked ? '1' : '0',
     ...cardSettings(),
   };
@@ -1829,6 +1846,7 @@ $('#settings-form').addEventListener('submit', async (event) => {
 $('#test-telegram-btn')?.addEventListener('click', async () => {
   const token = $('#set-telegram_bot_token')?.value.trim();
   const chatId = $('#set-telegram_chat_id')?.value.trim();
+  const proxy = $('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '';
   const statusNote = $('#telegram-action-status');
   if (!token || !chatId) {
     toast('لطفاً ابتدا توکن ربات و شناسه چت را وارد نمایید.', true);
@@ -1841,7 +1859,7 @@ $('#test-telegram-btn')?.addEventListener('click', async () => {
   try {
     const res = await api('/telegram/test', {
       method: 'POST',
-      body: { token, chat_id: chatId },
+      body: { token, chat_id: chatId, proxy },
     });
     if (statusNote) statusNote.textContent = res.message || 'پیام تستی با موفقیت در تلگرام دریافت شد!';
     toast('پیام آزمایشی تلگرام ارسال شد');
@@ -1855,6 +1873,7 @@ $('#test-telegram-btn')?.addEventListener('click', async () => {
 
 $('#set-webhook-btn')?.addEventListener('click', async () => {
   const token = $('#set-telegram_bot_token')?.value.trim();
+  const proxy = $('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '';
   const statusNote = $('#telegram-action-status');
   if (!token) {
     toast('لطفاً ابتدا توکن ربات تلگرام را وارد نمایید.', true);
@@ -1869,7 +1888,7 @@ $('#set-webhook-btn')?.addEventListener('click', async () => {
     const webhookUrl = base.substring(0, base.lastIndexOf('/') + 1) + 'webhook.php';
     const res = await api('/telegram/set-webhook', {
       method: 'POST',
-      body: { token, webhook_url: webhookUrl },
+      body: { token, webhook_url: webhookUrl, proxy },
     });
     if (statusNote) statusNote.textContent = (res.message || 'وب‌هوک با موفقیت فعال گردید!') + ` (${webhookUrl})`;
     toast('وب‌هوک تلگرام تنظیم شد');
@@ -1888,6 +1907,7 @@ $('#telegram-panel-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const token = $('#tg-token-input')?.value.trim() || '';
   const chatId = $('#tg-chat-input')?.value.trim() || '';
+  const proxy = $('#tg-proxy-input')?.value.trim() || '';
   const notify = $('#tg-notify-toggle')?.checked ? '1' : '0';
   const saveNote = $('#tg-save-note');
 
@@ -1897,6 +1917,7 @@ $('#telegram-panel-form')?.addEventListener('submit', async (e) => {
       body: {
         telegram_bot_token: token,
         telegram_chat_id: chatId,
+        telegram_proxy: proxy,
         telegram_notifications_enabled: notify,
       },
     });
@@ -1912,6 +1933,7 @@ $('#telegram-panel-form')?.addEventListener('submit', async (e) => {
 $('#tg-panel-test-btn')?.addEventListener('click', async () => {
   const token = $('#tg-token-input')?.value.trim();
   const chatId = $('#tg-chat-input')?.value.trim();
+  const proxy = $('#tg-proxy-input')?.value.trim() || '';
   const alertBox = $('#tg-feedback-alert');
 
   if (!token || !chatId) {
@@ -1934,7 +1956,7 @@ $('#tg-panel-test-btn')?.addEventListener('click', async () => {
   try {
     const res = await api('/telegram/test', {
       method: 'POST',
-      body: { token, chat_id: chatId },
+      body: { token, chat_id: chatId, proxy },
     });
     if (alertBox) {
       alertBox.textContent = '✅ ' + (res.message || 'پیام تستی با موفقیت در تلگرام شما دریافت شد!');
@@ -1961,6 +1983,7 @@ $('#tg-panel-test-btn')?.addEventListener('click', async () => {
 
 $('#tg-panel-webhook-btn')?.addEventListener('click', async () => {
   const token = $('#tg-token-input')?.value.trim();
+  const proxy = $('#tg-proxy-input')?.value.trim() || '';
   const alertBox = $('#tg-feedback-alert');
 
   if (!token) {
@@ -1985,7 +2008,7 @@ $('#tg-panel-webhook-btn')?.addEventListener('click', async () => {
     const webhookUrl = base.substring(0, base.lastIndexOf('/') + 1) + 'webhook.php';
     const res = await api('/telegram/set-webhook', {
       method: 'POST',
-      body: { token, webhook_url: webhookUrl },
+      body: { token, webhook_url: webhookUrl, proxy },
     });
     if (alertBox) {
       alertBox.textContent = '✅ وب‌هوک با موفقیت در سرورهای تلگرام فعال شد: ' + webhookUrl;
