@@ -1,0 +1,953 @@
+<!DOCTYPE html><html class="scroll-smooth" dir="rtl" lang="fa" style=""><svg class="inline-defs-container" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><defs>
+<radialGradient id="roastLight" cx="35%" cy="32%" r="72%"><stop offset="0%" stop-color="#c9946a"></stop><stop offset="45%" stop-color="#8f5733"></stop><stop offset="100%" stop-color="#432614"></stop></radialGradient>
+<radialGradient id="roastMid" cx="35%" cy="32%" r="72%"><stop offset="0%" stop-color="#9a6440"></stop><stop offset="45%" stop-color="#5a3218"></stop><stop offset="100%" stop-color="#1c0d05"></stop></radialGradient>
+<radialGradient id="roastDark" cx="35%" cy="32%" r="72%"><stop offset="0%" stop-color="#63391f"></stop><stop offset="45%" stop-color="#33190c"></stop><stop offset="100%" stop-color="#100602"></stop></radialGradient>
+<g id="beanA">
+<ellipse cx="27" cy="18" rx="25" ry="16"></ellipse>
+<path d="M5,19 C14,14 24,24 35,17 C42,12 47,18 49,19 C45,21 34,16 25,23 C15,30 8,23 5,19 Z" fill="#140804" opacity="0.85"></path>
+<path d="M12,11 C22,7 34,9 41,13" fill="none" stroke="#c98d63" stroke-opacity="0.55" stroke-linecap="round" stroke-width="1.8"></path>
+</g>
+<g id="beanB">
+<ellipse cx="27" cy="18" rx="24" ry="17"></ellipse>
+<path d="M6,15 C16,22 26,11 36,17 C42,21 46,21 48,19 C44,25 33,15 24,24 C16,30 8,22 6,15 Z" fill="#140804" opacity="0.8"></path>
+<path d="M12,24 C20,18 32,22 42,15" fill="none" stroke="#d9a077" stroke-opacity="0.5" stroke-linecap="round" stroke-width="1.7"></path>
+</g>
+<g id="beanC">
+<path d="M26,2 C12,4 3,10 3,18 C3,26 12,32 26,34 C21,30 18,25 18,18 C18,11 21,6 26,2 Z"></path>
+<path d="M28,2 C42,4 51,10 51,18 C51,26 42,32 28,34 C33,30 36,25 36,18 C36,11 33,6 28,2 Z"></path>
+<path d="M27,5 L27,31" fill="none" stroke="#0d0503" stroke-opacity="0.6" stroke-width="1.6"></path>
+<path d="M9,12 C15,7 21,5.5 24.5,5" fill="none" stroke="#e0b18a" stroke-opacity="0.45" stroke-width="1.5" stroke-linecap="round"></path>
+</g>
+<g id="beanD">
+<path d="M7,23 C11,10 26,3 45,7 C39,14 35,20 31,29 C22,33 12,30 7,23 Z"></path>
+<path d="M14,21 C21,14 31,11 40,11" fill="none" stroke="#e5b287" stroke-opacity="0.45" stroke-width="1.4" stroke-linecap="round"></path>
+<path d="M20,26 C26,21 32,17 38,14" fill="none" stroke="#150803" stroke-opacity="0.5" stroke-width="1.2"></path>
+</g>
+</defs></svg><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<title>منوی دیجیتال کافه و بار رُهان</title>
+<!-- Local Precompiled Tailwind CSS — 100% Offline & CDN-Free -->
+<link rel="stylesheet" href="assets/style.min.css">
+<!-- Fonts are shipped with the project (assets/fonts) — see the @font-face
+     block in the stylesheet below. No third-party font request is made. -->
+<!-- PWA -->
+<link href="manifest.json" rel="manifest">
+<meta content="#1a0f0a" name="theme-color">
+<style>
+    /* Local webfonts — every face lives in assets/fonts, so the menu keeps its
+       typography with no network at all after the first load.
+       Vazirmatn is the default body face (variable 100–900); Lalezar and
+       Righteous are display faces served as subsets; Dana and YekanBakh are
+       the static weights behind the dashboard's font picker. */
+    @font-face {
+      font-family: 'Vazirmatn';
+      src: url('assets/fonts/Vazirmatn-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Righteous';
+      src: url('assets/fonts/Righteous-Latin.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Lalezar';
+      src: url('assets/fonts/Lalezar-Arabic.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+2010-2011, U+204F, U+2E41, U+FDFC-FDFD;
+    }
+    @font-face {
+      font-family: 'Lalezar';
+      src: url('assets/fonts/Lalezar-Latin.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    /* Dana ships as separate static files, one @font-face per weight. */
+    @font-face { font-family: 'Dana'; src: url('assets/fonts/Dana-400.woff') format('woff'); font-weight: 400; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Dana'; src: url('assets/fonts/Dana-500.woff') format('woff'); font-weight: 500; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Dana'; src: url('assets/fonts/Dana-600.woff') format('woff'); font-weight: 600; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Dana'; src: url('assets/fonts/Dana-700.woff') format('woff'); font-weight: 700; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Dana'; src: url('assets/fonts/Dana-800.woff') format('woff'); font-weight: 800; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Dana'; src: url('assets/fonts/Dana-900.woff') format('woff'); font-weight: 900; font-style: normal; font-display: swap; }
+    /* YekanBakh has no 500 file — CSS matches that request to the 400 face. */
+    @font-face { font-family: 'YekanBakh'; src: url('assets/fonts/YekanBakh-400.woff') format('woff'); font-weight: 400; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'YekanBakh'; src: url('assets/fonts/YekanBakh-600.woff') format('woff'); font-weight: 600; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'YekanBakh'; src: url('assets/fonts/YekanBakh-700.woff') format('woff'); font-weight: 700; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'YekanBakh'; src: url('assets/fonts/YekanBakh-800.woff') format('woff'); font-weight: 800; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'YekanBakh'; src: url('assets/fonts/YekanBakh-900.woff') format('woff'); font-weight: 900; font-style: normal; font-display: swap; }
+
+    /* Brand + body font — driven by the dashboard's `primary_color` and
+       `font_family` settings; the literals below are the shipped defaults. */
+    :root {
+      --brand: #DEC9A4;
+      --body-font: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+    }
+    body {
+      font-family: var(--body-font);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      background-color: #140d09;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Organic S-Curve / Wavy Blob SVG Layer */
+    .blob-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    /* Parallax wave layer: extended past the clip box so its slower
+       scroll never exposes an empty edge */
+    .wave-layer {
+      position: absolute;
+      inset: -12% 0;
+      transform: translate3d(0, var(--py, 0px), 0);
+      will-change: transform;
+    }
+    /* Floating Coffee Beans — depth parallax through --py / --rot / --scl */
+    .bean {
+      position: absolute;
+      pointer-events: none;
+      z-index: 5;
+      transform: translate3d(var(--tx, 0px), var(--py, 0px), 0) rotate(var(--rot, 0deg)) scale(var(--scl, 1));
+      filter: blur(var(--blr, 0px)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.65));
+      will-change: transform;
+    }
+    .crumb {
+      transform: translate3d(var(--tx, 0px), var(--py, 0px), 0) rotate(var(--rot, 0deg));
+      will-change: transform;
+    }
+    /* Category pill thumbnail (top-down drink photo) */
+    .cat-thumb {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 9999px;
+      object-fit: cover;
+      border: 1.5px solid rgba(222, 201, 164, 0.55);
+      flex: none;
+    }
+    .nav-pill.active .cat-thumb {
+      border-color: rgba(28, 18, 12, 0.5);
+    }
+    /* Center timeline: coffee-texture band (background parallax) */
+    .center-band {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: clamp(120px, 36%, 165px);
+      background-image: url("assets/coffee-texture.jpg");
+      background-size: 100% auto;
+      background-repeat: repeat-y;
+      background-position: center 0px;
+      opacity: 0.5;
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 24%, #000 76%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 24%, #000 76%, transparent 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+    /* Center timeline: crisp tiled coffee-bean line (background parallax) */
+    .center-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='26' viewBox='0 0 16 26'%3E%3Cg transform='rotate(-24 8 13)'%3E%3Cellipse cx='8' cy='13' rx='6.6' ry='4.1' fill='%2333190d'/%3E%3Cpath d='M2.6 13.6 C5.2 11.9 10.8 14.1 13.4 12.4' stroke='%230d0503' stroke-width='1.1' fill='none'/%3E%3Cpath d='M3.4 11.4 C6 10.3 10 10.8 12.6 11.7' stroke='%23a86f47' stroke-width='0.7' fill='none' opacity='.5'/%3E%3C/g%3E%3C/svg%3E");
+      background-repeat: repeat-y;
+      background-position: center 0px;
+      opacity: 0.9;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%);
+      pointer-events: none;
+      z-index: 3;
+    }
+    /* Drawer transitions */
+    .drawer-content {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease-out, opacity 0.25s ease-in-out;
+    }
+    .drawer-content.open {
+      max-height: 900px;
+      opacity: 1;
+    }
+    .nav-pill.active,
+    .nav-pill[aria-current="true"] {
+      background-color: var(--brand) !important;
+      color: #1c120c !important;
+      border-color: transparent !important;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+    }
+    /* Mockup fidelity: the textured background image is the only painted art.
+       The older decorative layers stay in the DOM but step aside. */
+    /* ================================================================ */
+    /* MULTI-LAYER PARALLAX TIMELINE SYSTEM (MATCHING REFERENCE EXACTLY) */
+    /* ================================================================ */
+    .blob-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .bean-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
+    }
+    .bean {
+      position: absolute;
+      pointer-events: none;
+      z-index: 5;
+      filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.65));
+      will-change: transform;
+    }
+
+    /* Layer 1: Center Coffee Texture Band (Scroll speed 0.04) */
+    .center-band {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: clamp(72px, 20%, 90px);
+      background-image: url("assets/coffee-texture.jpg");
+      background-size: 100% auto;
+      background-repeat: repeat-y;
+      background-position: center 0px;
+      opacity: 0.38;
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Layer 2: Center Crisp Vertical Guideline */
+    .center-rail {
+      position: absolute;
+      top: 160px;
+      bottom: 180px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      background: linear-gradient(180deg, transparent 0%, rgba(223, 202, 168, 0.55) 4%, rgba(223, 202, 168, 0.55) 96%, transparent 100%);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* Layer 3: Central Bean Spine (Differential scroll speed 0.12) */
+    .center-spine-beans {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px;
+      pointer-events: none;
+      z-index: 4;
+      will-change: transform;
+    }
+    .spine-bean {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%) rotate(var(--rot, 0deg)) scale(var(--scl, 1));
+      filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.75));
+    }
+
+    /* ================================================================ */
+    /* ROW & CARD STYLES (MATCHING USER REFERENCE IMAGE)                */
+    /* ================================================================ */
+    .menu-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      align-items: center;
+      z-index: 10;
+    }
+
+    /* Beige Card (Row 1 Style) */
+    .card-beige {
+      position: relative;
+      background-color: #dfcaa8;
+      color: #1c120c;
+      border-radius: 26px;
+      padding: 16px;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
+      border: 1.5px solid rgba(28, 18, 12, 0.22);
+      text-align: right;
+    }
+
+    /* Dark Capsule Container (Row 2 Style) */
+    .card-dark-wrapper {
+      position: relative;
+      background: #321a11;
+      border-radius: 28px;
+      padding: 6px;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.55);
+      border: 1.5px solid rgba(222, 201, 164, 0.4);
+    }
+    .card-dark-wrapper .card-beige {
+      box-shadow: none;
+      border: 1.5px solid rgba(28, 18, 12, 0.22);
+      border-radius: 22px;
+      padding: 14px;
+    }
+
+    /* Curved Connector Neck - bridging from Card to Center Rail */
+    .connector-neck-right {
+      position: absolute;
+      top: 50%;
+      right: -14px;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 22px;
+      background: #dfcaa8;
+      border: 1.5px solid rgba(28, 18, 12, 0.22);
+      border-left: none;
+      border-radius: 0 11px 11px 0;
+      z-index: 5;
+    }
+    .connector-neck-left {
+      position: absolute;
+      top: 50%;
+      left: -14px;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 22px;
+      background: #321a11;
+      border: 1.5px solid rgba(222, 201, 164, 0.4);
+      border-right: none;
+      border-radius: 11px 0 0 11px;
+      z-index: 5;
+    }
+
+    /* Circular Photo Frame */
+    .photo-circle-frame {
+      position: relative;
+      width: 128px;
+      height: 128px;
+      border-radius: 9999px;
+      overflow: hidden;
+      border: 4px solid #dfcaa8;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.6);
+      background: #140d09;
+      transition: transform 0.3s ease;
+    }
+    .photo-circle-frame:hover {
+      transform: scale(1.04);
+    }
+
+    /* ===== app.js integration ======================================= */
+    /* Tailwind's display utilities would otherwise beat [hidden] */
+    [hidden] { display: none !important; }
+
+    .mono { font-family: 'Vazirmatn', ui-monospace, monospace; }
+
+    /*
+     * The palette is pinned on #menu so app.js applyTheme() — which writes
+     * the database theme to :root — can never wash out this design.
+     * Item descriptions and the tagline read var(--muted) from inline styles.
+     */
+    #menu {
+      --muted: #402619;                 /* dark brown, high contrast on beige cards */
+      --line: rgba(125, 80, 56, .55);   /* inline border-color on section headers */
+      --accent: var(--brand);
+      --font-display: 'Righteous', 'Vazirmatn', sans-serif;
+    }
+
+    /* Loading / failure state */
+    #status {
+      background: #140d09;
+      color: var(--brand);
+      --muted: rgba(222, 201, 164, .75);
+      --accent: var(--brand);
+    }
+
+    /* Date pill in the header status row */
+    #today { white-space: nowrap; }
+
+    /* ---------- Category links (built by app.js) ---------- */
+    #cat-nav ul {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: .75rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      /* horizontal scroller: never wraps, momentum on touch; a slim bar stays
+         visible so the extra categories read as scrollable */
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      scroll-behavior: smooth;
+      padding-bottom: .3rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(222, 201, 164, .5) transparent;
+      scrollbar-color: color-mix(in srgb, var(--brand) 55%, transparent) transparent;
+    }
+    #cat-nav ul::-webkit-scrollbar { height: 6px; }
+    #cat-nav ul::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, .28);
+      border-radius: 999px;
+    }
+    #cat-nav ul::-webkit-scrollbar-thumb {
+      background: rgba(222, 201, 164, .5);
+      background: color-mix(in srgb, var(--brand) 55%, transparent);
+      border-radius: 999px;
+    }
+    #cat-nav ul::-webkit-scrollbar-thumb:hover {
+      background: rgba(222, 201, 164, .8);
+      background: color-mix(in srgb, var(--brand) 80%, transparent);
+    }
+    #cat-nav a.cat-link {
+      padding: .6rem 1rem;
+      border-radius: 9999px;
+      background: rgba(0, 0, 0, .35);
+      border: 1px solid rgba(125, 80, 56, .4);
+      color: #e7e5e4;
+      font-family: var(--body-font);
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: normal;
+      text-transform: none;
+      white-space: nowrap;
+      transition: background-color .2s ease, color .2s ease;
+    }
+    #cat-nav a.cat-link:hover { background: rgba(0, 0, 0, .5); }
+    #cat-nav a.cat-link[aria-current="true"] {
+      background: var(--brand);
+      color: #1c120c;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .45);
+    }
+    #cat-nav a.cat-link .dot { display: none; }
+
+    /* ---------- Section header → centered category badge ---------- */
+    #sections section { margin-bottom: 3rem; scroll-margin-top: 228px; }
+    #sections section > div:first-child {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: .5rem;
+      width: fit-content;
+      margin-inline: auto;
+      margin-bottom: 2rem;
+      padding: .5rem 1.25rem;
+      background: #1c0c05;
+      color: var(--brand);
+      border: 1px solid rgba(125, 80, 56, .45);
+      border-radius: 9999px;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, .45);
+      backdrop-filter: blur(4px);
+    }
+    #sections h2 {
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: normal;
+      text-transform: none;
+      color: var(--brand);
+      line-height: 1.4;
+    }
+    #sections section > div:first-child > span {
+      color: rgba(222, 201, 164, .65) !important; /* beats app.js inline var(--muted) */
+      font-size: .6rem !important;
+      letter-spacing: .1em;
+    }
+
+    /* ---------- Item cards: solid beige, dark ink (accessible by design) ---------- */
+    #sections .item {
+      background: var(--brand);
+      color: #1c120c;
+      border: 1px solid rgba(28, 18, 12, .18);
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, .55), 0 4px 6px -4px rgba(0, 0, 0, .5);
+    }
+    #sections .item:first-child { margin-top: 0; }
+    #sections .item > div:first-child {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: .5rem;
+      row-gap: .4rem;
+      width: 100%;
+    }
+    #sections .item h3 {
+      flex: 1 1 100%;
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+      font-size: 1rem;
+      font-weight: 900;
+      color: #1c120c;
+      line-height: 1.4;
+    }
+    #sections .item .leader { display: none; }
+    #sections .item .price {
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+      font-size: .92rem;
+      font-weight: 900;
+      color: #1c120c;
+      font-variant-numeric: tabular-nums;
+    }
+    #sections .item[data-status="sold_out"] .price { color: #402619; }
+
+    /* Sold-out stamp → reference badge treatment */
+    #sections .stamp {
+      margin-inline-start: auto;
+      background: #261208;
+      color: var(--brand);
+      border: 0;
+      border-radius: 9999px;
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+      font-size: .58rem;
+      font-weight: 900;
+      letter-spacing: .04em;
+      padding: .18rem .6rem;
+      transform: none;
+      opacity: 1;
+    }
+    #sections .item p {
+      margin-top: .6rem;
+      padding-top: .55rem;
+      border-top: 1px solid rgba(28, 18, 12, .15);
+      font-size: .72rem;
+      font-weight: 600;
+      line-height: 1.75;
+      max-width: none;
+      /* color comes from the inline var(--muted) → #402619 on beige */
+    }
+
+    /* Empty state */
+    #sections > div {
+      background: rgba(28, 12, 5, .75);
+      border: 1px solid rgba(125, 80, 56, .45);
+      border-radius: 1rem;
+      color: var(--brand);
+      padding: 2rem;
+      text-align: center;
+    }
+    #sections > div p:last-child { color: rgba(222, 201, 164, .7); }
+  </style>
+</head>
+<body class="bg-[#140d09] text-stone-100 antialiased selection:bg-amber-600 selection:text-white flex justify-center min-h-screen">
+<!-- Loading / failure states live here; app.js replaces them with the menu -->
+<div id="status" class="min-h-screen grid place-items-center px-6 text-center">
+  <div>
+    <p class="text-xs uppercase tracking-[0.3em] mb-4" style="color:var(--brand)">در حال بارگذاری منو</p>
+    <div class="h-px w-40 mx-auto overflow-hidden" style="background:rgba(125,80,56,.5)">
+      <div class="h-px w-1/3" style="background:var(--brand);animation:sweep 1.1s ease-in-out infinite"></div>
+    </div>
+    <style>@keyframes sweep { 0% { transform: translateX(-100%) } 100% { transform: translateX(300%) } }</style>
+  </div>
+</div>
+<!-- Mobile Container Wrapper with Rich Espresso/Dark Chocolate Palette -->
+<div class="relative w-full max-w-md min-h-screen bg-repeat-y bg-top bg-[length:100%_auto] bg-[#1a0f0a] pb-36 shadow-2xl overflow-x-clip border-x border-[#3d251a]/40" id="menu" style="background-image: url('assets/menu-bg.jpg');" hidden>
+<!-- Background Vector Layer: Organic Wavy Curvature directly inspired by Image 1 -->
+<div class="blob-layer">
+<!-- Subtle dark vignette and radial warm glows -->
+<div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#381f14]/25 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-[40%] -left-20 w-80 h-96 bg-[#2d1810]/35 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute bottom-32 -right-20 w-80 h-96 bg-[#341d13]/30 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Organic Dark Wavy Silhouette behind timeline -->
+<svg class="wave-layer opacity-60 pointer-events-none" data-parallax data-speed="0.12" preserveAspectRatio="none" viewBox="0 0 400 1600">
+<defs>
+<linearGradient id="blobGrad1" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#2a1811" stop-opacity="0.8"></stop>
+<stop offset="50%" stop-color="#3b2016" stop-opacity="0.9"></stop>
+<stop offset="100%" stop-color="#20110b" stop-opacity="0.75"></stop>
+</linearGradient>
+<linearGradient id="blobGrad2" x1="100%" x2="0%" y1="10%" y2="90%">
+<stop offset="0%" stop-color="#3d2116" stop-opacity="0.45"></stop>
+<stop offset="100%" stop-color="#1f0f09" stop-opacity="0.6"></stop>
+</linearGradient>
+</defs>
+<!-- Flowing organic shape echoing the background silhouette in Image 1 -->
+<path d="M 60,180 C 10,260 20,400 110,470 C 230,550 360,490 380,630 C 400,760 300,890 120,920 C -20,950 10,1130 90,1250 C 180,1380 340,1350 370,1500 C 390,1600 300,1650 200,1650 L 0,1650 L 0,0 L 200,0 C 140,50 80,120 60,180 Z" fill="url(#blobGrad1)"></path>
+<path d="M 330,220 C 410,340 370,520 280,620 C 180,730 190,880 310,990 C 420,1100 370,1320 260,1440 L 400,1440 L 400,200 Z" fill="url(#blobGrad2)"></path>
+</svg>
+</div>
+<!-- ======================================================== -->
+<!-- FLOATING COFFEE BEANS — 4 roast forms, depth-based parallax -->
+<!-- ======================================================== -->
+<div aria-hidden="true" class="bean-layer absolute inset-0 pointer-events-none z-10 overflow-hidden">
+<!-- Bean 1: large blurred foreground bean, top left (fast lane) -->
+<div class="bean top-16 left-6 opacity-80" style="--rot:-45deg;--scl:1.25;--blr:2px" data-parallax data-speed="-0.20">
+<svg class="w-14 h-10" viewBox="0 0 54 36"><use href="#beanA" style="fill:url(#roastDark)"></use></svg>
+</div>
+<!-- Bean 2: crisp mid bean near table info pill -->
+<div class="bean top-28 right-8 opacity-90" style="--rot:28deg;--scl:0.9" data-parallax data-speed="-0.04">
+<svg class="w-11 h-8" viewBox="0 0 54 36"><use href="#beanB" style="fill:url(#roastMid)"></use></svg>
+</div>
+<!-- Bean 3: split bean, center-left over the stripe -->
+<div class="bean top-[210px] left-[45%] opacity-95" style="--rot:-12deg;--scl:1;--blr:0.5px" data-parallax data-speed="-0.06">
+<svg class="w-12 h-9" viewBox="0 0 54 36"><use href="#beanC" style="fill:url(#roastMid)"></use></svg>
+</div>
+<!-- Bean 4: small far fragment, right edge (slow lane) -->
+<div class="bean top-[280px] right-3 opacity-65" style="--rot:75deg;--scl:0.75;--blr:1.5px" data-parallax data-speed="0.10">
+<svg class="w-10 h-7" viewBox="0 0 54 36"><use href="#beanD" style="fill:url(#roastLight)"></use></svg>
+</div>
+<!-- Bean 5: light-roast whole bean near Row 1 photo -->
+<div class="bean top-[390px] left-2 opacity-90" style="--rot:45deg;--scl:1.1" data-parallax data-speed="-0.05">
+<svg class="w-13 h-9" viewBox="0 0 54 36"><use href="#beanA" style="fill:url(#roastLight)"></use></svg>
+</div>
+<!-- Bean 6: dark diagonal bean near Row 1 badge -->
+<div class="bean top-[470px] right-6 opacity-85" style="--rot:-30deg;--scl:0.9" data-parallax data-speed="-0.03">
+<svg class="w-11 h-8" viewBox="0 0 54 36"><use href="#beanB" style="fill:url(#roastDark)"></use></svg>
+</div>
+<!-- Bean 7: biggest foreground blur bean, mid page (fastest lane) -->
+<div class="bean top-[620px] left-10 opacity-60" style="--rot:135deg;--scl:1.5;--blr:4px" data-parallax data-speed="-0.28">
+<svg class="w-16 h-11" viewBox="0 0 54 36"><use href="#beanA" style="fill:url(#roastDark)"></use></svg>
+</div>
+<!-- Bean 8: split bean on the center line, Row 2 zone -->
+<div class="bean top-[710px] left-[52%] opacity-95" style="--tx:-50%;--rot:15deg;--scl:1.05" data-parallax data-speed="-0.05">
+<svg class="w-13 h-9" viewBox="0 0 54 36"><use href="#beanC" style="fill:url(#roastLight)"></use></svg>
+</div>
+<!-- Bean 9: crisp bean right side near Cold Brew -->
+<div class="bean top-[790px] right-2 opacity-90" style="--rot:-60deg;--scl:0.95" data-parallax data-speed="-0.04">
+<svg class="w-12 h-8" viewBox="0 0 54 36"><use href="#beanB" style="fill:url(#roastMid)"></use></svg>
+</div>
+<!-- Bean 10: far fragment near kitchen label (slow lane) -->
+<div class="bean top-[930px] left-6 opacity-75" style="--rot:100deg;--scl:0.8;--blr:1px" data-parallax data-speed="0.07">
+<svg class="w-10 h-7" viewBox="0 0 54 36"><use href="#beanD" style="fill:url(#roastMid)"></use></svg>
+</div>
+<!-- Bean 11: whole bean over Fries section -->
+<div class="bean top-[1020px] left-[46%] opacity-95" style="--rot:-25deg;--scl:1" data-parallax data-speed="-0.06">
+<svg class="w-12 h-9" viewBox="0 0 54 36"><use href="#beanA" style="fill:url(#roastMid)"></use></svg>
+</div>
+<!-- Bean 12: dark split bean right margin near Fries dish -->
+<div class="bean top-[1120px] right-5 opacity-90" style="--rot:50deg;--scl:1.1" data-parallax data-speed="-0.05">
+<svg class="w-13 h-9" viewBox="0 0 54 36"><use href="#beanC" style="fill:url(#roastDark)"></use></svg>
+</div>
+<!-- Bean 13: blurred foreground bean, left margin -->
+<div class="bean top-[1250px] left-3 opacity-70" style="--rot:-80deg;--scl:1.25;--blr:2px" data-parallax data-speed="-0.22">
+<svg class="w-14 h-10" viewBox="0 0 54 36"><use href="#beanA" style="fill:url(#roastLight)"></use></svg>
+</div>
+<!-- Bean 14: diagonal bean on the center line near burger -->
+<div class="bean top-[1340px] left-[50%] opacity-90" style="--tx:-50%;--rot:15deg;--scl:0.95" data-parallax data-speed="-0.05">
+<svg class="w-12 h-8" viewBox="0 0 54 36"><use href="#beanB" style="fill:url(#roastMid)"></use></svg>
+</div>
+<!-- Bean 15: fragment right edge near burger photo -->
+<div class="bean top-[1430px] right-2 opacity-85" style="--rot:110deg;--scl:1;--blr:0.8px" data-parallax data-speed="-0.04">
+<svg class="w-12 h-8" viewBox="0 0 54 36"><use href="#beanD" style="fill:url(#roastDark)"></use></svg>
+</div>
+<!-- Bean 16: footer region accent split bean -->
+<div class="bean top-[1520px] left-10 opacity-80" style="--rot:-20deg;--scl:0.85" data-parallax data-speed="-0.03">
+<svg class="w-11 h-7" viewBox="0 0 54 36"><use href="#beanC" style="fill:url(#roastMid)"></use></svg>
+</div>
+<!-- Roasted chaff / crushed fragments drifting with the beans -->
+<div class="crumb absolute top-[235px] left-[54%] w-1.5 h-1 bg-[#1a0a04] rounded-sm shadow" style="--rot:45deg" data-parallax data-speed="-0.05"></div>
+<div class="crumb absolute top-[242px] left-[51%] w-1 h-1 bg-[#4a2617] rounded-full" style="--rot:12deg" data-parallax data-speed="-0.05"></div>
+<div class="crumb absolute top-[735px] left-[48%] w-2 h-1 bg-[#1c0c05] rounded-sm" style="--rot:-12deg" data-parallax data-speed="-0.07"></div>
+<div class="crumb absolute top-[745px] left-[55%] w-1 h-1.5 bg-[#422214] rounded-sm" style="--rot:35deg" data-parallax data-speed="-0.07"></div>
+<div class="crumb absolute top-[1045px] left-[51%] w-1.5 h-1 bg-[#170904] rounded-full" style="--rot:8deg" data-parallax data-speed="-0.05"></div>
+<div class="crumb absolute top-[1365px] left-[47%] w-2 h-1 bg-[#3a1d10] rounded-sm" style="--rot:60deg" data-parallax data-speed="-0.06"></div>
+</div>
+<!-- ======================================================== -->
+<!-- MULTI-LAYER CENTER LINE WITH DIFFERENTIAL PARALLAX      -->
+<!-- ======================================================== -->
+<!-- Layer 1: Coffee Texture & Foliage Band (speed: 0.04) -->
+<div aria-hidden="true" class="center-band" data-parallax data-mode="bg" data-speed="0.04"></div>
+
+<!-- Layer 2: Center Rail Line -->
+<div aria-hidden="true" class="center-rail"></div>
+
+<!-- Layer 3: Central Bean Spine (speed: 0.10) -->
+<div aria-hidden="true" class="center-spine-beans" data-parallax data-speed="0.10">
+  <div class="spine-bean" style="top: 240px; --rot: 20deg; --scl: 0.95;">
+    <svg class="w-10 h-7" viewBox="0 0 54 36"><use href="#beanA" style="fill:url(#roastMid)"></use></svg>
+  </div>
+  <div class="spine-bean" style="top: 320px; --rot: -35deg; --scl: 0.85;">
+    <svg class="w-9 h-6" viewBox="0 0 54 36"><use href="#beanC" style="fill:url(#roastLight)"></use></svg>
+  </div>
+  <div class="spine-bean" style="top: 680px; --rot: 15deg; --scl: 1.05;">
+    <svg class="w-11 h-8" viewBox="0 0 54 36"><use href="#beanB" style="fill:url(#roastDark)"></use></svg>
+  </div>
+  <div class="spine-bean" style="top: 760px; --rot: -50deg; --scl: 0.9;">
+    <svg class="w-10 h-7" viewBox="0 0 54 36"><use href="#beanC" style="fill:url(#roastMid)"></use></svg>
+  </div>
+  <div class="spine-bean" style="top: 1140px; --rot: 25deg; --scl: 1;">
+    <svg class="w-11 h-8" viewBox="0 0 54 36"><use href="#beanA" style="fill:url(#roastLight)"></use></svg>
+  </div>
+  <div class="spine-bean" style="top: 1220px; --rot: -20deg; --scl: 0.85;">
+    <svg class="w-9 h-6" viewBox="0 0 54 36"><use href="#beanD" style="fill:url(#roastMid)"></use></svg>
+  </div>
+</div>
+<!-- Top Sticky Header -->
+<header class="sticky top-0 z-40 bg-[#160d09]/92 backdrop-blur-md border-b border-[#4d2f21]/40 px-4 pt-5 pb-3 transition-colors duration-500" id="top-header">
+<!-- Status & Table Info -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+</span>
+<span class="font-extrabold text-xs text-spine tracking-wide">منوی دیجیتال</span>
+</div>
+<span id="today" class="mono flex items-center px-3 py-1 rounded-full bg-black/40 border border-[#b3835e]/30 text-[11px] font-bold text-amber-200"></span>
+</div>
+<!-- Main Header Title -->
+<div class="text-center py-1">
+<p class="text-[9px] tracking-[0.25em] font-mono uppercase text-spine/75">social.rohan</p>
+<div class="flex justify-center items-center my-0.5">
+<svg class="w-5 h-5 text-spine opacity-85" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M12 2C9 2 7 3.5 6 6c-2 0-3.5 1.5-3.5 3.5C2.5 12 4 13.5 6 14v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4c2-.5 3.5-2 3.5-4.5C21.5 7.5 20 6 18 6c-1-2.5-3-4-6-4z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h1 id="shop-name" class="text-2xl font-black tracking-wider text-spine uppercase font-display leading-tight"></h1>
+<p id="tagline" class="text-[11px] font-bold text-stone-300 mt-0.5"></p>
+</div>
+<!-- Horizontal Scrollable Category Pills -->
+<nav id="cat-nav" aria-label="دسته‌بندی منو" class="flex items-center pt-2.5 pb-1 px-1">
+<ul class="flex flex-nowrap items-center gap-3 overflow-x-auto whitespace-nowrap pr-1"></ul>
+</nav>
+</header>
+<!-- Vertical Email Watermark on side -->
+<div class="fixed left-1.5 top-1/2 -translate-y-1/2 z-30 pointer-events-none opacity-20 hidden xs:block">
+<span class="text-[8px] tracking-[0.25em] font-mono text-spine rotate-90 block origin-center">mdahosunhabibrohan@gmail.com</span>
+</div>
+<!-- MAIN TIMELINE SECTION -->
+<!-- MAIN TIMELINE SECTION: sections injected by app.js -->
+<main id="sections" class="relative px-3 pt-6 pb-6 z-20"></main>
+<!-- Cafe highlights: daily pick + info boxes (square cards) -->
+<section id="highlights-section" class="relative z-20 px-3 pt-2 pb-6" aria-label="هایلایت‌های کافه">
+  <div class="flex justify-center mb-5">
+    <div class="px-5 py-2 rounded-full bg-[#1e0f09]/92 text-[#dfcaa8] font-bold text-xs shadow-xl border-[1.5px] border-[#dfcaa8]/40 flex items-center gap-2.5 backdrop-blur-sm">
+      <span class="w-5 h-5 rounded-full overflow-hidden border border-[#dfcaa8]/60 inline-flex items-center justify-center shrink-0 text-xs">⭐</span>
+      <span>پیشنهاد روز و هایلایت‌های ویژه</span>
+    </div>
+  </div>
+  <!-- app.js rebuilds this grid from settings.highlights (admin-editable);
+       the daily pick below stays first and is driven by settings.daily_special. -->
+  <div id="highlights-grid" class="grid grid-cols-2 gap-3">
+    <div id="daily-card" class="aspect-square rounded-[24px] bg-[#dfcaa8] text-[#1c120c] border-[1.5px] border-[#1c120c]/25 shadow-xl p-4 flex flex-col justify-between text-right">
+      <div class="flex items-center justify-between">
+        <span class="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#261208] text-[#dfcaa8] shadow-sm">پیشنهاد روز</span>
+        <span class="text-lg">⭐</span>
+      </div>
+      <div>
+        <p id="daily-special" class="text-sm font-black leading-snug line-clamp-3">کافه لاته آرت با ۲۰٪ تخفیف</p>
+        <p class="text-[10px] font-semibold text-[#402619] mt-1">هر روز یک انتخاب ویژه از باریستا</p>
+      </div>
+    </div>
+    <div class="aspect-square rounded-[24px] bg-[#22130c]/90 text-stone-100 border-[1.5px] border-[#dfcaa8]/40 shadow-xl p-4 flex flex-col justify-between text-right backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#dfcaa8] text-[#1c120c] shadow-sm">رست تازه</span>
+        <span class="text-lg">☕</span>
+      </div>
+      <div>
+        <p class="text-sm font-black leading-snug">دانه‌های تک‌خاستگاه</p>
+        <p class="text-[10px] font-semibold text-stone-300 mt-1">هر هفته تازه رست می‌شوند تا رایحه‌شان کامل بماند</p>
+      </div>
+    </div>
+    <div class="aspect-square rounded-[24px] bg-[#22130c]/90 text-stone-100 border-[1.5px] border-[#dfcaa8]/40 shadow-xl p-4 flex flex-col justify-between text-right backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#dfcaa8] text-[#1c120c] shadow-sm">آشپزخانه</span>
+        <span class="text-lg">🔥</span>
+      </div>
+      <div>
+        <p class="text-sm font-black leading-snug">منوی گرم تا ۲۳:۳۰</p>
+        <p class="text-[10px] font-semibold text-stone-300 mt-1">برگر، پیتزا و پیش‌غذاهای دست‌ساز هر روز تازه</p>
+      </div>
+    </div>
+    <div class="aspect-square rounded-[24px] bg-[#22130c]/90 text-stone-100 border-[1.5px] border-[#dfcaa8]/40 shadow-xl p-4 flex flex-col justify-between text-right backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-[#dfcaa8] text-[#1c120c] shadow-sm">سرد و تازه</span>
+        <span class="text-lg">🧊</span>
+      </div>
+      <div>
+        <p class="text-sm font-black leading-snug">کلد بروی ۲۴ ساعته</p>
+        <p class="text-[10px] font-semibold text-stone-300 mt-1">عصاره‌گیری طولانی با یخ‌های بلوری شفاف</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Customer reviews -->
+<section id="reviews-section" class="relative z-20 px-3 pt-4 pb-8" aria-label="نظرات مشتری‌ها">
+  <div class="flex justify-center mb-5">
+    <div class="px-5 py-2 rounded-full bg-[#1e0f09]/92 text-[#dfcaa8] font-bold text-xs shadow-xl border-[1.5px] border-[#dfcaa8]/40 flex items-center gap-2.5 backdrop-blur-sm">
+      <span class="w-5 h-5 rounded-full overflow-hidden border border-[#dfcaa8]/60 inline-flex items-center justify-center shrink-0 text-xs">💬</span>
+      <h2 id="reviews-title" class="text-xs font-bold text-[#dfcaa8]">مشتری‌ها درباره ما چی میگن</h2>
+    </div>
+  </div>
+  <!-- app.js rebuilds this grid from settings.reviews (admin-editable). -->
+  <div id="reviews-grid" class="grid grid-cols-2 gap-3">
+    <div class="aspect-square rounded-[24px] bg-[#dfcaa8] text-[#1c120c] border-[1.5px] border-[#1c120c]/25 shadow-xl p-4 flex flex-col justify-between text-right">
+      <div>
+        <div class="text-amber-700 text-sm tracking-widest font-bold">★★★★★</div>
+        <span class="inline-block text-[9px] font-black px-2 py-0.5 rounded-full bg-[#261208] text-[#dfcaa8] mt-2">کافه لاته آرت</span>
+      </div>
+      <p class="text-[11px] font-semibold text-[#402619] leading-relaxed line-clamp-3">«بهترین لاته‌ای بود که خوردم؛ کرمای ابریشمی و رایحه‌ی فندقی بی‌نظیر بود.»</p>
+      <p class="text-[10px] font-black text-[#1c120c]">سارا — دانشجو</p>
+    </div>
+    <div class="aspect-square rounded-[24px] bg-[#dfcaa8] text-[#1c120c] border-[1.5px] border-[#1c120c]/25 shadow-xl p-4 flex flex-col justify-between text-right">
+      <div>
+        <div class="text-amber-700 text-sm tracking-widest font-bold">★★★★<span class="text-[#1c120c]/30">★</span></div>
+        <span class="inline-block text-[9px] font-black px-2 py-0.5 rounded-full bg-[#261208] text-[#dfcaa8] mt-2">کلد برو نیتروژن</span>
+      </div>
+      <p class="text-[11px] font-semibold text-[#402619] leading-relaxed line-clamp-3">«خنک، شیرینی طبیعی و بافت ابریشمی؛ بعدازظهرهای تابستان نجاتم میده.»</p>
+      <p class="text-[10px] font-black text-[#1c120c]">امیر — برنامه‌نویس</p>
+    </div>
+    <div class="aspect-square rounded-[24px] bg-[#dfcaa8] text-[#1c120c] border-[1.5px] border-[#1c120c]/25 shadow-xl p-4 flex flex-col justify-between text-right">
+      <div>
+        <div class="text-amber-700 text-sm tracking-widest font-bold">★★★★★</div>
+        <span class="inline-block text-[9px] font-black px-2 py-0.5 rounded-full bg-[#261208] text-[#dfcaa8] mt-2">فرایز ترافل</span>
+      </div>
+      <p class="text-[11px] font-semibold text-[#402619] leading-relaxed line-clamp-3">«ترافل واقعی و دیپ قارچش عالی بود؛ برای دفعه بعد هم رزرو کردم.»</p>
+      <p class="text-[10px] font-black text-[#1c120c]">نگار — عکاس</p>
+    </div>
+    <div class="aspect-square rounded-[24px] bg-[#dfcaa8] text-[#1c120c] border-[1.5px] border-[#1c120c]/25 shadow-xl p-4 flex flex-col justify-between text-right">
+      <div>
+        <div class="text-amber-700 text-sm tracking-widest font-bold">★★★★★</div>
+        <span class="inline-block text-[9px] font-black px-2 py-0.5 rounded-full bg-[#261208] text-[#dfcaa8] mt-2">اسموکی برگر</span>
+      </div>
+      <p class="text-[11px] font-semibold text-[#402619] leading-relaxed line-clamp-3">«گوشت تازه، دود واقعی و پیاز کاراملی؛ بهترین برگر محله.»</p>
+      <p class="text-[10px] font-black text-[#1c120c]">رضا — مربی ورزش</p>
+    </div>
+  </div>
+</section>
+<!-- Footer Info -->
+<footer class="pt-8 pb-4 text-center text-spine/75 text-xs relative z-20">
+<p class="font-mono tracking-widest text-sm font-black text-amber-200 mb-1" dir="ltr">+98 21 8892 4410</p>
+<p id="footer-note" class="font-semibold text-stone-300"></p>
+<p id="credit" class="font-semibold text-spine/80 mt-1"></p>
+</footer>
+<!-- Floating Bottom Order Bar -->
+<div class="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto p-4 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none">
+<div class="pointer-events-auto w-full bg-[#180f0a]/95 border border-[#855137]/40 rounded-2xl px-4 py-3.5 shadow-2xl flex items-center justify-between backdrop-blur-xl gap-3">
+<!-- Cart Info -->
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-11 h-11 rounded-xl bg-[color:var(--brand)] text-[#1c120c] flex items-center justify-center font-black shadow">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<span class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#1c1012] transition-transform" id="cart-counter">
+              ۰
+            </span>
+</div>
+<div>
+<div class="text-[11px] text-stone-300 font-medium">سفارش میز ۴</div>
+<div class="text-sm font-black text-amber-200" id="cart-total-price">۰ تومان</div>
+</div>
+</div>
+<!-- Checkout Action Button -->
+<button class="px-4 py-2.5 rounded-xl bg-[color:var(--brand)] hover:bg-amber-200 text-[#1c120c] font-black text-xs shadow-lg active:scale-95 transition-all flex items-center gap-1.5 whitespace-nowrap" onclick="handleCheckout()">
+<span class="">مشاهده و ثبت سفارش</span>
+<span class="">←</span>
+</button>
+</div>
+</div>
+<!-- Notification Toast -->
+<div class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#1c120c] text-amber-200 text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl border border-[color:var(--brand)] transition-all duration-300 opacity-0 pointer-events-none -translate-y-4" id="toast">
+<span id="toast-message" class="">به سفارش افزوده شد</span>
+</div>
+</div>
+<!-- Interactive Scripts -->
+<script>
+    // Smooth Scroll to Timeline Nodes
+    function scrollToNode(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Toggle Expandable Price Drawers
+    function toggleItemDrawer(id) {
+      const drawer = document.getElementById(id);
+      const arrow = document.getElementById(`${id}-arrow`);
+      if (!drawer) return;
+
+      const isOpen = drawer.classList.contains('open');
+      if (isOpen) {
+        drawer.classList.remove('open');
+        if (arrow) arrow.textContent = '▾';
+      } else {
+        drawer.classList.add('open');
+        if (arrow) arrow.textContent = '▴';
+      }
+    }
+
+    // Cart Management
+    let cartCount = 0;
+    let totalPrice = 0;
+
+    function addToCart(itemName, price) {
+      cartCount += 1;
+      totalPrice += price;
+
+      const counter = document.getElementById('cart-counter');
+      const total = document.getElementById('cart-total-price');
+
+      counter.textContent = cartCount.toLocaleString('fa-IR');
+      total.textContent = `${totalPrice.toLocaleString('fa-IR')} تومان`;
+
+      counter.classList.add('scale-125');
+      setTimeout(() => counter.classList.remove('scale-125'), 180);
+
+      showNotification(`${itemName} به سفارش اضافه شد`);
+    }
+
+    function showNotification(msg) {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toast-message');
+      text.textContent = msg;
+
+      toast.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2200);
+    }
+
+    function handleCheckout() {
+      if (cartCount === 0) {
+        showNotification('سبد سفارش خالی است. لطفاً آیتمی انتخاب کنید.');
+      } else {
+        showNotification(`سفارش میز ۴ با مبلغ ${totalPrice.toLocaleString('fa-IR')} تومان ثبت گردید.`);
+      }
+    }
+
+    // Nav active state is driven by app.js watchSections() (IntersectionObserver).
+    // Real parallax engine runs directly in assets/app.js via initParallax()
+  </script>
+<script type="module" src="assets/app.js"></script>
+<script>
+  /* PWA: register the service worker so the menu keeps working offline after
+     the first visit (it caches the shell, the assets and the JSON payload). */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* file:// or unsupported */ });
+    });
+  }
+</script>
+</body></html>

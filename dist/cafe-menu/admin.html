@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>پنل مدیریت منوی کافه</title>
+<!-- Local Precompiled Tailwind CSS — 100% Offline & CDN-Free -->
+<link rel="stylesheet" href="assets/style.min.css">
+<style>
+  /* Local Persian UI font — the same file the public menu ships, so the
+     panel's Persian text renders like the menu and works without a CDN. */
+  @font-face {
+    font-family: 'Vazirmatn';
+    src: url('assets/fonts/Vazirmatn-Variable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  /* Tailwind's display utilities would otherwise beat the [hidden] attribute */
+  [hidden] { display: none !important; }
+
+  :root {
+    --bg: #100E0C;
+    --panel: #17140F;
+    --panel-2: #1D1913;
+    --line: #2B251E;
+    --text: #EDE7DF;
+    --muted: #9A8F84;
+    --accent: #E0A33D;
+    --danger: #E5484D;
+    --ok: #3FB37F;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif; direction: rtl; }
+  .mono { font-family: 'Vazirmatn', ui-monospace, monospace; }
+  .panel { background: var(--panel); border-color: var(--line); }
+  .hair { border-color: var(--line); }
+  .muted { color: var(--muted); }
+
+  input, select, textarea {
+    background: #0C0A08; border: 1px solid var(--line); color: var(--text);
+    border-radius: .375rem; padding: .55rem .7rem; font-size: .9rem; width: 100%;
+  }
+  input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  input::placeholder, textarea::placeholder { color: #6B635A; }
+
+  .btn { border-radius: .375rem; font-size: .8rem; padding: .5rem .85rem; border: 1px solid transparent; }
+  .btn-primary { background: var(--accent); color: #17130B; font-weight: 600; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { border-color: var(--line); color: var(--text); }
+  .btn-ghost:hover { background: var(--panel-2); }
+  .btn-danger { border-color: #4A1E20; color: var(--danger); }
+  .btn-danger:hover { background: #2A1214; }
+
+  .nav-item { color: var(--muted); border-right: 2px solid transparent; text-align: right; }
+  .nav-item:hover { color: var(--text); background: var(--panel-2); }
+  .nav-item[aria-current="page"] {
+    color: var(--text); border-right-color: var(--accent); background: var(--panel-2);
+  }
+
+  /* no letter-spacing: Persian badges lose their joins when tracked out */
+  .badge { font-size: .65rem; text-transform: uppercase; padding: .18rem .5rem; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+  .badge-available { color: var(--ok); border-color: #1E3B30; background: #12241E; }
+  .badge-sold_out  { color: var(--accent); border-color: #453419; background: #241C10; }
+  .badge-hidden    { color: var(--muted); border-color: var(--line); background: var(--panel-2); }
+
+  tr:hover td { background: var(--panel-2); }
+
+  .theme-tile { border: 1px solid var(--line); border-radius: .5rem; overflow: hidden; text-align: right; }
+  .theme-tile:hover { border-color: var(--muted); }
+  .theme-tile[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+  #sidebar { transform: translateX(0); }
+  @media (max-width: 1023px) {
+    #sidebar[data-open="false"] { transform: translateX(100%); }
+  }
+
+  .filter-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ── Token gate ─────────────────────────────────────────────── -->
+<div id="gate" class="min-h-screen grid place-items-center px-6" hidden>
+  <form id="gate-form" class="panel border w-full max-w-sm p-7 rounded-xl space-y-4">
+    <div>
+      <p class="mono text-[0.65rem] muted mb-2">مدیریت منوی کافه</p>
+      <h1 class="text-xl font-semibold mb-2">ورود به پنل مدیریت</h1>
+      <p class="text-xs muted leading-relaxed">
+        توکن مدیر را وارد کنید (مقدار <span class="mono text-[0.75rem]" dir="ltr">ADMIN_TOKEN</span> در ابتدای فایل <span class="mono text-[0.75rem]" dir="ltr">api.php</span>).
+      </p>
+    </div>
+
+    <!-- file:// protocol warning banner -->
+    <div id="file-protocol-warning" class="p-3.5 rounded-lg border text-xs leading-relaxed" style="background:#26151A;border-color:var(--danger);color:#F6E4E7" hidden>
+      <p class="font-bold mb-1">⚠️ اجرای فایل بدون وب‌سرور:</p>
+      <p>شما این صفحه را مستقیماً از ویندوز (<span class="mono" dir="ltr">file://</span>) باز کرده‌اید. به دلیل نیاز به PHP و SQLite، فایل‌ها باید روی وب‌سرور (مانند cPanel، DirectAdmin، XAMPP یا دستور <span class="mono" dir="ltr">php -S</span>) اجرا شوند.</p>
+    </div>
+
+    <div>
+      <input id="gate-token" type="password" autocomplete="current-password" placeholder="توکن مدیر" required>
+      <button type="button" id="fill-default-token" class="text-[0.7rem] block mt-1.5 hover:underline" style="color:var(--accent)">
+        درج خودکار توکن پیش‌فرض اولیه
+      </button>
+    </div>
+
+    <p id="gate-error" class="text-xs leading-relaxed" style="color:var(--danger)" hidden></p>
+    <button class="btn btn-primary w-full" id="gate-submit" type="submit">ورود به پنل</button>
+  </form>
+</div>
+
+<!-- ── App ────────────────────────────────────────────────────── -->
+<div id="app" class="flex min-h-screen" hidden>
+
+  <!-- Sidebar -->
+  <div id="scrim" class="fixed inset-0 bg-black/60 z-30 lg:hidden" hidden></div>
+  <aside id="sidebar" data-open="false"
+         class="fixed inset-y-0 right-0 z-40 w-60 panel border-l flex flex-col transition-transform">
+    <div class="px-5 py-5 border-b hair flex items-center gap-3">
+      <span class="h-8 w-8 grid place-items-center rounded-md" style="background:var(--accent);color:#17130B" aria-hidden="true">☕</span>
+      <div class="min-w-0">
+        <p class="text-sm font-semibold truncate" id="brand-name">منوی کافه</p>
+        <p class="mono text-[0.6rem] muted">داشبورد</p>
+      </div>
+    </div>
+
+    <nav class="flex-1 py-3" aria-label="بخش‌ها">
+      <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="items" aria-current="page">آیتم‌های منو</button>
+      <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="categories">دسته‌بندی‌ها</button>
+      <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="settings">قالب و تنظیمات منو</button>
+      <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="qr">کیوآر و منوی آفلاین</button>
+    </nav>
+
+    <div class="px-5 py-4 border-t hair text-xs muted flex flex-col gap-3">
+      <a href="index.html" target="_blank" rel="noopener" class="hover:text-white">مشاهده‌ی منوی عمومی ↗</a>
+      <button id="lock" class="text-right hover:text-white">قفل کردن پنل</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="flex-1 min-w-0 flex flex-col lg:mr-60">
+    <header class="sticky top-0 z-20 panel border-b backdrop-blur">
+      <div class="flex items-center gap-3 px-4 sm:px-6 py-3">
+        <button id="menu-btn" class="lg:hidden btn btn-ghost px-2.5" aria-label="باز کردن منو">☰</button>
+        <div class="min-w-0 flex-1">
+          <h1 id="page-title" class="text-base sm:text-lg font-semibold truncate">آیتم‌های منو</h1>
+          <p id="page-sub" class="mono text-[0.62rem] muted truncate">در حال بارگذاری…</p>
+        </div>
+        <button id="primary-action" class="btn btn-primary">+ افزودن آیتم</button>
+      </div>
+      <div id="stats" class="flex gap-6 px-4 sm:px-6 py-2 border-t hair mono text-[0.65rem] muted overflow-x-auto">
+        <span>در حال بارگذاری منو…</span>
+      </div>
+    </header>
+
+    <main class="p-4 sm:p-6 flex-1">
+
+      <!-- ITEMS -->
+      <section id="view-items">
+        <div class="flex flex-wrap items-center gap-2 mb-4" role="tablist" aria-label="فیلتر بر اساس وضعیت">
+          <button class="btn btn-ghost filter-btn" data-filter="all" aria-pressed="true">همه</button>
+          <button class="btn btn-ghost filter-btn" data-filter="available" aria-pressed="false">موجود</button>
+          <button class="btn btn-ghost filter-btn" data-filter="sold_out" aria-pressed="false">تمام شد</button>
+          <button class="btn btn-ghost filter-btn" data-filter="hidden" aria-pressed="false">مخفی</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <button class="btn btn-ghost" type="button" id="seed-iranian">➕ درون‌ریزی آیتم‌های پرفروش کافه‌های ایران</button>
+          <span class="text-xs muted" id="seed-note" aria-live="polite">همه‌ی آیتم‌های درون‌ریزی‌شده مخفی می‌مانند تا قیمت‌ها را ویرایش و منتشر کنید.</span>
+        </div>
+
+        <div class="panel border rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[46rem]">
+              <thead>
+                <tr class="mono text-[0.62rem] muted border-b hair">
+                  <th class="text-right font-normal px-4 py-3">آیتم</th>
+                  <th class="text-right font-normal px-4 py-3">دسته‌بندی</th>
+                  <th class="text-left font-normal px-4 py-3">قیمت</th>
+                  <th class="text-right font-normal px-4 py-3">وضعیت</th>
+                  <th class="text-left font-normal px-4 py-3 w-40">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="items-body" class="divide-y" style="border-color:var(--line)"></tbody>
+            </table>
+          </div>
+        </div>
+        <p id="items-empty" class="panel border rounded-xl p-10 text-center text-sm muted" hidden>
+          هنوز آیتمی با این فیلتر پیدا نمی‌شود. با دکمه‌ی «افزودن آیتم» چیزی به منو اضافه کنید.
+        </p>
+      </section>
+
+      <!-- CATEGORIES -->
+      <section id="view-categories" hidden>
+        <form id="category-form" class="panel border rounded-xl p-4 mb-4 flex flex-wrap items-end gap-3">
+          <div class="flex-1 min-w-[12rem]">
+            <label class="mono text-[0.62rem] uppercase tracking-[0.16em] muted block mb-1.5" for="cat-name">نام دسته‌بندی</label>
+            <input id="cat-name" placeholder="قهوه" maxlength="60" required>
+          </div>
+          <div class="w-28">
+            <label class="mono text-[0.62rem] uppercase tracking-[0.16em] muted block mb-1.5" for="cat-sort">ترتیب</label>
+            <input id="cat-sort" type="number" min="0" max="100000" value="0">
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-primary" type="submit" id="cat-submit">افزودن دسته</button>
+            <button class="btn btn-ghost" type="button" id="cat-cancel" hidden>انصراف</button>
+          </div>
+        </form>
+
+        <div class="panel border rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[34rem]">
+              <thead>
+                <tr class="mono text-[0.62rem] muted border-b hair">
+                  <th class="text-right font-normal px-4 py-3">دسته‌بندی</th>
+                  <th class="text-left font-normal px-4 py-3">آیتم‌ها</th>
+                  <th class="text-left font-normal px-4 py-3">ترتیب</th>
+                  <th class="text-left font-normal px-4 py-3 w-40">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="categories-body" class="divide-y" style="border-color:var(--line)"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="view-settings" hidden>
+        <form id="settings-form" class="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] items-start">
+          <div class="panel border rounded-xl p-5 space-y-4">
+            <h2 class="mono text-[0.65rem] muted">اطلاعات کافه</h2>
+            <div>
+              <label class="text-xs muted block mb-1.5" for="set-shop_name">نام کافه</label>
+              <input id="set-shop_name" maxlength="80">
+            </div>
+            <div>
+              <label class="text-xs muted block mb-1.5" for="set-tagline">شعار</label>
+              <textarea id="set-tagline" rows="2" maxlength="160"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs muted block mb-1.5" for="set-currency">واحد پول</label>
+                <input id="set-currency" maxlength="8" placeholder="$">
+              </div>
+              <div>
+                <label class="text-xs muted block mb-1.5" for="set-theme">قالب</label>
+                <input id="set-theme" readonly class="mono text-xs" aria-describedby="theme-hint">
+              </div>
+            </div>
+            <div>
+              <label class="text-xs muted block mb-1.5" for="set-footer_note">متن پاورقی</label>
+              <textarea id="set-footer_note" rows="2" maxlength="200"></textarea>
+            </div>
+            <div>
+              <label class="text-xs muted block mb-1.5" for="set-daily_special">پیشنهاد روز</label>
+              <input id="set-daily_special" maxlength="160" placeholder="کافه لاته آرت با ۲۰٪ تخفیف">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs muted block mb-1.5" for="set-primary_color">رنگ اصلی</label>
+                <input id="set-primary_color" type="color" value="#dec9a4" class="h-9 w-full rounded-md border hair bg-transparent p-1">
+              </div>
+              <div>
+                <label class="text-xs muted block mb-1.5" for="set-font_family">فونت منو</label>
+                <select id="set-font_family">
+                  <option value="Vazirmatn">وزیرمتن — Vazirmatn</option>
+                  <option value="Lalezar">لاله‌زار — Lalezar</option>
+                  <option value="Dana">دانا — Dana</option>
+                  <option value="YekanBakh">یکان‌بخت — YekanBakh</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs muted block mb-1.5" for="set-custom_bg_url">تصویر پس‌زمینه</label>
+              <input id="set-custom_bg_url" maxlength="300" dir="ltr" placeholder="assets/menu-bg.jpg">
+              <p class="text-[11px] muted mt-1">مسیر نسبی مثل <span class="mono">assets/…</span> یا آدرس <span class="mono">https://…</span>؛ خالی = تصویر پیش‌فرض.</p>
+            </div>
+            <p class="text-xs muted leading-relaxed">
+              این مقادیر را منوی عمومی از <span class="mono text-[0.75rem]" dir="ltr">api.php</span> می‌خواند.
+            </p>
+          </div>
+
+          <div class="panel border rounded-xl p-5">
+            <div class="flex items-baseline justify-between gap-4 mb-1">
+              <h2 class="mono text-[0.65rem] muted">قالب منو</h2>
+              <span class="mono text-[0.62rem] muted" id="theme-hint">— قالب</span>
+            </div>
+            <p class="text-xs muted mb-4">یکی را انتخاب کنید — با ذخیره، منوی عمومی به همان قالب می‌رود.</p>
+            <div id="theme-grid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+          </div>
+
+          <div class="panel border rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between gap-3">
+              <h2 class="mono text-[0.65rem] muted">نظرات مشتری‌ها</h2>
+              <label class="flex items-center gap-2 text-xs muted cursor-pointer whitespace-nowrap">
+                <input type="checkbox" id="set-reviews_enabled" style="width:1rem;height:1rem">
+                نمایش در منو
+              </label>
+            </div>
+            <div>
+              <label class="text-xs muted block mb-1.5" for="set-reviews_title">عنوان بخش</label>
+              <input id="set-reviews_title" maxlength="80" placeholder="مشتری‌ها درباره ما چی میگن">
+            </div>
+            <div id="reviews-editor" class="space-y-3"></div>
+            <div class="flex items-center justify-between gap-3">
+              <span id="reviews-count" class="text-[11px] muted"></span>
+              <button class="btn btn-ghost" type="button" id="add-review">+ افزودن نظر</button>
+            </div>
+            <p class="text-[11px] muted leading-relaxed">
+              تغییرات با دکمه‌ی «ذخیره‌ی تغییرات» اعمال می‌شود؛ تا ۸ نظر قابل ثبت است.
+              «نمایش در منو» را بردارید تا کل این بخش از منوی مشتری حذف شود.
+            </p>
+          </div>
+
+          <div class="panel border rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between gap-3">
+              <h2 class="mono text-[0.65rem] muted">باکس‌های پایین منو</h2>
+              <label class="flex items-center gap-2 text-xs muted cursor-pointer whitespace-nowrap">
+                <input type="checkbox" id="set-highlights_enabled" style="width:1rem;height:1rem">
+                نمایش در منو
+              </label>
+            </div>
+            <div id="highlights-editor" class="space-y-3"></div>
+            <div class="flex items-center justify-between gap-3">
+              <span id="highlights-count" class="text-[11px] muted"></span>
+              <button class="btn btn-ghost" type="button" id="add-highlight">+ افزودن باکس</button>
+            </div>
+            <p class="text-[11px] muted leading-relaxed">
+              باکس «پیشنهاد روز» همیشه اول می‌آید و متن آن را فیلد
+              <span class="mono text-[0.75rem]" dir="ltr">پیشنهاد روز</span> همین صفحه عوض می‌کند؛
+              اینجا باکس‌های بعدی را می‌سازید (رنگ پُر یا تیره، تا ۸ باکس).
+            </p>
+          </div>
+
+          <div class="lg:col-span-2 flex items-center gap-3">
+            <button class="btn btn-primary" type="submit">ذخیره‌ی تغییرات</button>
+            <span id="settings-note" class="text-xs muted" aria-live="polite"></span>
+          </div>
+        </form>
+      </section>
+
+      <!-- OFFLINE + QR -->
+      <section id="view-qr" hidden>
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] items-start">
+          <div class="space-y-6">
+            <!-- ── Permanent Live Menu QR Card ─────────────────────────────── -->
+            <div class="panel border rounded-xl p-5 sm:p-6 space-y-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-bold flex items-center gap-2" style="color:var(--accent)">
+                  <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:var(--ok)"></span>
+                  دریافت کیوآر کد دائمی منو
+                </h2>
+                <span class="text-[0.65rem] px-2 py-0.5 rounded-full font-mono border" style="color:var(--ok);border-color:#1E3B30;background:#12241E">
+                  کیوآر زنده
+                </span>
+              </div>
+
+              <!-- Permanent Notice Alert Box -->
+              <div class="rounded-lg p-3 text-xs leading-relaxed border" style="background:var(--panel-2);border-color:var(--accent)">
+                <p class="font-semibold mb-1 flex items-center gap-1.5" style="color:var(--accent)">
+                  📌 کیوآر کد دائمی و بدون نیاز به چاپ مجدد:
+                </p>
+                <p class="muted text-[0.75rem] leading-relaxed">
+                  این کیوآر کد مستقیماً به آدرس دائمی منوی کافه شما متصل است. با هر تغییر در قیمت‌ها، دسته‌بندی‌ها یا آیتم‌ها در این پنل، منوی مشتریان به‌صورت خودکار به‌روزرسانی شده و <strong>هیچ نیازی به تعویض یا چاپ مجدد برچسب‌های QR روی میزها نیست.</strong>
+                </p>
+              </div>
+
+              <!-- Live URL Display -->
+              <div>
+                <label class="text-[0.7rem] muted block mb-1">آدرس عمومی و دائمی منوی شما:</label>
+                <div class="flex items-center gap-2 rounded-lg p-2 font-mono text-xs border" style="background:#0C0A08;border-color:var(--line)">
+                  <input id="qr-live-url" readonly class="bg-transparent border-none outline-none flex-1 select-all cursor-pointer text-left ltr" style="color:var(--accent);padding:0" value="">
+                  <button type="button" id="copy-menu-url" class="btn btn-ghost px-2.5 py-1 text-xs shrink-0" title="کپی لینک">
+                    📋 کپی لینک
+                  </button>
+                </div>
+              </div>
+
+              <!-- High-res QR Display Holder -->
+              <div class="text-center py-2">
+                <div id="permanent-qr-holder" class="bg-white p-4 rounded-xl inline-block shadow-lg" style="border:4px solid var(--panel-2)"></div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="space-y-2">
+                <button id="download-print-qr" class="btn btn-primary w-full flex items-center justify-center gap-2 py-2.5 font-medium">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  <span>دانلود کیوآر برای چاپ (Download QR for Print)</span>
+                </button>
+                <a id="open-live-menu" href="index.html" target="_blank" class="btn btn-ghost w-full flex items-center justify-center gap-2 py-2 text-xs">
+                  <span>مشاهده‌ی زنده‌ی منو در تب جدید ↗</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- ── Standalone Offline Backup Card ────────────────────────── -->
+            <div class="panel border rounded-xl p-5 space-y-3">
+              <h2 class="mono text-[0.65rem] muted">منوی کاملاً آفلاین — فایل مستقل HTML</h2>
+              <p class="text-xs muted leading-relaxed">
+                یک فایل <span class="mono">.html</span> با کل اطلاعات منو، تصاویر تبدیل‌شده به base64
+                و خودِ JSON داخلش ساخته می‌شود؛ بدون اینترنت روی هر گوشی یا لپ‌تاپی باز می‌شود
+                و می‌توانید فایل را مستقیم ذخیره یا به مشتری منتقل کنید.
+              </p>
+              <button id="offline-download" class="btn btn-ghost w-full border" style="border-color:var(--line)">دانلود منوی آفلاین (.html)</button>
+              <p id="offline-note" class="text-xs muted leading-relaxed" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <!-- Preview & Guidelines Column -->
+          <div class="panel border rounded-xl p-5 space-y-4">
+            <h2 class="mono text-[0.65rem] muted">راهنمای چاپ و استفاده از کیوآر روی میزها</h2>
+            <div class="space-y-3 text-xs leading-relaxed muted">
+              <div class="flex gap-2.5 items-start">
+                <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold text-[0.7rem]" style="background:var(--panel-2);color:var(--accent)">۱</span>
+                <p>با کلیک روی دکمه‌ی «دانلود کیوآر برای چاپ»، فایل تصویری PNG با بالاترین وضوح (۱۰۲۴×۱۰۲۴ پیکسل) با حاشیه‌ی استاندارد چاپ را دریافت کنید.</p>
+              </div>
+              <div class="flex gap-2.5 items-start">
+                <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold text-[0.7rem]" style="background:var(--panel-2);color:var(--accent)">۲</span>
+                <p>طرح را روی استند چوبی، استند پلکسی، برچسب رومیزی یا کارت‌های منوی کافه چاپ کنید.</p>
+              </div>
+              <div class="flex gap-2.5 items-start">
+                <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold text-[0.7rem]" style="background:var(--panel-2);color:var(--accent)">۳</span>
+                <p>مشتری با دوربین موبایل خود بارکد را اسکن کرده و به‌خاطر قابلیت PWA، حتی با قطعی موقت اینترنت منو سریعاً بارگذاری می‌شود.</p>
+              </div>
+            </div>
+
+            <div class="border-t hair pt-4 space-y-2">
+              <h3 class="mono text-[0.65rem] muted">پیش‌نمایش مشخصات خروجی</h3>
+              <p class="text-xs muted" id="qr-size">در حال آماده‌سازی کیوآر...</p>
+              <pre id="qr-payload" class="mono text-[0.6rem] leading-relaxed overflow-x-auto max-h-48 p-3 rounded select-all whitespace-pre-wrap break-all" style="background:#0C0A08;color:var(--muted)"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Item modal ─────────────────────────────────────────────── -->
+<div id="modal" class="fixed inset-0 z-50" hidden>
+  <div class="absolute inset-0 bg-black/70" data-close></div>
+  <div class="relative mx-auto my-8 sm:my-16 w-[min(94vw,32rem)] panel border rounded-xl shadow-2xl">
+    <div class="flex items-center justify-between px-5 py-4 border-b hair">
+      <h2 id="modal-title" class="font-semibold">افزودن آیتم</h2>
+      <button class="btn btn-ghost px-2.5" data-close aria-label="بستن">✕</button>
+    </div>
+    <form id="item-form" class="p-5 space-y-4">
+      <div>
+        <label class="text-xs muted block mb-1.5" for="f-name">نام</label>
+        <input id="f-name" maxlength="120" placeholder="فلت وایت" required>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs muted block mb-1.5" for="f-category">دسته‌بندی</label>
+          <select id="f-category" required></select>
+        </div>
+        <div>
+          <label class="text-xs muted block mb-1.5" for="f-price">قیمت</label>
+          <input id="f-price" type="number" min="0" step="0.05" inputmode="decimal" placeholder="4.00" required>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs muted block mb-1.5" for="f-status">وضعیت</label>
+          <select id="f-status">
+            <option value="available">موجود</option>
+            <option value="sold_out">تمام شد — با نشان نمایش داده می‌شود</option>
+            <option value="hidden">مخفی — از منو حذف می‌شود</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs muted block mb-1.5" for="f-sort">ترتیب</label>
+          <input id="f-sort" type="number" min="0" max="100000" value="0">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs muted block mb-1.5" for="f-description">توضیحات</label>
+        <textarea id="f-description" rows="3" maxlength="500" placeholder="رسترتوی دوبل با کف شیر ابریشمی."></textarea>
+      </div>
+      <div>
+        <label class="text-xs muted block mb-1.5">تصویر آیتم</label>
+        <div class="space-y-2">
+          <div class="flex items-center gap-2">
+            <label class="btn btn-ghost border border-dashed border-[var(--line)] hover:border-[var(--accent)] cursor-pointer flex-1 text-center py-2.5 px-3 text-xs flex items-center justify-center gap-2 transition-colors">
+              <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <span>انتخاب و بارگذاری تصویر (JPG، PNG، WEBP تا ۲ مگابایت)</span>
+              <input type="file" id="item_image_file" accept="image/png, image/jpeg, image/webp" class="hidden">
+            </label>
+          </div>
+          
+          <!-- Image preview container -->
+          <div id="image-preview-container" class="panel border rounded-lg p-2.5 flex items-center gap-3" hidden>
+            <img id="image-preview" src="" alt="پیش‌نمایش تصویر" class="w-14 h-14 object-cover rounded border border-[var(--line)]">
+            <div class="flex-1 min-w-0">
+              <p id="image-preview-name" class="text-xs font-medium truncate"></p>
+              <p id="image-preview-size" class="text-[0.65rem] muted"></p>
+            </div>
+            <button type="button" id="clear-image-btn" class="btn btn-ghost text-xs text-[var(--danger)] hover:text-red-300 px-2 py-1" title="حذف تصویر">
+              ✕ حذف تصویر
+            </button>
+          </div>
+
+          <!-- Direct URL input (optional fallback / displays current path) -->
+          <details class="text-[0.7rem] muted">
+            <summary class="cursor-pointer hover:text-[var(--accent)]">یا آدرس مستقیم اینترنتی تصویر (اختیاری)</summary>
+            <div class="mt-1.5">
+              <input id="f-image_url" maxlength="500" placeholder="uploads/... یا https://…" class="w-full text-xs">
+            </div>
+          </details>
+        </div>
+      </div>
+      <p id="modal-error" class="text-sm" style="color:var(--danger)" hidden></p>
+      <div class="flex justify-end gap-2 pt-1">
+        <button class="btn btn-ghost" type="button" data-close>انصراف</button>
+        <button class="btn btn-primary" type="submit" id="modal-save">ذخیره‌ی آیتم</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────────────── -->
+<div id="toast" class="fixed bottom-5 left-5 z-50 panel border rounded-lg px-4 py-3 text-sm shadow-xl" role="status" aria-live="polite" hidden></div>
+
+<script>
+/* ---------------------------------------------------------------- *
+ *  State
+ * ---------------------------------------------------------------- */
+const API = 'api.php';
+const TOKEN_KEY = 'menu_admin_token';
+
+const state = {
+  token: '', data: null, view: 'items', filter: 'all', editing: null, pendingTheme: null,
+  categoryEdit: null,
+  // live edits of the two card sections, sent as JSON when settings are saved
+  draft: { reviews: null, highlights: null },
+};
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+const STATUS_LABEL = { available: 'موجود', sold_out: 'تمام شد', hidden: 'مخفی' };
+const VIEW_TITLE = {
+  items: ['آیتم‌های منو', 'هر آنچه در منو هست'],
+  categories: ['دسته‌بندی‌ها', 'منو چطور گروه‌بندی شده'],
+  settings: ['قالب و تنظیمات منو', 'آنچه مشتری می‌بیند'],
+  qr: ['کیوآر و منوی آفلاین', 'کیوآر لینک، منوی آفلاین و PWA'],
+};
+
+/* ---------------------------------------------------------------- *
+ *  API
+ * ---------------------------------------------------------------- */
+async function api(path, { method = 'GET', body } = {}) {
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const res = await fetch(`${API}?path=${encodeURIComponent(path)}`, {
+    method,
+    headers: {
+      Accept: 'application/json',
+      ...(!isFormData && body ? { 'Content-Type': 'application/json' } : {}),
+      'X-Admin-Token': state.token,
+    },
+    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+  });
+
+  let data = null;
+  try { data = await res.json(); } catch { /* non-JSON body */ }
+
+  if (res.status === 401) {
+    const error = new Error('این توکن پذیرفته نشد.');
+    error.auth = true;
+    throw error;
+  }
+  if (!res.ok || data?.ok === false) {
+    throw new Error(data?.error || `درخواست ناموفق بود (${res.status}).`);
+  }
+  return data;
+}
+
+/* ---------------------------------------------------------------- *
+ *  Auth gate
+ * ---------------------------------------------------------------- */
+function showGate(message = '') {
+  $('#app').hidden = true;
+  $('#gate').hidden = false;
+  const error = $('#gate-error');
+  error.hidden = !message;
+  error.textContent = message;
+}
+
+if (window.location.protocol === 'file:') {
+  const warn = $('#file-protocol-warning');
+  if (warn) warn.hidden = false;
+}
+
+$('#fill-default-token')?.addEventListener('click', () => {
+  const input = $('#gate-token');
+  if (input) {
+    input.value = 'change-me-to-a-long-random-string';
+    input.type = 'text';
+    setTimeout(() => { input.type = 'password'; }, 2000);
+  }
+});
+
+async function unlock(token) {
+  const submitBtn = $('#gate-submit');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'در حال ارتباط با سرور...';
+  }
+  state.token = token;
+  try {
+    await load();
+    localStorage.setItem(TOKEN_KEY, token);
+    $('#gate').hidden = true;
+    $('#app').hidden = false;
+  } catch (error) {
+    state.data = null;
+    let msg = error.message || 'خطا در ارتباط با سرور';
+    if (error.auth) {
+      msg = 'این توکن پذیرفته نشد. توکن پیش‌فرض change-me-to-a-long-random-string است یا آن را در api.php بررسی کنید.';
+    } else if (window.location.protocol === 'file:') {
+      msg = 'خطا: فایل‌های PHP از روی پروتکل file:// اجرا نمی‌شوند. لطفاً فایل‌ها را روی وب‌سرور یا هاست اجرا کنید.';
+    }
+    showGate(msg);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'ورود به پنل';
+    }
+  }
+}
+
+$('#gate-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  unlock($('#gate-token').value.trim());
+});
+
+$('#lock').addEventListener('click', () => {
+  localStorage.removeItem(TOKEN_KEY);
+  state.token = '';
+  state.data = null;
+  $('#gate-token').value = '';
+  showGate();
+});
+
+/* ---------------------------------------------------------------- *
+ *  Load + render
+ * ---------------------------------------------------------------- */
+async function load() {
+  const payload = await api('/admin');
+  state.data = {
+    settings: payload.settings || {},
+    categories: payload.categories || [],
+    items: payload.items || [],
+    themes: payload.themes || [],
+  };
+  if (state.pendingTheme === null) state.pendingTheme = state.data.settings.theme || 'espresso';
+  renderAll();
+}
+
+function renderAll() {
+  renderStats();
+  renderItems();
+  renderCategories();
+  fillSettings();
+  renderThemeGrid();
+  $('#brand-name').textContent = state.data.settings.shop_name || 'منوی کافه';
+}
+
+function renderStats() {
+  const { items, categories } = state.data;
+  const count = (status) => items.filter((item) => item.status === status).length;
+  $('#stats').innerHTML = '';
+  for (const [label, value] of [
+    ['آیتم', items.length],
+    ['دسته‌بندی', categories.length],
+    ['موجود', count('available')],
+    ['تمام شد', count('sold_out')],
+    ['مخفی', count('hidden')],
+  ]) {
+    const chip = document.createElement('span');
+    chip.innerHTML = `<span style="color:var(--accent)">${value}</span> ${label}`;
+    $('#stats').append(chip);
+  }
+}
+
+function badge(status) {
+  const span = document.createElement('span');
+  span.className = `badge badge-${status}`;
+  span.textContent = STATUS_LABEL[status] || status;
+  return span;
+}
+
+function actionButtons(onEdit, onDelete) {
+  const wrap = document.createElement('div');
+  wrap.className = 'flex justify-end gap-2';
+
+  const edit = document.createElement('button');
+  edit.className = 'btn btn-ghost';
+  edit.textContent = 'ویرایش';
+  edit.addEventListener('click', onEdit);
+
+  const del = document.createElement('button');
+  del.className = 'btn btn-danger';
+  del.textContent = 'حذف';
+  del.addEventListener('click', () => {
+    // second click within the row is the confirmation
+    if (del.dataset.confirming) { onDelete(); return; }
+    del.dataset.confirming = '1';
+    del.textContent = 'حذف شود؟';
+    del.focus();
+    setTimeout(() => { delete del.dataset.confirming; del.textContent = 'حذف'; }, 4000);
+  });
+
+  wrap.append(edit, del);
+  return wrap;
+}
+
+function renderItems() {
+  const { items, categories } = state.data;
+  const body = $('#items-body');
+  body.textContent = '';
+
+  const nameOf = (id) => categories.find((c) => Number(c.id) === Number(id))?.name || '—';
+  const rows = items
+    .filter((item) => state.filter === 'all' || item.status === state.filter)
+    .sort((a, b) => Number(a.sort_order) - Number(b.sort_order) || Number(a.id) - Number(b.id));
+
+  $('#items-empty').hidden = rows.length > 0;
+
+  for (const item of rows) {
+    const tr = document.createElement('tr');
+
+    const first = document.createElement('td');
+    first.className = 'px-4 py-3';
+    const name = document.createElement('p');
+    name.className = 'font-medium';
+    name.textContent = item.name;
+    first.append(name);
+    if (item.description) {
+      const desc = document.createElement('p');
+      desc.className = 'muted text-xs mt-0.5 max-w-md truncate';
+      desc.textContent = item.description;
+      first.append(desc);
+    }
+
+    const cat = document.createElement('td');
+    cat.className = 'px-4 py-3 muted';
+    cat.textContent = nameOf(item.category_id);
+
+    const price = document.createElement('td');
+    price.className = 'px-4 py-3 text-right mono';
+    price.textContent = formatPrice(item.price, state.data.settings.currency);
+
+    const status = document.createElement('td');
+    status.className = 'px-4 py-3';
+    status.append(badge(item.status));
+
+    const actions = document.createElement('td');
+    actions.className = 'px-4 py-3';
+    actions.append(
+      actionButtons(
+        () => openModal(item),
+        () => removeItem(item.id),
+      ),
+    );
+
+    tr.append(first, cat, price, status, actions);
+    body.append(tr);
+  }
+}
+
+function renderCategories() {
+  const { categories, items } = state.data;
+  const body = $('#categories-body');
+  body.textContent = '';
+
+  for (const category of categories) {
+    const total = items.filter((item) => Number(item.category_id) === Number(category.id)).length;
+    const tr = document.createElement('tr');
+
+    const name = document.createElement('td');
+    name.className = 'px-4 py-3 font-medium';
+    name.textContent = category.name;
+
+    const count = document.createElement('td');
+    count.className = 'px-4 py-3 text-right mono';
+    count.textContent = total;
+
+    const order = document.createElement('td');
+    order.className = 'px-4 py-3 text-right mono muted';
+    order.textContent = category.sort_order;
+
+    const actions = document.createElement('td');
+    actions.className = 'px-4 py-3';
+    actions.append(
+      actionButtons(
+        () => startCategoryEdit(category),
+        () => removeCategory(category.id),
+      ),
+    );
+
+    tr.append(name, count, order, actions);
+    body.append(tr);
+  }
+
+  const select = $('#f-category');
+  const current = select.value;
+  select.textContent = '';
+  for (const category of categories) {
+    const option = document.createElement('option');
+    option.value = category.id;
+    option.textContent = category.name;
+    select.append(option);
+  }
+  if (current) select.value = current;
+}
+
+/* ---------------------------------------------------------------- *
+ *  Item modal
+ * ---------------------------------------------------------------- */
+function openModal(item = null) {
+  if (!state.data) {
+    if (window.location.protocol === 'file:') {
+      toast('فایل‌ها باید روی وب‌سرور PHP اجرا شوند، نه به‌صورت مستقیم از ویندوز (file://)', true);
+    } else {
+      toast('اطلاعات منو هنوز از سرور دریافت نشده است. لطفاً ارتباط با سرور را بررسی یا صفحه را بازنشانی کنید.', true);
+    }
+    return;
+  }
+  if ((state.data.categories || []).length === 0) {
+    toast('اول یک دسته‌بندی بسازید — آیتم‌ها باید در یک دسته باشند.', true);
+    show('categories');
+    return;
+  }
+  state.editing = item;
+  $('#modal-title').textContent = item ? 'ویرایش آیتم' : 'افزودن آیتم';
+  $('#modal-save').textContent = item ? 'ذخیره‌ی تغییرات' : 'افزودن آیتم';
+  $('#modal-error').hidden = true;
+
+  $('#f-name').value = item?.name || '';
+  $('#f-price').value = item ? Number(item.price).toFixed(2) : '';
+  $('#f-status').value = item?.status || 'available';
+  $('#f-sort').value = item ? Number(item.sort_order) : 0;
+  $('#f-description').value = item?.description || '';
+  $('#f-image_url').value = item?.image_url || '';
+  if (item) $('#f-category').value = item.category_id;
+
+  // Reset file input and image preview
+  const fileInput = $('#item_image_file');
+  if (fileInput) fileInput.value = '';
+
+  const previewBox = $('#image-preview-container');
+  const previewImg = $('#image-preview');
+  const previewName = $('#image-preview-name');
+  const previewSize = $('#image-preview-size');
+
+  if (item?.image_url) {
+    previewImg.src = item.image_url;
+    previewName.textContent = item.image_url.split('/').pop() || 'تصویر آیتم';
+    previewSize.textContent = item.image_url.startsWith('uploads/') ? 'تصویر بارگذاری‌شده روی سرور' : 'لینک اینترنتی';
+    previewBox.hidden = false;
+  } else {
+    previewImg.src = '';
+    previewBox.hidden = true;
+  }
+
+  $('#modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('#f-name').focus();
+}
+
+function closeModal() {
+  $('#modal').hidden = true;
+  document.body.style.overflow = '';
+  state.editing = null;
+}
+
+$$('#modal [data-close]').forEach((node) => node.addEventListener('click', closeModal));
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !$('#modal').hidden) closeModal();
+});
+
+// Image file select listener
+$('#item_image_file')?.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  const errorBox = $('#modal-error');
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    errorBox.hidden = false;
+    errorBox.textContent = 'حجم تصویر نباید بیشتر از ۲ مگابایت باشد.';
+    e.target.value = '';
+    return;
+  }
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) {
+    errorBox.hidden = false;
+    errorBox.textContent = 'فرمت تصویر مجاز نیست. فقط JPG، PNG و WEBP مجاز هستند.';
+    e.target.value = '';
+    return;
+  }
+
+  errorBox.hidden = true;
+  $('#image-preview').src = URL.createObjectURL(file);
+  $('#image-preview-name').textContent = file.name;
+  $('#image-preview-size').textContent = Math.round(file.size / 1024) + ' KB';
+  $('#image-preview-container').hidden = false;
+  $('#f-image_url').value = '';
+});
+
+// Clear image listener
+$('#clear-image-btn')?.addEventListener('click', () => {
+  const fileInput = $('#item_image_file');
+  if (fileInput) fileInput.value = '';
+  $('#f-image_url').value = '';
+  $('#image-preview').src = '';
+  $('#image-preview-container').hidden = true;
+});
+
+// Manual URL input change listener
+$('#f-image_url')?.addEventListener('input', (e) => {
+  const val = e.target.value.trim();
+  if (val) {
+    $('#image-preview').src = val;
+    $('#image-preview-name').textContent = val.split('/').pop() || 'لینک تصویر';
+    $('#image-preview-size').textContent = 'آدرس مستقیم اینترنتی';
+    $('#image-preview-container').hidden = false;
+    const fileInput = $('#item_image_file');
+    if (fileInput) fileInput.value = '';
+  } else if (!$('#item_image_file')?.files?.length) {
+    $('#image-preview-container').hidden = true;
+  }
+});
+
+$('#item-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const name = $('#f-name').value.trim();
+  const category_id = $('#f-category').value;
+  const price = Number($('#f-price').value);
+  const status = $('#f-status').value;
+  const sort_order = Number($('#f-sort').value) || 0;
+  const description = $('#f-description').value.trim();
+  const image_url = $('#f-image_url').value.trim();
+
+  const errorBox = $('#modal-error');
+  if (!name) {
+    errorBox.hidden = false;
+    errorBox.textContent = 'به آیتم یک نام بدهید.';
+    return;
+  }
+  if (!(price >= 0)) {
+    errorBox.hidden = false;
+    errorBox.textContent = 'قیمت باید صفر یا بیشتر باشد.';
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('category_id', category_id);
+  formData.append('price', String(price));
+  formData.append('status', status);
+  formData.append('sort_order', String(sort_order));
+  formData.append('description', description);
+  formData.append('image_url', image_url);
+
+  const fileInput = $('#item_image_file');
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    formData.append('item_image_file', fileInput.files[0]);
+  }
+
+  try {
+    $('#modal-save').disabled = true;
+    if (state.editing) {
+      formData.append('_method', 'PUT');
+      await api(`/items/${state.editing.id}`, { method: 'POST', body: formData });
+      toast(`«${name}» به‌روزرسانی شد`);
+    } else {
+      await api('/items', { method: 'POST', body: formData });
+      toast(`«${name}» به منو اضافه شد`);
+    }
+    closeModal();
+    await load();
+  } catch (error) {
+    errorBox.hidden = false;
+    errorBox.textContent = error.message;
+  } finally {
+    $('#modal-save').disabled = false;
+  }
+});
+
+async function removeItem(id) {
+  try {
+    await api(`/items/${id}`, { method: 'DELETE' });
+    toast('آیتم حذف شد');
+    await load();
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+$('#primary-action').addEventListener('click', () => openModal());
+
+$$('.filter-btn').forEach((button) => {
+  button.addEventListener('click', () => {
+    state.filter = button.dataset.filter;
+    $$('.filter-btn').forEach((other) =>
+      other.setAttribute('aria-pressed', String(other === button)),
+    );
+    renderItems();
+  });
+});
+
+/* ---------------------------------------------------------------- *
+ *  Categories
+ * ---------------------------------------------------------------- */
+function startCategoryEdit(category) {
+  state.categoryEdit = category;
+  $('#cat-name').value = category.name;
+  $('#cat-sort').value = category.sort_order;
+  $('#cat-submit').textContent = 'ذخیره‌ی دسته';
+  $('#cat-cancel').hidden = false;
+  $('#cat-name').focus();
+}
+
+function resetCategoryForm() {
+  state.categoryEdit = null;
+  $('#category-form').reset();
+  $('#cat-sort').value = 0;
+  $('#cat-submit').textContent = 'افزودن دسته';
+  $('#cat-cancel').hidden = true;
+}
+
+$('#cat-cancel').addEventListener('click', resetCategoryForm);
+
+$('#category-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const payload = {
+    name: $('#cat-name').value.trim(),
+    sort_order: Number($('#cat-sort').value) || 0,
+  };
+  if (!payload.name) return;
+  try {
+    if (state.categoryEdit) {
+      await api(`/categories/${state.categoryEdit.id}`, { method: 'PUT', body: payload });
+      toast('دسته‌بندی به‌روزرسانی شد');
+    } else {
+      await api('/categories', { method: 'POST', body: payload });
+      toast(`دسته‌بندی «${payload.name}» اضافه شد`);
+    }
+    resetCategoryForm();
+    await load();
+  } catch (error) {
+    toast(error.message, true);
+  }
+});
+
+async function removeCategory(id) {
+  try {
+    await api(`/categories/${id}`, { method: 'DELETE' });
+    toast('دسته‌بندی حذف شد');
+    await load();
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+/* ---------------------------------------------------------------- *
+ *  Preset: Iranian café bestsellers (inserted as `hidden`)
+ * ---------------------------------------------------------------- */
+$('#seed-iranian').addEventListener('click', async () => {
+  const button = $('#seed-iranian');
+  button.disabled = true;
+  try {
+    const result = await api('/seed', { method: 'POST', body: {} });
+    const skipped = result.skipped ? ` — ${result.skipped} مورد تکراری رد شد` : '';
+    $('#seed-note').textContent = `${result.inserted} آیتم درون‌ریزی شد${skipped}. همه مخفی‌اند؛ قیمت‌ها را ویرایش کنید و «موجود» کنید.`;
+    toast(`${result.inserted} آیتم مخفی درون‌ریزی شد`);
+    await load();
+  } catch (error) {
+    toast(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+/* ---------------------------------------------------------------- *
+ *  Settings + theme grid
+ * ---------------------------------------------------------------- */
+
+const MAX_CARDS = 8;
+
+/** Cut by code point, so the server's character count is never exceeded. */
+const clip = (value, max) => Array.from(String(value ?? '')).slice(0, max).join('');
+
+function parseSettingCards(raw) {
+  try {
+    const cards = JSON.parse(String(raw || ''));
+    return Array.isArray(cards) ? cards : null;
+  } catch {
+    return null;
+  }
+}
+
+function labelled(text, control) {
+  const wrap = document.createElement('div');
+  const label = document.createElement('label');
+  label.className = 'text-xs muted block mb-1.5';
+  label.textContent = text;
+  wrap.append(label, control);
+  return wrap;
+}
+
+function field(kind, value, { maxlength = 160, placeholder = '', rows = 0 } = {}) {
+  const node = document.createElement(kind);
+  node.value = value ?? '';
+  node.maxLength = maxlength;
+  if (placeholder) node.placeholder = placeholder;
+  if (rows) node.rows = rows;
+  return node;
+}
+
+/** Keep a draft card in sync with whatever the user types. */
+function bind(list, index, key, control, numeric = false) {
+  const sync = () => {
+    const card = state.draft[list] && state.draft[list][index];
+    if (card) card[key] = numeric ? Number(control.value) : control.value;
+  };
+  control.addEventListener('input', sync);
+  control.addEventListener('change', sync);
+}
+
+function editorShell(list, index, title, removeLabel) {
+  const box = document.createElement('div');
+  box.className = 'border hair rounded-lg p-3 space-y-2';
+
+  const head = document.createElement('div');
+  head.className = 'flex items-center justify-between gap-2';
+  const name = document.createElement('span');
+  name.className = 'mono text-[0.6rem] muted';
+  name.textContent = title;
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'btn btn-danger';
+  remove.textContent = removeLabel;
+  remove.addEventListener('click', () => {
+    state.draft[list].splice(index, 1);
+    list === 'reviews' ? renderReviewsEditor() : renderHighlightsEditor();
+  });
+  head.append(name, remove);
+  box.append(head);
+  return box;
+}
+
+function reviewEditor(card, index) {
+  const box = editorShell('reviews', index, `نظر ${index + 1}`, 'حذف');
+
+  const stars = field('select', String(card.stars ?? 5));
+  for (const n of [5, 4, 3, 2, 1]) {
+    const option = document.createElement('option');
+    option.value = String(n);
+    option.textContent = '★'.repeat(n);
+    stars.append(option);
+  }
+  stars.value = String(Number(card.stars) || 5);
+
+  const tag = field('input', card.tag, { maxlength: 40, placeholder: 'آیتم — مثلاً کافه لاته آرت' });
+  const author = field('input', card.author, { maxlength: 40, placeholder: 'نام — شغل، مثلاً سارا — دانشجو' });
+  const quote = field('textarea', card.text, { maxlength: 240, rows: 3, placeholder: 'متن نظر مشتری' });
+
+  bind('reviews', index, 'stars', stars, true);
+  bind('reviews', index, 'tag', tag);
+  bind('reviews', index, 'author', author);
+  bind('reviews', index, 'text', quote);
+
+  box.append(
+    labelled('ستاره‌ها', stars),
+    labelled('آیتم', tag),
+    labelled('نام و شغل', author),
+    labelled('متن نظر', quote),
+  );
+  return box;
+}
+
+function highlightEditor(card, index) {
+  const box = editorShell('highlights', index, `باکس ${index + 1}`, 'حذف');
+
+  const badge = field('input', card.badge, { maxlength: 30, placeholder: 'برچسب — مثلاً رست تازه' });
+  const icon = field('input', card.icon, { maxlength: 8, placeholder: '☕' });
+  const title = field('input', card.title, { maxlength: 60, placeholder: 'تیتر — مثلاً دانه‌های تک‌خاستگاه' });
+  const text = field('textarea', card.text, { maxlength: 140, rows: 2, placeholder: 'توضیح کوتاه زیر تیتر' });
+
+  const variant = field('select', String(card.variant || 'dark'));
+  for (const [value, label] of [['dark', 'تیره — قهوه‌ای'], ['brand', 'پُر — رنگ برند']]) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    variant.append(option);
+  }
+  variant.value = card.variant === 'brand' ? 'brand' : 'dark';
+
+  bind('highlights', index, 'badge', badge);
+  bind('highlights', index, 'icon', icon);
+  bind('highlights', index, 'title', title);
+  bind('highlights', index, 'text', text);
+  bind('highlights', index, 'variant', variant);
+
+  box.append(
+    labelled('رنگ باکس', variant),
+    labelled('برچسب', badge),
+    labelled('آیکون', icon),
+    labelled('تیتر', title),
+    labelled('متن', text),
+  );
+  return box;
+}
+
+function renderReviewsEditor() {
+  const host = $('#reviews-editor');
+  host.textContent = '';
+  const cards = state.draft.reviews || [];
+  cards.forEach((card, index) => host.append(reviewEditor(card, index)));
+  $('#reviews-count').textContent = `${cards.length} از ${MAX_CARDS} نظر`;
+  $('#add-review').disabled = cards.length >= MAX_CARDS;
+}
+
+function renderHighlightsEditor() {
+  const host = $('#highlights-editor');
+  host.textContent = '';
+  const cards = state.draft.highlights || [];
+  cards.forEach((card, index) => host.append(highlightEditor(card, index)));
+  $('#highlights-count').textContent = `${cards.length} از ${MAX_CARDS} باکس (+ پیشنهاد روز)`;
+  $('#add-highlight').disabled = cards.length >= MAX_CARDS;
+}
+
+$('#add-review').addEventListener('click', () => {
+  if (!Array.isArray(state.draft.reviews) || state.draft.reviews.length >= MAX_CARDS) return;
+  state.draft.reviews.push({ stars: 5, tag: '', text: '', author: '' });
+  renderReviewsEditor();
+});
+
+$('#add-highlight').addEventListener('click', () => {
+  if (!Array.isArray(state.draft.highlights) || state.draft.highlights.length >= MAX_CARDS) return;
+  state.draft.highlights.push({ badge: '', icon: '✨', variant: 'dark', title: '', text: '' });
+  renderHighlightsEditor();
+});
+
+/** The two card sections, rebuilt key-by-key so the API only ever sees
+ *  validated fields and clipped lengths. */
+function cardSettings() {
+  const out = {};
+  if (Array.isArray(state.draft.reviews)) {
+    out.reviews = JSON.stringify(
+      state.draft.reviews.map((card) => ({
+        stars: [1, 2, 3, 4, 5].includes(Number(card.stars)) ? Number(card.stars) : 5,
+        tag: clip(card.tag, 40),
+        text: clip(card.text, 240),
+        author: clip(card.author, 40),
+      })),
+    );
+  }
+  if (Array.isArray(state.draft.highlights)) {
+    out.highlights = JSON.stringify(
+      state.draft.highlights.map((card) => ({
+        badge: clip(card.badge, 30),
+        icon: clip(card.icon, 8),
+        variant: card.variant === 'brand' ? 'brand' : 'dark',
+        title: clip(card.title, 60),
+        text: clip(card.text, 140),
+      })),
+    );
+  }
+  return out;
+}
+
+function fillSettings() {
+  const settings = state.data.settings;
+  for (const key of ['shop_name', 'tagline', 'currency', 'footer_note', 'custom_bg_url', 'font_family']) {
+    const field = $(`#set-${key}`);
+    if (field) field.value = settings[key] || '';
+  }
+  const colour = settings.primary_color || '#dec9a4';
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(colour)) $('#set-primary_color').value = colour;
+  $('#set-theme').value = state.pendingTheme || '';
+
+  // The two card sections at the bottom of the menu.
+  $('#set-reviews_title').value = settings.reviews_title || '';
+  $('#set-reviews_enabled').checked = settings.reviews_enabled !== '0';
+  $('#set-highlights_enabled').checked = settings.highlights_enabled !== '0';
+  state.draft.reviews = parseSettingCards(settings.reviews) || [];
+  state.draft.highlights = parseSettingCards(settings.highlights) || [];
+  renderReviewsEditor();
+  renderHighlightsEditor();
+}
+
+function renderThemeGrid() {
+  const grid = $('#theme-grid');
+  grid.textContent = '';
+  $('#theme-hint').textContent = `${(state.data.themes || []).length} قالب`;
+  for (const theme of state.data.themes || []) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'theme-tile';
+    tile.setAttribute('aria-pressed', String(theme.slug === state.pendingTheme));
+    tile.title = `استفاده از قالب ${theme.name}`;
+    tile.addEventListener('click', () => {
+      state.pendingTheme = theme.slug;
+      $('#set-theme').value = theme.slug;
+      renderThemeGrid();
+      $('#settings-note').textContent = `قالب «${theme.name}» انتخاب شد؛ برای اعمال، ذخیره کنید.`;
+    });
+
+    const preview = document.createElement('span');
+    preview.className = 'flex h-14 p-2.5 flex-col justify-between';
+    preview.style.background = theme.bg;
+    preview.innerHTML =
+      `<span class="mono text-[0.55rem] uppercase tracking-[0.16em]" style="color:${theme.text}">${theme.name}</span>` +
+      `<span class="block h-1.5 w-8 rounded-full" style="background:${theme.accent}"></span>`;
+
+    const label = document.createElement('span');
+    label.className = 'flex px-2.5 py-1.5 text-xs items-center justify-between gap-2';
+    label.style.background = 'var(--panel-2)';
+    label.innerHTML = `<span>${theme.name}</span>` +
+      `<span class="mono text-[0.6rem] muted">${theme.slug === state.pendingTheme ? '✓' : ''}</span>`;
+
+    tile.append(preview, label);
+    grid.append(tile);
+  }
+}
+
+$('#settings-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const payload = {
+    shop_name: $('#set-shop_name').value.trim(),
+    tagline: $('#set-tagline').value.trim(),
+    currency: $('#set-currency').value.trim(),
+    footer_note: $('#set-footer_note').value.trim(),
+    daily_special: $('#set-daily_special').value.trim(),
+    custom_bg_url: $('#set-custom_bg_url').value.trim(),
+    primary_color: $('#set-primary_color').value.trim(),
+    font_family: $('#set-font_family').value,
+    theme: state.pendingTheme,
+    reviews_title: $('#set-reviews_title').value.trim(),
+    reviews_enabled: $('#set-reviews_enabled').checked ? '1' : '0',
+    highlights_enabled: $('#set-highlights_enabled').checked ? '1' : '0',
+    ...cardSettings(),
+  };
+  try {
+    await api('/settings', { method: 'POST', body: payload });
+    $('#settings-note').textContent = 'ذخیره شد — منوی عمومی از این مقادیر استفاده می‌کند.';
+    toast('تنظیمات ذخیره شد');
+    await load();
+  } catch (error) {
+    $('#settings-note').textContent = error.message;
+    toast(error.message, true);
+  }
+});
+
+/* ---------------------------------------------------------------- *
+ *  Shell: nav, sidebar, toast, helpers
+ * ---------------------------------------------------------------- */
+function show(view) {
+  state.view = view;
+  for (const name of Object.keys(VIEW_TITLE)) {
+    $(`#view-${name}`).hidden = name !== view;
+  }
+  $$('.nav-item').forEach((button) => {
+    if (button.dataset.view === view) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+  $('#page-title').textContent = VIEW_TITLE[view][0];
+  $('#page-sub').textContent = VIEW_TITLE[view][1];
+  $('#primary-action').hidden = view !== 'items';
+  if (view === 'qr' && typeof window.renderPermanentQR === 'function') {
+    window.renderPermanentQR();
+  }
+  closeSidebar();
+}
+
+$$('.nav-item').forEach((button) => button.addEventListener('click', () => show(button.dataset.view)));
+
+function openSidebar() {
+  $('#sidebar').dataset.open = 'true';
+  $('#scrim').hidden = false;
+}
+function closeSidebar() {
+  $('#sidebar').dataset.open = 'false';
+  $('#scrim').hidden = true;
+}
+$('#menu-btn').addEventListener('click', openSidebar);
+$('#scrim').addEventListener('click', closeSidebar);
+
+let toastTimer = null;
+function toast(message, isError = false) {
+  const node = $('#toast');
+  node.textContent = message;
+  node.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
+  node.style.color = isError ? 'var(--danger)' : 'var(--text)';
+  node.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { node.hidden = true; }, 3200);
+}
+
+const faNumAdmin = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
+function formatPrice(value, currency = 'تومان') {
+  const price = Number(value);
+  const amount = faNumAdmin.format(Number.isFinite(price) ? price : 0);
+  if (/^[A-Z]{3}$/i.test(currency)) return `${amount} ${currency.toUpperCase()}`;
+  return currency.length > 2 ? `${amount} ${currency}` : `${currency}${amount}`;
+}
+
+/* ---------------------------------------------------------------- *
+ *  Boot
+ * ---------------------------------------------------------------- */
+show('items');
+const saved = localStorage.getItem(TOKEN_KEY);
+if (saved) unlock(saved);
+else showGate();
+</script>
+<script src="assets/qr.min.js"></script>
+<script>
+/* Menu QR — offline snapshot encoder (bundled qrcodejs exposes window.QRCode) */
+(function () {
+  const esc = (t) => { const d = document.createElement('div'); d.textContent = String(t ?? ''); return d.innerHTML; };
+  const bytes = (s) => new TextEncoder().encode(s).length;
+  /* The public menu lives next to this file — never point a customer QR at the admin panel. */
+  const MENU_URL = new URL('index.html', location.href).href;
+  const faNum = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
+  /* Same reading as the menu: ۱۵۰٬۰۰۰ تومان */
+  const fmtPrice = (value, currency = 'تومان') => {
+    const amount = faNum.format(Number(value) || 0);
+    if (/^[A-Z]{3}$/i.test(currency)) return amount + ' ' + currency.toUpperCase();
+    return currency.length > 2 ? amount + ' ' + currency : currency + amount;
+  };
+
+  /* ---------------------------------------------------------------- *
+   *  Standalone offline menu (.html): rendered markup + base64 images
+   *  + the JSON payload embedded in the file itself.
+   * ---------------------------------------------------------------- */
+
+  /** Read an image as a data: URL (same-origin assets always work). */
+  function toDataUrl(src) {
+    return fetch(src, { mode: 'cors', credentials: 'omit' })
+      .then((res) => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.blob(); })
+      .then((blob) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('read failed'));
+        reader.readAsDataURL(blob);
+      }));
+  }
+
+  /** Best-effort map of src → data: URL; unreachable images keep their URL. */
+  async function embedImages(srcs) {
+    const map = {};
+    const unique = [...new Set(srcs.filter(Boolean))];
+    await Promise.all(unique.map(async (src) => {
+      try { map[src] = await toDataUrl(src); } catch { /* CORS or 404 — keep the plain URL */ }
+    }));
+    return map;
+  }
+
+  /** Build the whole offline document. */
+  async function buildOfflineHtml() {
+    const data = (typeof state !== 'undefined' && state.data) || null;
+    const s = (data && data.settings) || {};
+    const cur = s.currency || 'تومان';
+    const brand = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(s.primary_color || '') ? s.primary_color : '#DEC9A4';
+    const cats = (data && data.categories) || [];
+    const items = ((data && data.items) || []).filter((i) => i.status !== 'hidden');
+    const bgSrc = s.custom_bg_url || 'assets/menu-bg.jpg';
+
+    const images = await embedImages([bgSrc, ...items.map((i) => i.image_url)]);
+    const bgUrl = images[bgSrc] || null;
+
+    let sections = '';
+    for (const c of cats) {
+      const list = items.filter((i) => Number(i.category_id) === Number(c.id));
+      if (!list.length) continue;
+      sections += '<h2>' + esc(c.name) + '</h2>' + list.map((i) => {
+        const out = i.status === 'sold_out';
+        const price = out ? 'تمام شد' : fmtPrice(i.price, cur);
+        const img = i.image_url
+          ? '<img class="ph" alt="" src="' + (images[i.image_url] || esc(i.image_url)) + '">'
+          : '';
+        return '<div class="it' + (out ? ' out' : '') + '">' + img +
+          '<b>' + esc(i.name) + '</b><span>' + price + '</span>' +
+          (i.description ? '<p>' + esc(i.description) + '</p>' : '') + '</div>';
+      }).join('');
+    }
+
+    const daily = s.daily_special
+      ? '<div class="it"><b>' + esc(s.daily_special) + '</b><p>⭐ پیشنهاد روز</p></div>'
+      : '';
+    /* The JSON rides along inside a JSON-safe <script>: every '<' is escaped. */
+    const payload = { settings: s, categories: cats, items: data ? data.items : [] };
+    const json = JSON.stringify(payload).replace(/</g, '\\u003c');
+    const bgCss = bgUrl
+      ? 'background-image:url(' + bgUrl + ');background-size:100% auto;' +
+        'background-repeat:repeat-y;background-position:top center;'
+      : '';
+
+    return '<!doctype html><html dir="rtl" lang="fa"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<title>' + esc(s.shop_name || 'منو') + '</title>' +
+      '<style>' +
+      'body{margin:0;background-color:#1a0f08;color:#EDE7DF;font:15px/1.7 system-ui,Vazirmatn,sans-serif;padding:20px;' + bgCss + '}' +
+      'h1{font-size:22px;margin:6px 0;color:' + brand + '}.t{text-align:center;color:#c9b48f;font-size:11px;letter-spacing:.18em}' +
+      '.n{letter-spacing:0}h2{font-size:14px;background:' + brand + ';color:#1c120c;border-radius:999px;padding:5px 14px;display:inline-block;margin:22px 0 8px}' +
+      '.it{background:#241a12;border:1px solid #4a3a2a;border-radius:14px;padding:10px 14px;margin:8px 0}' +
+      '.it b{font-size:15px}.it span{float:left;color:#E0A33D;font-weight:800}' +
+      '.it p{margin:6px 0 0;font-size:12px;color:#bfae99;clear:both}.out{opacity:.55}' +
+      '.ph{display:block;width:100%;height:130px;object-fit:cover;border-radius:10px;margin:0 0 8px}' +
+      'footer{margin-top:26px;text-align:center;font-size:12px;color:#a3947f}</style></head>' +
+      '<body><p class="t">SOCIAL.ROHAN</p><h1>' + esc(s.shop_name || 'منو') + '</h1>' +
+      '<p class="t n">' + esc(s.tagline || '') + '</p>' + daily + sections +
+      '<footer>' + esc(s.footer_note || '') + '</footer>' +
+      '<script type="application/json" id="menu-data">' + json + '<\/script>' +
+      '</body></html>';
+  }
+
+  /* Calculate the permanent live menu URL dynamically */
+  function getPermanentMenuUrl() {
+    let url = window.location.origin + window.location.pathname;
+    url = url.replace(/admin\.html.*$/i, '');
+    if (!url.endsWith('/')) {
+      url += '/';
+    }
+    return url;
+  }
+
+  function renderPermanentQR() {
+    const holder = document.getElementById('permanent-qr-holder');
+    if (!holder) return;
+    const permanentUrl = getPermanentMenuUrl();
+    const urlInput = document.getElementById('qr-live-url');
+    if (urlInput) urlInput.value = permanentUrl;
+
+    const openLink = document.getElementById('open-live-menu');
+    if (openLink) openLink.href = permanentUrl;
+
+    const sizeEl = document.getElementById('qr-size');
+    if (sizeEl) sizeEl.textContent = 'آدرس کیوآر منو: ' + bytes(permanentUrl) + ' بایت · آماده‌ی چاپ';
+
+    const payloadEl = document.getElementById('qr-payload');
+    if (payloadEl) {
+      payloadEl.textContent = 'آدرس دائمی منو (Permanent Menu URL):\n' + permanentUrl +
+        '\n\nسطح بازیابی خطا: Level H (۳۰٪ پایداری در برابر آسیب فیزیکی و لکه)' +
+        '\nابعاد خروجی چاپ: ۱۰۲۴×۱۰۲۴ پیکسل (PNG با حاشیه استاندارد Quiet Zone)' +
+        '\nویژگی کلیدی: این کیوآر کد کاملاً دائمی است؛ هرگونه ویرایش در منو یا قیمت‌ها فوراً روی همین کد منعکس شده و هرگز نیازی به تعویض یا چاپ مجدد برچسب میزها نخواهید داشت.';
+    }
+
+    holder.innerHTML = '';
+    new QRCode(holder, {
+      text: permanentUrl,
+      width: 260,
+      height: 260,
+      colorDark: '#120d09',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+  }
+
+  window.renderPermanentQR = renderPermanentQR;
+
+  /* Download High-Resolution Print Ready PNG */
+  document.getElementById('download-print-qr')?.addEventListener('click', () => {
+    const sourceCanvas = document.querySelector('#permanent-qr-holder canvas');
+    if (!sourceCanvas) return;
+
+    // High-resolution canvas for print
+    const printCanvas = document.createElement('canvas');
+    printCanvas.width = 1024;
+    printCanvas.height = 1024;
+    const ctx = printCanvas.getContext('2d');
+
+    // Clean white quiet zone
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 1024, 1024);
+
+    const padding = 64;
+    const qrSize = 1024 - (padding * 2);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(sourceCanvas, padding, padding, qrSize, qrSize);
+
+    const a = document.createElement('a');
+    a.href = printCanvas.toDataURL('image/png');
+    a.download = 'menu-permanent-qr-print.png';
+    a.click();
+    if (typeof toast === 'function') {
+      toast('کیوآر کد دائمی با کیفیت چاپ بالا (۱۰۲۴×۱۰۲۴) دانلود شد');
+    }
+  });
+
+  /* Copy menu live link */
+  document.getElementById('copy-menu-url')?.addEventListener('click', async () => {
+    const permanentUrl = getPermanentMenuUrl();
+    try {
+      await navigator.clipboard.writeText(permanentUrl);
+      if (typeof toast === 'function') toast('لینک منوی زنده کپی شد');
+    } catch {
+      const input = document.getElementById('qr-live-url');
+      if (input) {
+        input.select();
+        document.execCommand('copy');
+        if (typeof toast === 'function') toast('لینک منوی زنده کپی شد');
+      }
+    }
+  });
+
+  // Render immediately if script runs after DOM is ready
+  setTimeout(renderPermanentQR, 100);
+
+  document.getElementById('offline-download').addEventListener('click', async () => {
+    const note = document.getElementById('offline-note');
+    const button = document.getElementById('offline-download');
+    button.disabled = true;
+    note.textContent = 'در حال ساخت فایل آفلاین…';
+    try {
+      const html = await buildOfflineHtml();
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'menu-offline.html';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      note.textContent = 'فایل ساخته شد (' + Math.round(blob.size / 1024) + ' KB) و دانلود شد؛ آن را با کابل یا واتس‌اپ به دستگاه آفلاین برسانید.';
+      document.getElementById('qr-size').textContent = 'فایل آفلاین: ' + blob.size + ' بایت · پیش‌نمایش ↓';
+      document.getElementById('qr-payload').textContent = html;
+    } catch (error) {
+      note.textContent = 'ساخت فایل شکست خورد: ' + error.message;
+    } finally {
+      button.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>

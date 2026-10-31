@@ -1,0 +1,19 @@
+# Disable script execution in uploads directory
+<FilesMatch "\.(php|php5|php7|php8|phtml|phar|cgi|pl|py|sh|asp|aspx)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+RemoveHandler .php
+RemoveType .php
+Options -ExecCGI -Indexes
