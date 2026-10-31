@@ -1,0 +1,4 @@
+menu.sqlite-shm
+menu.sqlite-wal
+uploads/*
+!uploads/.gitkeep
