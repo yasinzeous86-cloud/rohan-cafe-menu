@@ -99,8 +99,14 @@ const faNumber = new Intl.NumberFormat('fa-IR', {
 
 /** Format a price with the currency from settings. */
 export function formatPrice(value, currency = 'تومان') {
+  if (value === null || value === '' || value === undefined) {
+    return 'تماس / استعلام';
+  }
   const price = Number(value);
-  const amount = faNumber.format(Number.isFinite(price) ? price : 0);
+  if (!Number.isFinite(price) || price < 0) {
+    return 'تماس / استعلام';
+  }
+  const amount = faNumber.format(price);
 
   if (/^[A-Z]{3}$/i.test(currency)) {
     // ISO codes read after the amount: ۴۸٬۰۰۰ USD
@@ -303,10 +309,13 @@ function photoFor(category, index) {
 function renderSection(category, currency, index) {
   const drawerId = `drawer-${String(index + 1).padStart(2, '0')}`;
   const arrowId = `${drawerId}-arrow`;
-  const minPrice = formatPrice(
-    Math.min(...category.items.map((item) => Number(item.price) || 0)),
-    currency,
+  const pricedItems = (category.items || []).filter(
+    (item) => item.price !== null && item.price !== '' && item.price !== undefined && !isNaN(Number(item.price))
   );
+  const hasAnyPriced = pricedItems.length > 0;
+  const minPrice = hasAnyPriced
+    ? formatPrice(Math.min(...pricedItems.map((item) => Number(item.price))), currency)
+    : 'تماس / استعلام';
 
   const isEven = index % 2 === 0;
   const defaultPhoto = photoFor(category, index);
@@ -366,7 +375,7 @@ function renderSection(category, currency, index) {
       : null,
     el('div', { class: 'mt-3 pt-2.5 border-t border-[#1c120c]/15 flex items-center justify-between' }, [
       el('div', {}, [
-        el('span', { class: 'text-[10px] text-[#402619] block font-medium', text: 'شروع از' }),
+        hasAnyPriced ? el('span', { class: 'text-[10px] text-[#402619] block font-medium', text: 'شروع از' }) : null,
         el('span', { class: 'text-sm font-black text-[#1c120c]', text: minPrice }),
       ]),
       (() => {
@@ -410,7 +419,8 @@ function renderSection(category, currency, index) {
     : el('div', { class: 'menu-row' }, [photo, card]);
 
   const rows = category.items.map((item) => {
-    const price = formatPrice(item.price, currency);
+    const hasPrice = item.price !== null && item.price !== '' && item.price !== undefined && !isNaN(Number(item.price));
+    const priceText = hasPrice ? formatPrice(item.price, currency) : 'تماس / استعلام';
     const soldOut = item.status === 'sold_out';
     const itemImg = item.image_url || defaultAssetForItem(item.name);
 
@@ -421,17 +431,31 @@ function renderSection(category, currency, index) {
       }
     };
 
-    const add = el('button', {
-      type: 'button',
-      class: 'px-2.5 py-1 rounded-lg bg-[#dfcaa8] text-[#1c120c] font-black text-xs hover:bg-amber-200 active:scale-90 transition-all' + (soldOut ? ' opacity-40 pointer-events-none' : ''),
-      text: '+ افزودن',
-    });
-    if (!soldOut) {
-      add.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.addToCart(item.name, Number(item.price) || 0);
-        triggerSwap();
+    let priceActionEl;
+    if (hasPrice) {
+      const add = el('button', {
+        type: 'button',
+        class: 'px-2.5 py-1 rounded-lg bg-[#dfcaa8] text-[#1c120c] font-black text-xs hover:bg-amber-200 active:scale-90 transition-all' + (soldOut ? ' opacity-40 pointer-events-none' : ''),
+        text: '+ افزودن',
       });
+      if (!soldOut) {
+        add.addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.addToCart(item.name, Number(item.price) || 0);
+          triggerSwap();
+        });
+      }
+      priceActionEl = el('div', { class: 'flex items-center gap-2' }, [
+        el('span', { class: 'font-black text-sm text-amber-300', text: priceText }),
+        add,
+      ]);
+    } else {
+      priceActionEl = el('div', { class: 'flex items-center gap-2' }, [
+        el('span', {
+          class: 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-stone-900/80 text-amber-200/90 border border-amber-400/30 whitespace-nowrap shadow-sm',
+          text: 'تماس / استعلام',
+        }),
+      ]);
     }
 
     const itemRow = el('div', { 
@@ -458,10 +482,11 @@ function renderSection(category, currency, index) {
             : null,
         ]),
       ]),
-      el('div', { class: 'flex items-center gap-2' }, [
-        el('span', { class: 'font-black text-sm text-amber-300', text: price }),
-        add,
-      ]),
+      priceActionEl,
+    ]);
+
+    return itemRow;
+  });
     ]);
 
     return itemRow;

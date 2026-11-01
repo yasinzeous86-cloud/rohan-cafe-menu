@@ -1018,6 +1018,7 @@
     const cart = {}; // { [itemName]: { name, price, qty } }
 
     window.addToCart = function(itemName, price) {
+      if (price === null || price === undefined || isNaN(Number(price))) return;
       if (!cart[itemName]) {
         cart[itemName] = { name: itemName, price: Number(price) || 0, qty: 0 };
       }
@@ -1200,7 +1201,7 @@
     // Nav active state is driven by app.js watchSections() (IntersectionObserver).
     // Real parallax engine runs directly in assets/app.js via initParallax()
   </script>
-<script type="module" src="assets/app.js?v=1.2-presets"></script>
+<script type="module" src="assets/app.js?v=1.3-price-topitems"></script>
 <script>
   /* PWA: register the service worker so the menu keeps working offline after
      the first visit (it caches the shell, the assets and the JSON payload). */

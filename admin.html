@@ -790,7 +790,13 @@
             <select id="f-category" required></select>
           </div>
           <div>
-            <label class="text-xs muted block mb-1.5" for="f-price">قیمت</label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs muted block" for="f-price">قیمت</label>
+              <label class="text-xs inline-flex items-center gap-1.5 cursor-pointer select-none text-[#c69a68] hover:text-[#dfcaa8] transition-colors">
+                <input id="f-price-inquiry" type="checkbox" class="w-3.5 h-3.5 rounded border-[#3e342b] bg-[#1a1613] text-[#c69a68] focus:ring-0 cursor-pointer">
+                <span class="font-medium text-[11px]">بدون قیمت / استعلامی</span>
+              </label>
+            </div>
             <input id="f-price" type="number" min="0" step="0.05" inputmode="decimal" placeholder="4.00" required>
           </div>
         </div>
@@ -1121,7 +1127,11 @@ function renderItems() {
 
     const price = document.createElement('td');
     price.className = 'px-4 py-3 text-right mono';
-    price.textContent = formatPrice(item.price, state.data.settings.currency);
+    if (item.price === null || item.price === '' || item.price === undefined) {
+      price.innerHTML = '<span class="text-[11px] px-2 py-0.5 rounded bg-amber-950/40 text-amber-300 border border-amber-800/40 font-medium">استعلامی</span>';
+    } else {
+      price.textContent = formatPrice(item.price, state.data.settings.currency);
+    }
 
     const status = document.createElement('td');
     status.className = 'px-4 py-3';
@@ -1371,7 +1381,27 @@ function openModal(item = null) {
   $('#modal-error').hidden = true;
 
   $('#f-name').value = item?.name || '';
-  $('#f-price').value = item ? Number(item.price).toFixed(2) : '';
+  
+  const priceInquiryCheck = $('#f-price-inquiry');
+  const priceInput = $('#f-price');
+  const isInquiry = Boolean(item && (item.price === null || item.price === '' || item.price === undefined));
+  if (priceInquiryCheck) {
+    priceInquiryCheck.checked = isInquiry;
+  }
+  if (isInquiry) {
+    priceInput.value = '';
+    priceInput.disabled = true;
+    priceInput.required = false;
+    priceInput.placeholder = 'استعلامی (بدون قیمت)';
+    priceInput.classList.add('opacity-50', 'bg-[#1e1915]', 'cursor-not-allowed');
+  } else {
+    priceInput.value = item && item.price !== null && item.price !== '' && item.price !== undefined ? Number(item.price).toFixed(2) : '';
+    priceInput.disabled = false;
+    priceInput.required = true;
+    priceInput.placeholder = '4.00';
+    priceInput.classList.remove('opacity-50', 'bg-[#1e1915]', 'cursor-not-allowed');
+  }
+
   $('#f-status').value = item?.status || 'available';
   $('#f-sort').value = item ? Number(item.sort_order) : 0;
   $('#f-description').value = item?.description || '';
@@ -1470,11 +1500,29 @@ $('#f-image_url')?.addEventListener('input', (e) => {
   }
 });
 
+$('#f-price-inquiry')?.addEventListener('change', (e) => {
+  const priceInput = $('#f-price');
+  if (e.target.checked) {
+    priceInput.value = '';
+    priceInput.disabled = true;
+    priceInput.required = false;
+    priceInput.placeholder = 'استعلامی (بدون قیمت)';
+    priceInput.classList.add('opacity-50', 'bg-[#1e1915]', 'cursor-not-allowed');
+  } else {
+    priceInput.disabled = false;
+    priceInput.required = true;
+    priceInput.placeholder = '4.00';
+    priceInput.classList.remove('opacity-50', 'bg-[#1e1915]', 'cursor-not-allowed');
+    priceInput.focus();
+  }
+});
+
 $('#item-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const name = $('#f-name').value.trim();
   const category_id = $('#f-category').value;
-  const price = Number($('#f-price').value);
+  const isInquiry = $('#f-price-inquiry')?.checked || false;
+  let price = null;
   const status = $('#f-status').value;
   const sort_order = Number($('#f-sort').value) || 0;
   const description = $('#f-description').value.trim();
@@ -1486,16 +1534,26 @@ $('#item-form').addEventListener('submit', async (event) => {
     errorBox.textContent = 'به آیتم یک نام بدهید.';
     return;
   }
-  if (!(price >= 0)) {
-    errorBox.hidden = false;
-    errorBox.textContent = 'قیمت باید صفر یا بیشتر باشد.';
-    return;
+
+  if (!isInquiry) {
+    const rawPrice = $('#f-price').value.trim();
+    price = Number(rawPrice);
+    if (rawPrice === '' || isNaN(price) || price < 0) {
+      errorBox.hidden = false;
+      errorBox.textContent = 'قیمت باید صفر یا بیشتر باشد (یا گزینه بدون قیمت / استعلامی را تیک بزنید).';
+      return;
+    }
   }
 
   const formData = new FormData();
   formData.append('name', name);
   formData.append('category_id', category_id);
-  formData.append('price', String(price));
+  if (isInquiry || price === null) {
+    formData.append('price', '');
+    formData.append('is_inquiry', '1');
+  } else {
+    formData.append('price', String(price));
+  }
   formData.append('status', status);
   formData.append('sort_order', String(sort_order));
   formData.append('description', description);
@@ -2316,8 +2374,14 @@ function toast(message, isError = false) {
 
 const faNumAdmin = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
 function formatPrice(value, currency = 'تومان') {
+  if (value === null || value === '' || value === undefined) {
+    return 'استعلامی';
+  }
   const price = Number(value);
-  const amount = faNumAdmin.format(Number.isFinite(price) ? price : 0);
+  if (!Number.isFinite(price) || price < 0) {
+    return 'استعلامی';
+  }
+  const amount = faNumAdmin.format(price);
   if (/^[A-Z]{3}$/i.test(currency)) return `${amount} ${currency.toUpperCase()}`;
   return currency.length > 2 ? `${amount} ${currency}` : `${currency}${amount}`;
 }

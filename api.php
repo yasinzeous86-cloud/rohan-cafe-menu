@@ -171,7 +171,7 @@ function int_field(array $in, string $key, int $default, int $min = 0, int $max 
     return $value;
 }
 
-function price_field(array $in, string $key, float $default): float
+function price_field(array $in, string $key, ?float $default = 0.0): ?float
 {
     if (!array_key_exists($key, $in) || $in[$key] === null || $in[$key] === '') {
         return $default;
@@ -484,6 +484,44 @@ function db(): PDO
             // column already exists
         }
         try {
+            $cols = $pdo->query('PRAGMA table_info(items)')->fetchAll(PDO::FETCH_ASSOC);
+            $priceNotNull = false;
+            foreach ($cols as $col) {
+                if ($col['name'] === 'price' && (int) $col['notnull'] === 1) {
+                    $priceNotNull = true;
+                    break;
+                }
+            }
+            if ($priceNotNull) {
+                $pdo->exec('PRAGMA foreign_keys = OFF');
+                $pdo->exec('BEGIN TRANSACTION');
+                $pdo->exec('CREATE TABLE items_temp (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+                    name        TEXT    NOT NULL,
+                    description TEXT    NOT NULL DEFAULT \'\',
+                    image_url   TEXT    NOT NULL DEFAULT \'\',
+                    price       REAL    DEFAULT NULL,
+                    status      TEXT    NOT NULL DEFAULT \'available\',
+                    sort_order  INTEGER NOT NULL DEFAULT 0,
+                    created_at  TEXT    NOT NULL DEFAULT (datetime(\'now\')),
+                    updated_at  TEXT    NOT NULL DEFAULT (datetime(\'now\'))
+                )');
+                $pdo->exec('INSERT INTO items_temp (id, category_id, name, description, image_url, price, status, sort_order, created_at, updated_at)
+                            SELECT id, category_id, name, description, image_url, price, status, sort_order, created_at, updated_at FROM items');
+                $pdo->exec('DROP TABLE items');
+                $pdo->exec('ALTER TABLE items_temp RENAME TO items');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_items_category ON items(category_id)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_items_status    ON items(status)');
+                $pdo->exec('COMMIT');
+                $pdo->exec('PRAGMA foreign_keys = ON');
+            }
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+        }
+        try {
             $pdo->exec('CREATE TABLE IF NOT EXISTS orders (
                 id            INTEGER PRIMARY KEY AUTOINCREMENT,
                 table_number  TEXT    NOT NULL DEFAULT \'میز عمومی\',
@@ -517,7 +555,7 @@ function create_schema(PDO $pdo): void
         name        TEXT    NOT NULL,
         description TEXT    NOT NULL DEFAULT \'\',
         image_url   TEXT    NOT NULL DEFAULT \'\',
-        price       REAL    NOT NULL DEFAULT 0,
+        price       REAL    DEFAULT NULL,
         status      TEXT    NOT NULL DEFAULT \'available\',
         sort_order  INTEGER NOT NULL DEFAULT 0,
         created_at  TEXT    NOT NULL DEFAULT (datetime(\'now\')),
@@ -610,7 +648,7 @@ function public_payload(PDO $pdo): array
     foreach ($items as &$i) {
         $i['id'] = (int) $i['id'];
         $i['category_id'] = (int) $i['category_id'];
-        $i['price'] = (float) $i['price'];
+        $i['price'] = $i['price'] !== null ? (float) $i['price'] : null;
         $i['sort_order'] = (int) $i['sort_order'];
         $i['available'] = $i['status'] === 'available';
         $i['visible'] = $i['status'] !== 'hidden';
@@ -753,8 +791,16 @@ try {
     /* ---- items ---- */
     if ($resource === 'items') {
         if ($is_read) {
-            ok(['items' => $db->query('SELECT id, category_id, name, description, price, status, sort_order, image_url
-                                       FROM items ORDER BY sort_order, id')->fetchAll()]);
+            $items = $db->query('SELECT id, category_id, name, description, price, status, sort_order, image_url
+                                       FROM items ORDER BY sort_order, id')->fetchAll();
+            foreach ($items as &$it) {
+                $it['id'] = (int) $it['id'];
+                $it['category_id'] = (int) $it['category_id'];
+                $it['price'] = $it['price'] !== null ? (float) $it['price'] : null;
+                $it['sort_order'] = (int) $it['sort_order'];
+            }
+            unset($it);
+            ok(['items' => $items]);
         }
         if ($method === 'POST' && $id === null) {
             $data = item_values($db, body(), null);
@@ -1037,7 +1083,7 @@ function item_row(PDO $db, int $id): array
     if ($row !== false) {
         $row['id'] = (int) $row['id'];
         $row['category_id'] = (int) $row['category_id'];
-        $row['price'] = (float) $row['price'];
+        $row['price'] = $row['price'] !== null ? (float) $row['price'] : null;
         $row['sort_order'] = (int) $row['sort_order'];
     }
     return $row === false ? [] : $row;
@@ -1189,9 +1235,14 @@ function item_values(PDO $db, array $in, ?array $current): array
         ? str_field($in, 'description', '', 500)
         : (string) ($current['description'] ?? '');
 
-    $price = $has('price')
-        ? price_field($in, 'price', 0.0)
-        : (float) ($current['price'] ?? 0.0);
+    $isInquiry = !empty($in['is_inquiry']) || (array_key_exists('price', $in) && ($in['price'] === null || $in['price'] === ''));
+    if ($isInquiry) {
+        $price = null;
+    } elseif (array_key_exists('price', $in)) {
+        $price = price_field($in, 'price', null);
+    } else {
+        $price = isset($current['price']) && $current['price'] !== null ? (float) $current['price'] : null;
+    }
 
     $status = $has('status')
         ? str_field($in, 'status', '', 20)

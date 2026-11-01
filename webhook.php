@@ -113,11 +113,123 @@ function get_main_keyboard(): array
     return [
         'keyboard' => [
             [['text' => '📦 سفارشات فعال'], ['text' => '📊 گزارش فروش امروز']],
-            [['text' => '🍔 مدیریت آیتم‌ها'], ['text' => '💬 بررسی نظرات']],
-            [['text' => '🔔 تنظیمات نوتیفیکیشن']],
+            [['text' => '🏆 آیتم‌های پرفروش'], ['text' => '🍔 مدیریت آیتم‌ها']],
+            [['text' => '💬 بررسی نظرات'], ['text' => '🔔 تنظیمات نوتیفیکیشن']],
         ],
         'resize_keyboard' => true,
         'is_persistent'   => true,
+    ];
+}
+
+/**
+ * Top selling items query & aggregator
+ */
+function get_top_selling_report(PDO $db, int $days, string $currency): array
+{
+    if ($days === 1) {
+        $periodLabel = 'امروز';
+        $sql = "SELECT items_json FROM orders WHERE date(created_at) = date('now', 'localtime') AND status != 'cancelled'";
+    } else {
+        $periodLabel = "{$days} روز گذشته";
+        $sql = "SELECT items_json FROM orders WHERE created_at >= datetime('now', 'localtime', '-{$days} days') AND status != 'cancelled'";
+    }
+
+    $stmt = $db->query($sql);
+    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $itemStats = [];
+    $totalSoldItems = 0;
+    $totalRevenue = 0.0;
+
+    foreach ($orders as $ord) {
+        $items = json_decode((string) ($ord['items_json'] ?? ''), true);
+        if (!is_array($items)) continue;
+        foreach ($items as $it) {
+            $name = trim((string) ($it['name'] ?? ''));
+            if ($name === '') continue;
+            $qty = max(1, (int) ($it['qty'] ?? 1));
+            $price = (float) ($it['price'] ?? 0);
+            if (!isset($itemStats[$name])) {
+                $itemStats[$name] = ['qty' => 0, 'revenue' => 0.0];
+            }
+            $itemStats[$name]['qty'] += $qty;
+            $itemStats[$name]['revenue'] += ($qty * $price);
+            $totalSoldItems += $qty;
+            $totalRevenue += ($qty * $price);
+        }
+    }
+
+    uasort($itemStats, static function (array $a, array $b): int {
+        return $b['qty'] <=> $a['qty'];
+    });
+
+    return [
+        'period_label'  => $periodLabel,
+        'days'          => $days,
+        'order_count'   => count($orders),
+        'total_sold'    => $totalSoldItems,
+        'total_revenue' => $totalRevenue,
+        'top_items'     => array_slice($itemStats, 0, 5, true),
+    ];
+}
+
+/**
+ * Format top selling items message with medals and percentages
+ */
+function format_top_selling_message(array $report, string $currency): string
+{
+    $period = $report['period_label'];
+    $totalSold = $report['total_sold'];
+    $orderCount = $report['order_count'];
+    $totalRevFormatted = number_format($report['total_revenue']) . ' ' . $currency;
+
+    if ($totalSold === 0 || empty($report['top_items'])) {
+        return "🏆 <b>آمار آیتم‌های پرفروش کافه</b>\n" .
+               "⏱ بازه آماری: <b>{$period}</b>\n\n" .
+               "ℹ️ در این بازه زمانی هیچ سفارشی ثبت نشده است.\n" .
+               "از دکمه‌های زیر می‌توانید بازه‌های ۷ یا ۳۰ روزه را انتخاب کنید:";
+    }
+
+    $medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+
+    $msg  = "🏆 <b>رتبه‌بندی ۵ آیتم پرفروش و محبوب کافه</b>\n";
+    $msg .= "⏱ بازه آماری: <b>{$period}</b>\n";
+    $msg .= "📦 فاکتورهای بررسی‌شده: <b>{$orderCount}</b> | اقلام فروخته‌شده: <b>{$totalSold}</b> عدد\n";
+    $msg .= "💰 درآمد حاصل از اقلام: <code>{$totalRevFormatted}</code>\n\n";
+    $msg .= "━━━━━━━━━━━━━━━━━━━━\n";
+
+    $rank = 0;
+    foreach ($report['top_items'] as $name => $data) {
+        $medal = $medals[$rank] ?? '▫️';
+        $qty   = $data['qty'];
+        $pct   = $totalSold > 0 ? round(($qty / $totalSold) * 100, 1) : 0;
+        $rev   = number_format($data['revenue']) . ' ' . $currency;
+        $safeName = htmlspecialchars((string) $name, ENT_QUOTES, 'UTF-8');
+
+        $msg .= "{$medal} <b>{$safeName}</b>\n";
+        $msg .= "   ├ 📦 تعداد فروش: <b>{$qty} عدد</b> (<b>{$pct}%</b> کل فروش)\n";
+        $msg .= "   └ 💵 مجموع فروش: <code>{$rev}</code>\n\n";
+        $rank++;
+    }
+
+    $msg .= "━━━━━━━━━━━━━━━━━━━━\n";
+    $msg .= "💡 <i>نکته هوشمند: محبوب‌ترین آیتم‌ها را می‌توانید در صدر دسته‌بندی‌ها قرار دهید تا سفارش‌گیری سریع‌تر شود.</i>";
+
+    return $msg;
+}
+
+/**
+ * Filter buttons for top selling timeframes
+ */
+function get_top_selling_keyboard(int $activeDays = 1): array
+{
+    return [
+        'inline_keyboard' => [
+            [
+                ['text' => ($activeDays === 1 ? '• 📅 امروز •' : '📅 امروز'), 'callback_data' => 'top_period_1'],
+                ['text' => ($activeDays === 7 ? '• 📆 ۷ روز گذشته •' : '📆 ۷ روز گذشته'), 'callback_data' => 'top_period_7'],
+                ['text' => ($activeDays === 30 ? '• 🗓 ۳۰ روز گذشته •' : '🗓 ۳۰ روز گذشته'), 'callback_data' => 'top_period_30'],
+            ],
+        ],
     ];
 }
 
@@ -225,6 +337,32 @@ function handle_telegram_update(array $update, PDO $db, array $settings): void
                     'reply_markup' => ['inline_keyboard' => $kb],
                 ], $proxy);
             }
+            return;
+        }
+
+        // 4. Top Selling Analytics Filter (today, 7d, 30d)
+        if (strpos($cbData, 'top_period_') === 0) {
+            $days = (int) substr($cbData, strlen('top_period_'));
+            if ($days !== 1 && $days !== 7 && $days !== 30) {
+                $days = 1;
+            }
+            $report = get_top_selling_report($db, $days, $currency);
+            $reportText = format_top_selling_message($report, $currency);
+            $kb = get_top_selling_keyboard($days);
+
+            tg_call($botToken, 'answerCallbackQuery', [
+                'callback_query_id' => $cbId,
+                'text'              => "آمار {$report['period_label']} به‌روزرسانی شد 📊",
+                'show_alert'        => false,
+            ], $proxy);
+
+            tg_call($botToken, 'editMessageText', [
+                'chat_id'      => $chatId,
+                'message_id'   => $msgId,
+                'text'         => $reportText,
+                'parse_mode'   => 'HTML',
+                'reply_markup' => $kb,
+            ], $proxy);
             return;
         }
     }
@@ -374,7 +512,23 @@ function handle_telegram_update(array $update, PDO $db, array $settings): void
             return;
         }
 
-        // 4. 🍔 مدیریت آیتم‌ها
+        // 4. 🏆 آیتم‌های پرفروش
+        if ($text === '🏆 آیتم‌های پرفروش' || $text === '🏆 آیتمهای پرفروش' || $text === '/top') {
+            $days = 1;
+            $report = get_top_selling_report($db, $days, $currency);
+            $reportText = format_top_selling_message($report, $currency);
+            $kb = get_top_selling_keyboard($days);
+
+            tg_call($botToken, 'sendMessage', [
+                'chat_id'      => $chatId,
+                'text'         => $reportText,
+                'parse_mode'   => 'HTML',
+                'reply_markup' => $kb,
+            ], $proxy);
+            return;
+        }
+
+        // 5. 🍔 مدیریت آیتم‌ها
         if ($text === '🍔 مدیریت آیتم‌ها' || $text === '🍔 مدیریت آیتمها') {
             $items = $db->query('SELECT id, name, price, status FROM items WHERE status != "hidden" ORDER BY id LIMIT 12')->fetchAll();
 
