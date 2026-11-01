@@ -859,7 +859,7 @@
 <p id="credit" class="font-semibold text-spine/80 mt-1"></p>
 </footer>
 <!-- Floating Bottom Order Bar -->
-<div class="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto p-4 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none">
+<div id="floating-cart-bar" class="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto p-4 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none">
 <div class="pointer-events-auto w-full bg-[#180f0a]/95 border border-[#855137]/40 rounded-2xl px-4 py-3.5 shadow-2xl flex items-center justify-between backdrop-blur-xl gap-3">
 <!-- Cart Info -->
 <div class="flex items-center gap-3">
@@ -908,8 +908,11 @@
     <div class="p-5 space-y-4 overflow-y-auto scroll-smooth flex-1 text-xs">
       <!-- Table Selector -->
       <div>
-        <label class="block text-amber-200/90 font-bold mb-1.5" for="checkout-table">انتخاب میز یا وضعیت تحویل</label>
-        <select id="checkout-table" class="w-full bg-[#20120b] border border-[#523323] rounded-xl px-3 py-2.5 text-stone-100 font-medium focus:border-amber-400 focus:outline-none">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-amber-200/90 font-bold" for="checkout-table">انتخاب میز یا وضعیت تحویل</label>
+          <span id="checkout-table-locked-badge" class="text-[10px] text-amber-300 font-bold px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-500/40" hidden>🔒 قفل‌شده روی میز</span>
+        </div>
+        <select id="checkout-table" class="w-full bg-[#20120b] border border-[#523323] rounded-xl px-3 py-2.5 text-stone-100 font-medium focus:border-amber-400 focus:outline-none transition-all">
           <option value="میز ۱">میز ۱</option>
           <option value="میز ۲">میز ۲</option>
           <option value="میز ۳">میز ۳</option>
@@ -994,9 +997,25 @@
     const urlParams = new URLSearchParams(window.location.search);
     const tableParam = urlParams.get('table');
     if (tableParam) {
-      const tableLabel = `میز ${tableParam}`;
+      const rawNum = tableParam.trim();
+      const tableLabel = rawNum.startsWith('میز') ? rawNum : `میز ${rawNum}`;
+      window.__currentTable = tableLabel;
+
       const barLabel = document.getElementById('cart-table-label');
       if (barLabel) barLabel.textContent = `سفارش ${tableLabel}`;
+
+      const topStatusPill = document.getElementById('today');
+      if (topStatusPill) {
+        let tableBadge = document.getElementById('top-header-table-badge');
+        if (!tableBadge) {
+          tableBadge = document.createElement('span');
+          tableBadge.id = 'top-header-table-badge';
+          tableBadge.className = 'px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-[11px] font-black text-amber-300 ml-2';
+          topStatusPill.parentNode.insertBefore(tableBadge, topStatusPill);
+        }
+        tableBadge.textContent = `📍 ${tableLabel}`;
+      }
+
       const tableSelect = document.getElementById('checkout-table');
       if (tableSelect) {
         let matched = false;
@@ -1011,6 +1030,17 @@
           const newOpt = new Option(tableLabel, tableLabel, true, true);
           tableSelect.add(newOpt);
         }
+        tableSelect.value = tableLabel;
+        // Auto-fill and lock the table selector
+        tableSelect.disabled = true;
+        tableSelect.classList.add('opacity-80', 'cursor-not-allowed', 'border-amber-500/60', 'bg-[#180e08]');
+        tableSelect.title = `شماره میز از روی کیوآر (${tableLabel}) تنظیم و قفل شده است.`;
+
+        const lockedBadge = document.getElementById('checkout-table-locked-badge');
+        if (lockedBadge) {
+          lockedBadge.textContent = `🔒 قفل‌شده روی ${tableLabel}`;
+          lockedBadge.hidden = false;
+        }
       }
     }
 
@@ -1018,6 +1048,7 @@
     const cart = {}; // { [itemName]: { name, price, qty } }
 
     window.addToCart = function(itemName, price) {
+      if (window.__ordersEnabled === false) return;
       if (price === null || price === undefined || isNaN(Number(price))) return;
       if (!cart[itemName]) {
         cart[itemName] = { name: itemName, price: Number(price) || 0, qty: 0 };
@@ -1077,6 +1108,10 @@
     }
 
     function openCheckoutModal() {
+      if (window.__ordersEnabled === false) {
+        showNotification('منو در حالت کاتالوگ نمایشی است.');
+        return;
+      }
       const count = getCartCount();
       if (count === 0) {
         showNotification('سبد سفارش خالی است. لطفاً آیتمی انتخاب کنید.');
@@ -1141,7 +1176,7 @@
       }
 
       const tableSelect = document.getElementById('checkout-table');
-      const tableNumber = tableSelect ? tableSelect.value : 'میز ۴';
+      const tableNumber = window.__currentTable || (tableSelect ? tableSelect.value : 'میز ۴');
       const noteInput = document.getElementById('checkout-note');
       const note = noteInput ? noteInput.value.trim() : '';
       const totalPrice = getCartTotal();
@@ -1201,7 +1236,7 @@
     // Nav active state is driven by app.js watchSections() (IntersectionObserver).
     // Real parallax engine runs directly in assets/app.js via initParallax()
   </script>
-<script type="module" src="assets/app.js?v=1.3-price-topitems"></script>
+<script type="module" src="assets/app.js?v=1.4-table-catalog"></script>
 <script>
   /* PWA: register the service worker so the menu keeps working offline after
      the first visit (it caches the shell, the assets and the JSON payload). */

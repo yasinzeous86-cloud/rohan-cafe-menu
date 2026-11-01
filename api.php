@@ -227,6 +227,8 @@ const SETTING_RULES = [
     'telegram_chat_id'               => 60,
     'telegram_notifications_enabled' => 3,
     'telegram_proxy'                 => 255,
+    // Order system toggle: '1' = ordering enabled, '0' = catalog-only mode
+    'orders_enabled'                 => 3,
 ];
 
 /**
@@ -272,6 +274,7 @@ function default_settings(): array
         'telegram_chat_id'               => '',
         'telegram_notifications_enabled' => '1',
         'telegram_proxy'                 => '',
+        'orders_enabled'                 => '1',
     ];
 }
 
@@ -284,7 +287,7 @@ const FONT_CHOICES = ['Vazirmatn', 'Lalezar', 'Dana', 'YekanBakh'];
  */
 function check_setting(string $key, string $text): void
 {
-    if (in_array($key, ['reviews_enabled', 'highlights_enabled', 'telegram_notifications_enabled'], true)) {
+    if (in_array($key, ['reviews_enabled', 'highlights_enabled', 'telegram_notifications_enabled', 'orders_enabled'], true)) {
         if ($text !== '' && !in_array($text, ['0', '1'], true)) {
             fail(422, "Setting '$key' must be 0 (hidden/off) or 1 (shown/on)");
         }
@@ -910,6 +913,11 @@ try {
     /* ---- orders ---- */
     if ($resource === 'orders') {
         if ($method === 'POST' && $id === null) {
+            $settings = all_settings($db);
+            if (($settings['orders_enabled'] ?? '1') === '0') {
+                fail(403, 'امکان ثبت سفارش آنلاین در حال حاضر غیرفعال است (حالت کاتالوگ).');
+            }
+
             $in          = body();
             $tableNumber = str_field($in, 'table_number', 'میز عمومی', 50);
             $note        = str_field($in, 'customer_note', '', 300);

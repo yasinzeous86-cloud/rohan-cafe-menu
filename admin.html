@@ -495,8 +495,25 @@
       <!-- SETTINGS -->
       <section id="view-settings" hidden>
         <form id="settings-form" class="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] items-start">
-          <div class="panel border rounded-xl p-5 space-y-4">
-            <h2 class="mono text-[0.65rem] muted">اطلاعات کافه</h2>
+          <div class="space-y-4">
+            <!-- Order System Toggle Card -->
+            <div class="panel border rounded-xl p-4 space-y-2" style="background:var(--panel-2);border-color:var(--accent)">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold flex items-center gap-1.5" style="color:var(--accent)">
+                  <span>🛒</span> وضعیت ثبت سفارش
+                </span>
+                <label class="inline-flex items-center gap-1.5 text-xs font-bold cursor-pointer select-none text-stone-200">
+                  <input type="checkbox" id="set-orders_enabled" class="w-4 h-4 rounded cursor-pointer accent-[#c69a68]">
+                  <span>امکان ثبت سفارش فعال باشد</span>
+                </label>
+              </div>
+              <p class="text-[11px] muted leading-relaxed">
+                در صورت غیرفعال بودن، دکمه‌های «افزودن به سبد» و نوار سبد خرید در سرتاسر منو مخفی شده و منو به عنوان کاتالوگ نمایشی عمل می‌کند.
+              </p>
+            </div>
+
+            <div class="panel border rounded-xl p-5 space-y-4">
+              <h2 class="mono text-[0.65rem] muted">اطلاعات کافه</h2>
             <div>
               <label class="text-xs muted block mb-1.5" for="set-shop_name">نام کافه</label>
               <input id="set-shop_name" maxlength="80">
@@ -547,6 +564,7 @@
               این مقادیر را منوی عمومی از <span class="mono text-[0.75rem]" dir="ltr">api.php</span> می‌خواند.
             </p>
           </div>
+        </div>
 
           <div class="panel border rounded-xl p-5">
             <div class="flex items-baseline justify-between gap-4 mb-1">
@@ -723,6 +741,54 @@
                   <span>مشاهده‌ی زنده‌ی منو در تب جدید ↗</span>
                 </a>
               </div>
+            </div>
+
+            <!-- ── Table QR Codes Batch Generator Card ───────────────────── -->
+            <div class="panel border rounded-xl p-5 space-y-4" style="background:var(--panel)">
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-bold flex items-center gap-2" style="color:var(--accent)">
+                  <span>🏷️</span>
+                  تولید دسته‌ای کیوآر کد اختصاصی میزها (Table QR Generator)
+                </h2>
+                <span class="text-[0.65rem] px-2 py-0.5 rounded-full font-mono border" style="color:var(--accent);border-color:var(--accent);background:#1a1410">
+                  اتصال خودکار شماره میز
+                </span>
+              </div>
+
+              <p class="text-xs muted leading-relaxed">
+                با تعیین شماره میزها، برای هر میز یک کیوآر کد اختصاصی (لینک‌شده به <span class="mono ltr text-[11px]" style="color:var(--accent)">?table=X</span>) همراه با کادر گرافیکی و نام کافه تولید می‌شود. مشتری با اسکن هر کد، مستقیماً با شماره میز قفل‌شده وارد منو می‌شود.
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="text-[0.7rem] muted block mb-1" for="batch-start-table">از شماره میز:</label>
+                  <input id="batch-start-table" type="number" min="1" max="500" value="1" class="text-center font-mono font-bold">
+                </div>
+                <div>
+                  <label class="text-[0.7rem] muted block mb-1" for="batch-end-table">تا شماره میز:</label>
+                  <input id="batch-end-table" type="number" min="1" max="500" value="10" class="text-center font-mono font-bold">
+                </div>
+                <div>
+                  <label class="text-[0.7rem] muted block mb-1" for="batch-table-prefix">پیشوند عنوان:</label>
+                  <input id="batch-table-prefix" type="text" value="میز" class="text-center">
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-2 pt-1">
+                <button type="button" id="btn-generate-table-qrs" class="btn btn-primary flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold">
+                  <span>⚡ تولید و پیش‌نمایش کیوآرها</span>
+                </button>
+                <button type="button" id="btn-download-all-table-qrs" class="btn btn-ghost border flex items-center justify-center gap-2 py-2 text-xs font-bold" style="border-color:var(--accent);color:var(--accent)">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  <span>دانلود همه‌ی کیوآرها (PNG)</span>
+                </button>
+                <button type="button" id="btn-print-table-qrs" class="btn btn-ghost border flex items-center justify-center gap-2 py-2 text-xs font-medium" style="border-color:var(--line)">
+                  <span>🖨️ چاپ مستقیم برچسب‌ها</span>
+                </button>
+              </div>
+
+              <!-- Container for Generated Table QRs Preview Grid -->
+              <div id="table-qrs-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3" hidden></div>
             </div>
 
             <!-- ── Standalone Offline Backup Card ────────────────────────── -->
@@ -2018,6 +2084,8 @@ function fillSettings() {
   $('#set-highlights_enabled').checked = settings.highlights_enabled !== '0';
   const telegramToggle = $('#set-telegram_notifications_enabled');
   if (telegramToggle) telegramToggle.checked = settings.telegram_notifications_enabled !== '0';
+  const ordersToggle = $('#set-orders_enabled');
+  if (ordersToggle) ordersToggle.checked = settings.orders_enabled !== '0';
 
   // Dedicated Telegram Dashboard Panel Fields
   const tgToken = $('#tg-token-input');
@@ -2107,6 +2175,7 @@ $('#settings-form').addEventListener('submit', async (event) => {
     telegram_chat_id: $('#set-telegram_chat_id')?.value.trim() || '',
     telegram_proxy: $('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '',
     telegram_notifications_enabled: $('#set-telegram_notifications_enabled')?.checked ? '1' : '0',
+    orders_enabled: $('#set-orders_enabled')?.checked ? '1' : '0',
     ...cardSettings(),
   };
   try {
@@ -2583,6 +2652,220 @@ else showGate();
         if (typeof toast === 'function') toast('لینک منوی زنده کپی شد');
       }
     }
+  });
+
+  /* ---------------------------------------------------------------- *
+   *  Batch Table QR Codes Generator
+   * ---------------------------------------------------------------- */
+  async function generateTableQRs() {
+    const container = document.getElementById('table-qrs-container');
+    if (!container) return;
+
+    let start = parseInt(document.getElementById('batch-start-table')?.value) || 1;
+    let end = parseInt(document.getElementById('batch-end-table')?.value) || 10;
+    const prefix = document.getElementById('batch-table-prefix')?.value.trim() || 'میز';
+
+    if (start > end) {
+      const tmp = start; start = end; end = tmp;
+    }
+    const count = end - start + 1;
+    if (count > 100) {
+      if (typeof toast === 'function') toast('حداکثر ۱۰۰ میز در هر بار می‌توانید تولید کنید.', true);
+      return;
+    }
+
+    container.innerHTML = '<div class="col-span-full text-center py-4 text-xs muted">در حال تولید کیوآر کدهای میزها...</div>';
+    container.hidden = false;
+
+    const permanentUrl = getPermanentMenuUrl();
+    const shopName = (typeof state !== 'undefined' && state.data?.settings?.shop_name) ? state.data.settings.shop_name : 'کافه و بار رُهان';
+
+    // Temp container for rendering QRCode DOM
+    const tempDiv = document.createElement('div');
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    document.body.appendChild(tempDiv);
+
+    container.innerHTML = '';
+
+    for (let i = start; i <= end; i++) {
+      const tableUrl = `${permanentUrl}?table=${i}`;
+      const tempHolder = document.createElement('div');
+      tempDiv.appendChild(tempHolder);
+
+      new QRCode(tempHolder, {
+        text: tableUrl,
+        width: 400,
+        height: 400,
+        colorDark: '#120d09',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H,
+      });
+
+      // Small pause to let QRCode render into canvas
+      await new Promise((r) => setTimeout(r, 20));
+
+      const sourceCanvas = tempHolder.querySelector('canvas');
+      if (!sourceCanvas) continue;
+
+      // Create high-res print card canvas
+      const cardCanvas = document.createElement('canvas');
+      cardCanvas.width = 800;
+      cardCanvas.height = 1000;
+      cardCanvas.className = 'table-card-canvas hidden';
+      cardCanvas.dataset.table = String(i);
+      cardCanvas.dataset.label = `${prefix} ${i}`;
+      const ctx = cardCanvas.getContext('2d');
+
+      // Card Background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 800, 1000);
+
+      // Card Border & Header
+      ctx.strokeStyle = '#DEC9A4';
+      ctx.lineWidth = 14;
+      ctx.strokeRect(30, 30, 740, 940);
+
+      ctx.strokeStyle = '#1B1512';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(45, 45, 710, 910);
+
+      ctx.fillStyle = '#1B1512';
+      ctx.font = 'bold 36px Tahoma, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(shopName, 400, 105);
+
+      ctx.fillStyle = '#7A6A5B';
+      ctx.font = 'bold 20px Tahoma, sans-serif';
+      ctx.fillText('منوی دیجیتال و ثبت سفارش آنلاین', 400, 155);
+
+      // QR Code in Center
+      ctx.drawImage(sourceCanvas, 150, 200, 500, 500);
+
+      // Table Pill
+      const badgeW = 320;
+      const badgeH = 75;
+      const badgeX = 400 - (badgeW / 2);
+      const badgeY = 740;
+      ctx.fillStyle = '#1B1512';
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 20);
+      } else {
+        ctx.rect(badgeX, badgeY, badgeW, badgeH);
+      }
+      ctx.fill();
+
+      ctx.fillStyle = '#DEC9A4';
+      ctx.font = 'bold 36px Tahoma, sans-serif';
+      ctx.fillText(`${prefix} ${i}`, 400, badgeY + 38);
+
+      ctx.fillStyle = '#4A3B32';
+      ctx.font = 'bold 20px Tahoma, sans-serif';
+      ctx.fillText('با دوربین موبایل اسکن فرمایید 📱', 400, 875);
+
+      // Display card in UI
+      const cardEl = document.createElement('div');
+      cardEl.className = 'rounded-xl p-3 border flex flex-col items-center justify-between text-center gap-2';
+      cardEl.style.background = 'var(--panel-2)';
+      cardEl.style.borderColor = 'var(--line)';
+
+      const previewImg = document.createElement('img');
+      previewImg.src = cardCanvas.toDataURL('image/png');
+      previewImg.className = 'w-full aspect-[4/5] object-contain rounded-lg border bg-white';
+      previewImg.alt = `${prefix} ${i}`;
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'text-xs font-bold';
+      titleEl.style.color = 'var(--accent)';
+      titleEl.textContent = `${prefix} ${i}`;
+
+      const btnDl = document.createElement('button');
+      btnDl.type = 'button';
+      btnDl.className = 'btn btn-ghost border w-full py-1 text-[11px]';
+      btnDl.style.borderColor = 'var(--line)';
+      btnDl.textContent = '📥 دانلود PNG';
+      btnDl.onclick = () => {
+        const link = document.createElement('a');
+        link.download = `table-qr-${i}.png`;
+        link.href = cardCanvas.toDataURL('image/png');
+        link.click();
+      };
+
+      cardEl.appendChild(previewImg);
+      cardEl.appendChild(titleEl);
+      cardEl.appendChild(btnDl);
+      cardEl.appendChild(cardCanvas);
+
+      container.appendChild(cardEl);
+    }
+
+    document.body.removeChild(tempDiv);
+    if (typeof toast === 'function') toast(`${count} کیوآر کد اختصاصی میزها آماده شد.`);
+  }
+
+  document.getElementById('btn-generate-table-qrs')?.addEventListener('click', generateTableQRs);
+
+  document.getElementById('btn-download-all-table-qrs')?.addEventListener('click', async () => {
+    let canvases = document.querySelectorAll('.table-card-canvas');
+    if (canvases.length === 0) {
+      await generateTableQRs();
+      canvases = document.querySelectorAll('.table-card-canvas');
+    }
+    if (canvases.length === 0) return;
+
+    if (typeof toast === 'function') toast(`دانلود ${canvases.length} برچسب کیوآر آغاز شد...`);
+
+    canvases.forEach((cvs, idx) => {
+      setTimeout(() => {
+        const num = cvs.dataset.table;
+        const link = document.createElement('a');
+        link.download = `table-qr-${num}.png`;
+        link.href = cvs.toDataURL('image/png');
+        link.click();
+      }, idx * 250);
+    });
+  });
+
+  document.getElementById('btn-print-table-qrs')?.addEventListener('click', async () => {
+    let canvases = document.querySelectorAll('.table-card-canvas');
+    if (canvases.length === 0) {
+      await generateTableQRs();
+      canvases = document.querySelectorAll('.table-card-canvas');
+    }
+    if (canvases.length === 0) return;
+
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+      if (typeof toast === 'function') toast('لطفاً باز شدن پنجره پاپ‌آپ را در مرورگر مجاز کنید.', true);
+      return;
+    }
+
+    let html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>چاپ برچسب‌های کیوآر میزها</title>
+    <style>
+      body { margin: 0; padding: 20px; font-family: Tahoma, sans-serif; background: #fff; }
+      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+      .card { text-align: center; border: 1px dashed #ccc; padding: 8px; page-break-inside: avoid; }
+      img { max-width: 100%; height: auto; max-height: 480px; }
+      @media print {
+        body { padding: 0; }
+        .no-print { display: none !important; }
+      }
+    </style>
+    </head><body>
+    <div class="no-print" style="margin-bottom:20px;text-align:center;">
+      <button onclick="window.print()" style="padding:10px 28px;font-size:15px;font-weight:bold;cursor:pointer;background:#1B1512;color:#DEC9A4;border-radius:8px;border:none;">🖨️ تأیید و شروع چاپ</button>
+    </div>
+    <div class="grid">`;
+
+    canvases.forEach((cvs) => {
+      html += `<div class="card"><img src="${cvs.toDataURL('image/png')}"></div>`;
+    });
+
+    html += `</div></body></html>`;
+    printWin.document.write(html);
+    printWin.document.close();
   });
 
   // Render immediately if script runs after DOM is ready

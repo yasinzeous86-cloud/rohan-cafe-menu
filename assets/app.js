@@ -433,22 +433,29 @@ function renderSection(category, currency, index) {
 
     let priceActionEl;
     if (hasPrice) {
-      const add = el('button', {
-        type: 'button',
-        class: 'px-2.5 py-1 rounded-lg bg-[#dfcaa8] text-[#1c120c] font-black text-xs hover:bg-amber-200 active:scale-90 transition-all' + (soldOut ? ' opacity-40 pointer-events-none' : ''),
-        text: '+ افزودن',
-      });
-      if (!soldOut) {
-        add.addEventListener('click', (e) => {
-          e.stopPropagation();
-          window.addToCart(item.name, Number(item.price) || 0);
-          triggerSwap();
+      if (window.__ordersEnabled !== false) {
+        const add = el('button', {
+          type: 'button',
+          class: 'px-2.5 py-1 rounded-lg bg-[#dfcaa8] text-[#1c120c] font-black text-xs hover:bg-amber-200 active:scale-90 transition-all' + (soldOut ? ' opacity-40 pointer-events-none' : ''),
+          text: '+ افزودن',
         });
+        if (!soldOut) {
+          add.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.addToCart(item.name, Number(item.price) || 0);
+            triggerSwap();
+          });
+        }
+        priceActionEl = el('div', { class: 'flex items-center gap-2' }, [
+          el('span', { class: 'font-black text-sm text-amber-300', text: priceText }),
+          add,
+        ]);
+      } else {
+        // Catalog-only mode: display price tag only, no cart add button
+        priceActionEl = el('div', { class: 'flex items-center gap-2' }, [
+          el('span', { class: 'font-black text-sm text-amber-300', text: priceText }),
+        ]);
       }
-      priceActionEl = el('div', { class: 'flex items-center gap-2' }, [
-        el('span', { class: 'font-black text-sm text-amber-300', text: priceText }),
-        add,
-      ]);
     } else {
       priceActionEl = el('div', { class: 'flex items-center gap-2' }, [
         el('span', {
@@ -828,6 +835,22 @@ export function renderMenu(data) {
   const { settings = {}, themes = [] } = data;
   applyTheme(themes, settings.theme);
   applyCustomization(settings);
+
+  // Order system mode toggle (1 = enabled, 0 = catalog-only mode)
+  const ordersEnabled = (settings.orders_enabled ?? '1') !== '0';
+  window.__ordersEnabled = ordersEnabled;
+  const cartBar = document.getElementById('floating-cart-bar');
+  if (cartBar) {
+    cartBar.style.display = ordersEnabled ? '' : 'none';
+  }
+
+  // Parse URL for ?table=X parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const tableParam = urlParams.get('table');
+  if (tableParam) {
+    const rawNum = tableParam.trim();
+    window.__currentTable = rawNum.startsWith('میز') ? rawNum : `میز ${rawNum}`;
+  }
 
   const currency = settings.currency || 'تومان';
   const categories = liveCategories(data.categories, data.items).map((category, index) => ({

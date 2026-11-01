@@ -4,7 +4,7 @@
  * Only GET requests are ever intercepted; writes always reach the server.
  */
 
-const CACHE_VERSION = 'v1.3-price-topitems';
+const CACHE_VERSION = 'v1.4-table-catalog';
 const VERSION = CACHE_VERSION;
 const SHELL = [
   './',
