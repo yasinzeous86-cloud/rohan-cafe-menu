@@ -1,0 +1,23 @@
+# ==============================================================================
+# Render.com Blueprint Deployment Specification
+# Docs: https://render.com/docs/blueprint-spec
+# ==============================================================================
+
+services:
+  - type: web
+    name: rohan-cafe-menu
+    runtime: docker
+    plan: free
+    region: frankfurt # Options: frankfurt (EU - recommended for Iran), oregon (US), ohio (US), singapore (Asia)
+    branch: master
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PHP_CLI_SERVER_WORKERS
+        value: 4
+      - key: TZ
+        value: Asia/Tehran

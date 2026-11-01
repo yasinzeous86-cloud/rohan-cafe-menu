@@ -1,0 +1,17 @@
+.git
+.github
+node_modules
+*.zip
+*.log
+.system_generated
+_stage_rohan
+_dist_rohan_v1
+screenshot-*.png
+Gemini_Generated_Image_*.jpe
+items/
+items no background/
+scripts/
+test_crud.php
+.freebuff
+cafe-menu-v1.0
+dist/

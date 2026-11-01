@@ -1,5 +1,31 @@
-menu.sqlite-shm
-menu.sqlite-wal
-uploads/*
-!uploads/.gitkeep
+# ==============================================================================
+# Rohan Cafe Menu - Git Ignore Rules
+# ==============================================================================
+
+# SQLite runtime temporary files (RETAIN core menu.sqlite with seed data)
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+
+# Large release archives
+*.zip
+
+# Local logs and temporary artifacts
+*.log
+.system_generated/
+_stage_rohan/
+_dist_rohan_v1/
+
+# Dependencies & build caches
 node_modules/
+.npm/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# User uploaded files (retain security .htaccess and keep file)
+uploads/*
+!uploads/.htaccess
+!uploads/.gitkeep
