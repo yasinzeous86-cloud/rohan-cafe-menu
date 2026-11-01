@@ -1,0 +1,394 @@
+[
+  {
+    "id": "espresso",
+    "name": "اسپرسو",
+    "file": "espresso.png",
+    "path": "assets/presets/espresso.png",
+    "category": "نوشیدنی سرد و گرم"
+  },
+  {
+    "id": "cappuccino",
+    "name": "کاپوچینو",
+    "file": "cappuccino.png",
+    "path": "assets/presets/cappuccino.png",
+    "category": "نوشیدنی سرد و گرم"
+  },
+  {
+    "id": "caramel-macchiato",
+    "name": "کارامل ماکیاتو",
+    "file": "caramel-macchiato.png",
+    "path": "assets/presets/caramel-macchiato.png",
+    "category": "نوشیدنی سرد و گرم"
+  },
+  {
+    "id": "frappe",
+    "name": "فراپه",
+    "file": "frappe.png",
+    "path": "assets/presets/frappe.png",
+    "category": "نوشیدنی سرد و گرم"
+  },
+  {
+    "id": "cold-brew",
+    "name": "کلد برو",
+    "file": "cold-brew.png",
+    "path": "assets/presets/cold-brew.png",
+    "category": "نوشیدنی سرد و گرم"
+  },
+  {
+    "id": "mojito",
+    "name": "موهیتو",
+    "file": "mojito.png",
+    "path": "assets/presets/mojito.png",
+    "category": "نوشیدنی سرد و گرم"
+  },
+  {
+    "id": "lemonade",
+    "name": "لیموناد",
+    "file": "lemonade.png",
+    "path": "assets/presets/lemonade.png",
+    "category": "نوشیدنی سرد و گرم"
+  },
+  {
+    "id": "orange-juice",
+    "name": "آب پرتقال",
+    "file": "orange-juice.png",
+    "path": "assets/presets/orange-juice.png",
+    "category": "نوشیدنی سرد و گرم"
+  },
+  {
+    "id": "v60",
+    "name": "قهوه دمی وی ۶۰",
+    "file": "v60.png",
+    "path": "assets/presets/v60.png",
+    "category": "قهوه و شیک"
+  },
+  {
+    "id": "iced-chocolate",
+    "name": "آیس چاکلت",
+    "file": "iced-chocolate.png",
+    "path": "assets/presets/iced-chocolate.png",
+    "category": "قهوه و شیک"
+  },
+  {
+    "id": "vanilla-shake",
+    "name": "میلک شیک وانیل",
+    "file": "vanilla-shake.png",
+    "path": "assets/presets/vanilla-shake.png",
+    "category": "قهوه و شیک"
+  },
+  {
+    "id": "americano",
+    "name": "آمریکانو",
+    "file": "americano.png",
+    "path": "assets/presets/americano.png",
+    "category": "قهوه و شیک"
+  },
+  {
+    "id": "latte",
+    "name": "کافه لاته",
+    "file": "latte.png",
+    "path": "assets/presets/latte.png",
+    "category": "قهوه و شیک"
+  },
+  {
+    "id": "flat-white",
+    "name": "فلت وایت",
+    "file": "flat-white.png",
+    "path": "assets/presets/flat-white.png",
+    "category": "قهوه و شیک"
+  },
+  {
+    "id": "espresso-doppio",
+    "name": "اسپرسو دوپیو",
+    "file": "espresso-doppio.png",
+    "path": "assets/presets/espresso-doppio.png",
+    "category": "قهوه و شیک"
+  },
+  {
+    "id": "mocha",
+    "name": "کافه موکا",
+    "file": "mocha.png",
+    "path": "assets/presets/mocha.png",
+    "category": "قهوه و شیک"
+  },
+  {
+    "id": "pizza-pepperoni",
+    "name": "پیتزا پپرونی",
+    "file": "pizza-pepperoni.png",
+    "path": "assets/presets/pizza-pepperoni.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "pizza-vegetable",
+    "name": "پیتزا سبزیجات",
+    "file": "pizza-vegetable.png",
+    "path": "assets/presets/pizza-vegetable.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "pizza-meat-mushroom",
+    "name": "پیتزا گوشت و قارچ",
+    "file": "pizza-meat-mushroom.png",
+    "path": "assets/presets/pizza-meat-mushroom.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "croissant",
+    "name": "کروسان",
+    "file": "croissant.png",
+    "path": "assets/presets/croissant.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "caesar-salad",
+    "name": "سالاد سزار",
+    "file": "caesar-salad.png",
+    "path": "assets/presets/caesar-salad.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "french-fries",
+    "name": "سیب‌زمینی سرخ‌کرده",
+    "file": "french-fries.png",
+    "path": "assets/presets/french-fries.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "shakshuka",
+    "name": "شکشوکا",
+    "file": "shakshuka.png",
+    "path": "assets/presets/shakshuka.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "smoky-burger",
+    "name": "اسموکی برگر",
+    "file": "smoky-burger.png",
+    "path": "assets/presets/smoky-burger.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "chocolate-cake",
+    "name": "کیک شکلاتی",
+    "file": "chocolate-cake.png",
+    "path": "assets/presets/chocolate-cake.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "date-cake",
+    "name": "کیک خرما",
+    "file": "date-cake.png",
+    "path": "assets/presets/date-cake.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "cheesecake",
+    "name": "چیزکیک",
+    "file": "cheesecake.png",
+    "path": "assets/presets/cheesecake.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "waffle",
+    "name": "وافل بلژیکی",
+    "file": "waffle.png",
+    "path": "assets/presets/waffle.png",
+    "category": "غذا و دسر"
+  },
+  {
+    "id": "tea-pot",
+    "name": "قوری چای مخصوص",
+    "file": "tea-pot.png",
+    "path": "assets/presets/tea-pot.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "chai-latte",
+    "name": "چای لاته ماسالا",
+    "file": "chai-latte.png",
+    "path": "assets/presets/chai-latte.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "iced-latte",
+    "name": "آیس لاته",
+    "file": "iced-latte.png",
+    "path": "assets/presets/iced-latte.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "matcha-latte",
+    "name": "ماچا لاته",
+    "file": "matcha-latte.png",
+    "path": "assets/presets/matcha-latte.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "green-tea",
+    "name": "چای سبز",
+    "file": "green-tea.png",
+    "path": "assets/presets/green-tea.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "rose-soda",
+    "name": "سودای گلاب و زعفران",
+    "file": "rose-soda.png",
+    "path": "assets/presets/rose-soda.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "pink-latte",
+    "name": "پینک لاته",
+    "file": "pink-latte.png",
+    "path": "assets/presets/pink-latte.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "earl-grey-tea",
+    "name": "چای ارل گری",
+    "file": "earl-grey-tea.png",
+    "path": "assets/presets/earl-grey-tea.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "citrus-tea",
+    "name": "دمنوش مرکبات",
+    "file": "citrus-tea.png",
+    "path": "assets/presets/citrus-tea.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "hibiscus-tea",
+    "name": "چای ترش",
+    "file": "hibiscus-tea.png",
+    "path": "assets/presets/hibiscus-tea.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "mint-tea",
+    "name": "دمنوش نعنا",
+    "file": "mint-tea.png",
+    "path": "assets/presets/mint-tea.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "black-tea",
+    "name": "چای سیاه اصیل",
+    "file": "black-tea.png",
+    "path": "assets/presets/black-tea.png",
+    "category": "دمنوش و چای"
+  },
+  {
+    "id": "bagel",
+    "name": "بیگل کنجدی",
+    "file": "bagel.png",
+    "path": "assets/presets/bagel.png",
+    "category": "نان و شیرینی"
+  },
+  {
+    "id": "halloumi-toast",
+    "name": "تست هالومی",
+    "file": "halloumi-toast.png",
+    "path": "assets/presets/halloumi-toast.png",
+    "category": "نان و شیرینی"
+  },
+  {
+    "id": "avocado-toast",
+    "name": "تست آووکادو",
+    "file": "avocado-toast.png",
+    "path": "assets/presets/avocado-toast.png",
+    "category": "نان و شیرینی"
+  },
+  {
+    "id": "pancakes",
+    "name": "پنکیک با سیروپ",
+    "file": "pancakes.png",
+    "path": "assets/presets/pancakes.png",
+    "category": "نان و شیرینی"
+  },
+  {
+    "id": "brownie",
+    "name": "براونی شکلاتی",
+    "file": "brownie.png",
+    "path": "assets/presets/brownie.png",
+    "category": "نان و شیرینی"
+  },
+  {
+    "id": "cinnamon-roll",
+    "name": "سینامون رول",
+    "file": "cinnamon-roll.png",
+    "path": "assets/presets/cinnamon-roll.png",
+    "category": "نان و شیرینی"
+  },
+  {
+    "id": "blueberry-muffin",
+    "name": "مافین بلوبری",
+    "file": "blueberry-muffin.png",
+    "path": "assets/presets/blueberry-muffin.png",
+    "category": "نان و شیرینی"
+  },
+  {
+    "id": "cookies",
+    "name": "کوکی شکلات تکه‌ای",
+    "file": "cookies.png",
+    "path": "assets/presets/cookies.png",
+    "category": "نان و شیرینی"
+  },
+  {
+    "id": "english-breakfast",
+    "name": "صبحانه انگلیسی",
+    "file": "english-breakfast.png",
+    "path": "assets/presets/english-breakfast.png",
+    "category": "صبحانه و برانچ"
+  },
+  {
+    "id": "scrambled-eggs",
+    "name": "اسکرامبل اگ",
+    "file": "scrambled-eggs.png",
+    "path": "assets/presets/scrambled-eggs.png",
+    "category": "صبحانه و برانچ"
+  },
+  {
+    "id": "granola-bowl",
+    "name": "گرانولا بول",
+    "file": "granola-bowl.png",
+    "path": "assets/presets/granola-bowl.png",
+    "category": "صبحانه و برانچ"
+  },
+  {
+    "id": "acai-bowl",
+    "name": "آسای بول میوه‌ای",
+    "file": "acai-bowl.png",
+    "path": "assets/presets/acai-bowl.png",
+    "category": "صبحانه و برانچ"
+  },
+  {
+    "id": "club-sandwich",
+    "name": "کلاب ساندویچ",
+    "file": "club-sandwich.png",
+    "path": "assets/presets/club-sandwich.png",
+    "category": "صبحانه و برانچ"
+  },
+  {
+    "id": "panini",
+    "name": "پانینی مرغ گریل",
+    "file": "panini.png",
+    "path": "assets/presets/panini.png",
+    "category": "صبحانه و برانچ"
+  },
+  {
+    "id": "chicken-salad",
+    "name": "سالاد مرغ ویژه",
+    "file": "chicken-salad.png",
+    "path": "assets/presets/chicken-salad.png",
+    "category": "صبحانه و برانچ"
+  },
+  {
+    "id": "pasta",
+    "name": "پاستا آلفردو",
+    "file": "pasta.png",
+    "path": "assets/presets/pasta.png",
+    "category": "صبحانه و برانچ"
+  }
+]

@@ -537,6 +537,13 @@ function db(): PDO
             )');
             $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_status  ON orders(status)');
             $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)');
+            $pdo->exec('CREATE TABLE IF NOT EXISTS bot_users (
+                chat_id     TEXT PRIMARY KEY,
+                username    TEXT NOT NULL DEFAULT \'\',
+                first_name  TEXT NOT NULL DEFAULT \'\',
+                role        TEXT NOT NULL DEFAULT \'admin\',
+                created_at  TEXT NOT NULL DEFAULT (datetime(\'now\', \'localtime\'))
+            )');
         } catch (Throwable $e) {
         }
     }
@@ -586,6 +593,14 @@ function create_schema(PDO $pdo): void
 
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_status  ON orders(status)');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)');
+
+    $pdo->exec('CREATE TABLE IF NOT EXISTS bot_users (
+        chat_id     TEXT PRIMARY KEY,
+        username    TEXT NOT NULL DEFAULT \'\',
+        first_name  TEXT NOT NULL DEFAULT \'\',
+        role        TEXT NOT NULL DEFAULT \'admin\',
+        created_at  TEXT NOT NULL DEFAULT (datetime(\'now\', \'localtime\'))
+    )');
 }
 
 /** First-run demo menu — delete or edit freely, it only runs once. */

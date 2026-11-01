@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title data-shop-name>منوی کافه و رستوران</title>
+  <meta name="description" content="منوی دیجیتال آنلاین با قابلیت سفارش‌گیری هوشمند، تشخیص کیوآر میز و اتصال به ربات تلگرام">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#180f0a">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/style.min.css">
+
+  <style>
+    /* Un-cancellable Keyframe Pop-Spin Animation */
+    @keyframes iconPopSpin {
+      0% { transform: scale(1) rotate(0deg); opacity: 1; }
+      45% { transform: scale(0.65) rotate(180deg); opacity: 0.3; }
+      55% { transform: scale(0.65) rotate(180deg); opacity: 0.3; }
+      100% { transform: scale(1) rotate(360deg); opacity: 1; }
+    }
+    .animate-icon-swap {
+      animation: iconPopSpin 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    /* Accordion Drawer transition */
+    .drawer-content {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+    }
+    .drawer-content.open {
+      max-height: 2000px;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-[#120b07] text-stone-100 min-h-screen font-sans pb-28 select-none antialiased selection:bg-amber-500/30">
+
+  <!-- Top Ambient Glow -->
+  <div class="fixed top-0 inset-x-0 h-48 bg-gradient-to-b from-amber-950/20 to-transparent pointer-events-none z-0"></div>
+
+  <!-- Main Container -->
+  <div class="relative z-10 max-w-md mx-auto px-4 pt-6">
+
+    <!-- Header Section -->
+    <header class="text-center mb-6">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/60 border border-amber-600/30 text-amber-300 text-xs font-bold mb-3 shadow-sm backdrop-blur-sm">
+        <span data-today-date>امروز</span>
+        <span class="w-1 h-1 rounded-full bg-amber-400"></span>
+        <span data-table-badge>سفارش حضوری یا بیرون‌بر</span>
+      </div>
+
+      <h1 class="text-2xl sm:text-3xl font-black text-amber-100 tracking-tight" data-shop-name>
+        منوی کافه و رستوران
+      </h1>
+      <p class="text-xs sm:text-sm text-amber-200/70 font-medium mt-1 leading-relaxed" data-tagline>
+        طعم اصیل و تجربه‌ای دلنشین — هر روز تازه و دست‌ساز
+      </p>
+    </header>
+
+    <!-- Category Navigation Bar -->
+    <nav class="sticky top-3 z-30 mb-6 -mx-4 px-4 py-2 bg-[#120b07]/85 backdrop-blur-md border-y border-white/5" data-category-nav>
+      <ul class="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1">
+        <!-- Rendered dynamically by app.js -->
+      </ul>
+    </nav>
+
+    <!-- Main Categories & Items Container -->
+    <main id="sections" data-category-list class="space-y-6">
+      <!-- Loading Skeleton -->
+      <div class="animate-pulse space-y-4">
+        <div class="h-28 bg-white/5 rounded-2xl border border-white/5"></div>
+        <div class="h-28 bg-white/5 rounded-2xl border border-white/5"></div>
+      </div>
+    </main>
+
+    <!-- Footer Note -->
+    <footer class="mt-12 text-center text-[11px] text-stone-400 border-t border-white/10 pt-6 pb-4">
+      <p data-footer-note>قیمت‌ها شامل مالیات است؛ درباره مواد اولیه یا آلرژی از پرسنل بپرسید.</p>
+      <p class="mt-2 text-stone-600 text-[10px]">طراحی شده با پلتفرم اختصاصی راست‌چین</p>
+    </footer>
+
+  </div>
+
+  <!-- ── Floating Cart Bar ─────────────────────────────────────────── -->
+  <div id="floating-cart-bar" data-cart-bar class="fixed bottom-4 inset-x-0 z-40 max-w-md mx-auto px-4 transition-transform duration-300">
+    <div class="bg-[#1c120c]/95 backdrop-blur-lg border border-amber-400/40 rounded-2xl p-3 shadow-2xl flex items-center justify-between">
+      
+      <!-- Cart Icon & Counter -->
+      <div class="flex items-center gap-3">
+        <div class="relative w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          <span id="cart-counter" data-cart-count class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#1c120c] transition-transform">
+            ۰
+          </span>
+        </div>
+        <div>
+          <div id="cart-table-label" data-table-badge class="text-[11px] text-stone-300 font-medium">سفارش شما</div>
+          <div id="cart-total-price" data-cart-total class="text-sm font-black text-amber-200">۰ تومان</div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button type="button" data-cart-checkout class="px-4 py-2.5 rounded-xl bg-amber-300 hover:bg-amber-200 text-[#1c120c] font-black text-xs shadow-lg active:scale-95 transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span>مشاهده و ثبت سفارش</span>
+        <span>←</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ── Checkout Modal ─────────────────────────────────────────────── -->
+  <div id="checkout-modal" data-cart-modal class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto hidden">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity" data-modal-close></div>
+
+    <!-- Modal Box -->
+    <div class="relative w-full max-w-md bg-[#180f0a] border border-[#855137]/60 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] my-auto overflow-hidden z-10 text-stone-100">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-[#3d251a] bg-[#140b07] shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🛍️</span>
+          <h3 class="text-base font-black text-amber-100">ثبت نهایی سفارش</h3>
+        </div>
+        <button type="button" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-stone-400 hover:text-white transition-colors" data-modal-close aria-label="بستن">✕</button>
+      </div>
+
+      <!-- Scrollable Body -->
+      <div class="p-5 space-y-4 overflow-y-auto scroll-smooth flex-1 text-xs">
+        
+        <!-- Table Selector -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-amber-200/90 font-bold" for="checkout-table">انتخاب میز یا وضعیت تحویل</label>
+            <span id="checkout-table-locked-badge" data-table-locked-badge class="text-[10px] text-amber-300 font-bold px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-500/40 hidden">🔒 قفل‌شده روی میز</span>
+          </div>
+          <select id="checkout-table" data-table-input class="w-full bg-[#20120b] border border-[#523323] rounded-xl px-3 py-2.5 text-stone-100 font-medium focus:border-amber-400 focus:outline-none transition-all">
+            <option value="میز ۱">میز ۱</option>
+            <option value="میز ۲">میز ۲</option>
+            <option value="میز ۳">میز ۳</option>
+            <option value="میز ۴" selected>میز ۴</option>
+            <option value="میز ۵">میز ۵</option>
+            <option value="میز ۶">میز ۶</option>
+            <option value="میز ۷">میز ۷</option>
+            <option value="میز ۸">میز ۸</option>
+            <option value="میز ۹">میز ۹</option>
+            <option value="میز ۱۰">میز ۱۰</option>
+            <option value="سفارش بیرون‌بر (Takeout)">سفارش بیرون‌بر (Takeout)</option>
+          </select>
+        </div>
+
+        <!-- Ordered Items List -->
+        <div>
+          <div class="flex items-center justify-between text-stone-400 font-medium mb-2">
+            <span>اقلام انتخابی شما</span>
+            <span id="checkout-items-count" data-order-items-count class="text-[11px] text-amber-300 font-bold"></span>
+          </div>
+          <div id="checkout-items-list" data-order-items-list class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Customer Note -->
+        <div>
+          <label class="block text-amber-200/90 font-bold mb-1.5" for="checkout-note">توضیحات و ترجیحات شما (اختیاری)</label>
+          <textarea id="checkout-note" data-order-note rows="2" maxlength="300" placeholder="مثال: کم‌شکر، اسپرسو دبل، بدون یخ..." class="w-full bg-[#20120b] border border-[#523323] rounded-xl p-2.5 text-stone-100 placeholder:text-stone-500 focus:border-amber-400 focus:outline-none"></textarea>
+        </div>
+
+        <!-- Total Price Summary -->
+        <div class="bg-[#120a06] border border-[#3d251a] rounded-xl p-3 flex items-center justify-between">
+          <span class="text-stone-400 font-medium">مبلغ کل سفارش:</span>
+          <span id="checkout-final-price" data-order-final-price class="text-base font-black text-amber-300">۰ تومان</span>
+        </div>
+
+        <!-- Error Box -->
+        <p id="checkout-error" data-checkout-error class="text-rose-400 text-xs hidden"></p>
+      </div>
+
+      <!-- Sticky Footer -->
+      <div class="sticky bottom-0 z-20 bg-[#140b07] border-t border-[#3d251a] p-4 flex gap-2 shrink-0">
+        <button type="button" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 font-bold transition-colors" data-modal-close>انصراف</button>
+        <button type="button" id="submit-order-btn" data-order-submit class="flex-1 py-2.5 rounded-xl bg-amber-300 hover:bg-amber-200 text-[#1c120c] font-black shadow-lg active:scale-95 transition-all text-center">
+          تأیید و ارسال سفارش به کافه ←
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" data-toast class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#1c120c] text-amber-200 text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl border border-amber-400/50 transition-all duration-300 opacity-0 pointer-events-none -translate-y-4">
+    <span id="toast-message" data-toast-text>به سفارش افزوده شد</span>
+  </div>
+
+  <!-- Engine Script -->
+  <script type="module" src="assets/app.js?v=1.0-preset"></script>
+
+  <!-- PWA Offline Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js?v=1.0').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
