@@ -51,3 +51,41 @@
 .object-cover { object-fit: cover !important; }
 .object-center { object-position: center !important; }
 .rounded-full { border-radius: 9999px !important; }
+
+
+/* Checkout Modal & Table Select Cafe Dark Theme Styling */
+#checkout-table,
+select#checkout-table,
+[data-table-input] {
+  color-scheme: dark !important;
+  background-color: #20120b !important;
+  color: #fde68a !important;
+  border-color: #523323 !important;
+}
+
+#checkout-table option,
+select#checkout-table option,
+[data-table-input] option,
+select option {
+  background-color: #1a0f0a !important;
+  color: #fde68a !important;
+  font-family: inherit !important;
+  padding: 8px 12px !important;
+}
+
+#checkout-table option:hover,
+#checkout-table option:focus,
+#checkout-table option:checked,
+select option:checked {
+  background-color: #381f13 !important;
+  color: #ffffff !important;
+}
+
+#checkout-table:disabled,
+[data-table-input]:disabled {
+  opacity: 0.95 !important;
+  color: #fde68a !important;
+  background-color: #180e08 !important;
+  -webkit-text-fill-color: #fde68a !important;
+  cursor: not-allowed !important;
+}

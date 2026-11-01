@@ -357,16 +357,16 @@ export function renderCheckoutList() {
 
   items.forEach((item) => {
     const row = document.createElement('div');
-    row.className = 'flex items-center justify-between bg-[#22140c] p-2.5 rounded-xl border border-[#3d251a] mb-2';
+    row.className = 'flex items-center justify-between bg-[#20120b] p-3 rounded-xl border border-[#3d251a] hover:border-[#523323] transition-colors mb-2';
     row.innerHTML = `
       <div class="min-w-0 flex-1">
-        <p class="font-bold text-stone-100 truncate">${item.name}</p>
-        <p class="text-[11px] text-amber-200/70 font-mono">${(item.price * item.qty).toLocaleString('fa-IR')} تومان</p>
+        <p class="font-bold text-[#f5ede4] truncate">${item.name}</p>
+        <p class="text-[11px] text-amber-200/80 font-mono mt-0.5">${(item.price * item.qty).toLocaleString('fa-IR')} تومان</p>
       </div>
       <div class="flex items-center gap-2">
-        <button type="button" class="w-6 h-6 rounded-lg bg-[#381f13] hover:bg-[#4a2a1b] text-amber-200 font-black flex items-center justify-center text-xs active:scale-90 transition-transform" onclick="changeCartQty('${item.name.replace(/'/g, "\\'")}', -1)">-</button>
-        <span class="font-bold text-xs w-4 text-center text-stone-100">${item.qty.toLocaleString('fa-IR')}</span>
-        <button type="button" class="w-6 h-6 rounded-lg bg-[#381f13] hover:bg-[#4a2a1b] text-amber-200 font-black flex items-center justify-center text-xs active:scale-90 transition-transform" onclick="changeCartQty('${item.name.replace(/'/g, "\\'")}', 1)">+</button>
+        <button type="button" class="w-7 h-7 rounded-lg bg-[#381f13] hover:bg-[#523323] border border-[#6b422a]/40 text-[#fde68a] font-black flex items-center justify-center text-sm shadow active:scale-90 transition-all" onclick="changeCartQty('${item.name.replace(/'/g, "\\'")}', -1)">-</button>
+        <span class="font-black text-xs w-5 text-center text-[#fde68a] font-mono">${item.qty.toLocaleString('fa-IR')}</span>
+        <button type="button" class="w-7 h-7 rounded-lg bg-[#381f13] hover:bg-[#523323] border border-[#6b422a]/40 text-[#fde68a] font-black flex items-center justify-center text-sm shadow active:scale-90 transition-all" onclick="changeCartQty('${item.name.replace(/'/g, "\\'")}', 1)">+</button>
       </div>
     `;
     list.appendChild(row);

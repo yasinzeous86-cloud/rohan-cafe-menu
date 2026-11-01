@@ -124,11 +124,11 @@
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between px-5 py-4 border-b border-[#3d251a] bg-[#140b07] shrink-0">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2.5">
           <span class="text-xl">🛍️</span>
-          <h3 class="text-base font-black text-amber-100">ثبت نهایی سفارش</h3>
+          <h3 class="text-base font-black text-[#dfcaa8]">ثبت نهایی سفارش</h3>
         </div>
-        <button type="button" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-stone-400 hover:text-white transition-colors" data-modal-close aria-label="بستن">✕</button>
+        <button type="button" class="w-8 h-8 rounded-full bg-[#20120b] hover:bg-[#381f13] border border-[#523323]/50 flex items-center justify-center text-[#dfcaa8]/80 hover:text-white transition-colors" data-modal-close aria-label="بستن">✕</button>
       </div>
 
       <!-- Scrollable Body -->
@@ -137,43 +137,50 @@
         <!-- Table Selector -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-amber-200/90 font-bold" for="checkout-table">انتخاب میز یا وضعیت تحویل</label>
-            <span id="checkout-table-locked-badge" data-table-locked-badge class="text-[10px] text-amber-300 font-bold px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-500/40 hidden">🔒 قفل‌شده روی میز</span>
+            <label class="block text-[#dfcaa8] font-bold" for="checkout-table">انتخاب میز یا وضعیت تحویل</label>
+            <span id="checkout-table-locked-badge" data-table-locked-badge class="text-[10px] text-amber-300 font-bold px-2.5 py-0.5 rounded-full bg-amber-950/90 border border-amber-500/50 hidden">🔒 قفل‌شده روی میز</span>
           </div>
-          <select id="checkout-table" data-table-input class="w-full bg-[#20120b] border border-[#523323] rounded-xl px-3 py-2.5 text-stone-100 font-medium focus:border-amber-400 focus:outline-none transition-all">
-            <option value="میز ۱">میز ۱</option>
-            <option value="میز ۲">میز ۲</option>
-            <option value="میز ۳">میز ۳</option>
-            <option value="میز ۴" selected>میز ۴</option>
-            <option value="میز ۵">میز ۵</option>
-            <option value="میز ۶">میز ۶</option>
-            <option value="میز ۷">میز ۷</option>
-            <option value="میز ۸">میز ۸</option>
-            <option value="میز ۹">میز ۹</option>
-            <option value="میز ۱۰">میز ۱۰</option>
-            <option value="سفارش بیرون‌بر (Takeout)">سفارش بیرون‌بر (Takeout)</option>
-          </select>
+          <div class="relative">
+            <select id="checkout-table" data-table-input style="color-scheme: dark;" class="w-full appearance-none bg-[#20120b] border-[1.5px] border-[#523323] rounded-xl px-4 py-3 pl-10 text-[#fde68a] font-bold focus:border-[#dfcaa8] focus:ring-1 focus:ring-[#dfcaa8] focus:outline-none transition-all cursor-pointer shadow-inner">
+              <option value="میز ۱" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۱</option>
+              <option value="میز ۲" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۲</option>
+              <option value="میز ۳" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۳</option>
+              <option value="میز ۴" class="bg-[#1a0f0a] text-amber-100 py-2" selected>میز ۴</option>
+              <option value="میز ۵" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۵</option>
+              <option value="میز ۶" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۶</option>
+              <option value="میز ۷" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۷</option>
+              <option value="میز ۸" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۸</option>
+              <option value="میز ۹" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۹</option>
+              <option value="میز ۱۰" class="bg-[#1a0f0a] text-amber-100 py-2">میز ۱۰</option>
+              <option value="سفارش بیرون‌بر (Takeout)" class="bg-[#1a0f0a] text-amber-100 py-2">سفارش بیرون‌بر (Takeout)</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-3.5 text-[#dfcaa8]">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
         </div>
 
         <!-- Ordered Items List -->
         <div>
-          <div class="flex items-center justify-between text-stone-400 font-medium mb-2">
+          <div class="flex items-center justify-between text-[#dfcaa8]/80 font-bold mb-2">
             <span>اقلام انتخابی شما</span>
-            <span id="checkout-items-count" data-order-items-count class="text-[11px] text-amber-300 font-bold"></span>
+            <span id="checkout-items-count" data-order-items-count class="text-[11px] text-amber-300 font-black"></span>
           </div>
           <div id="checkout-items-list" data-order-items-list class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
 
         <!-- Customer Note -->
         <div>
-          <label class="block text-amber-200/90 font-bold mb-1.5" for="checkout-note">توضیحات و ترجیحات شما (اختیاری)</label>
-          <textarea id="checkout-note" data-order-note rows="2" maxlength="300" placeholder="مثال: کم‌شکر، اسپرسو دبل، بدون یخ..." class="w-full bg-[#20120b] border border-[#523323] rounded-xl p-2.5 text-stone-100 placeholder:text-stone-500 focus:border-amber-400 focus:outline-none"></textarea>
+          <label class="block text-[#dfcaa8] font-bold mb-1.5" for="checkout-note">توضیحات و ترجیحات شما (اختیاری)</label>
+          <textarea id="checkout-note" data-order-note rows="2" maxlength="300" placeholder="مثال: کم‌شکر، شیر بادام، اسپرسو دبل، بدون یخ..." class="w-full bg-[#20120b] border-[1.5px] border-[#523323] rounded-xl p-3 text-[#f5ede4] placeholder:text-[#8c7465] focus:border-[#dfcaa8] focus:ring-1 focus:ring-[#dfcaa8] focus:outline-none transition-all"></textarea>
         </div>
 
         <!-- Total Price Summary -->
-        <div class="bg-[#120a06] border border-[#3d251a] rounded-xl p-3 flex items-center justify-between">
-          <span class="text-stone-400 font-medium">مبلغ کل سفارش:</span>
-          <span id="checkout-final-price" data-order-final-price class="text-base font-black text-amber-300">۰ تومان</span>
+        <div class="bg-[#120a06] border border-[#3d251a] rounded-xl p-3.5 flex items-center justify-between shadow-inner">
+          <span class="text-[#dfcaa8]/80 font-bold">مبلغ کل سفارش:</span>
+          <span id="checkout-final-price" data-order-final-price class="text-base font-black text-amber-300 font-mono tracking-tight">۰ تومان</span>
         </div>
 
         <!-- Error Box -->
@@ -181,10 +188,11 @@
       </div>
 
       <!-- Sticky Footer -->
-      <div class="sticky bottom-0 z-20 bg-[#140b07] border-t border-[#3d251a] p-4 flex gap-2 shrink-0">
-        <button type="button" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 font-bold transition-colors" data-modal-close>انصراف</button>
-        <button type="button" id="submit-order-btn" data-order-submit class="flex-1 py-2.5 rounded-xl bg-amber-300 hover:bg-amber-200 text-[#1c120c] font-black shadow-lg active:scale-95 transition-all text-center">
-          تأیید و ارسال سفارش به کافه ←
+      <div class="sticky bottom-0 z-20 bg-[#140b07] border-t border-[#3d251a] p-4 flex gap-2.5 shrink-0">
+        <button type="button" class="px-4 py-2.5 rounded-xl bg-[#20120b] hover:bg-[#381f13] border border-[#523323]/60 text-stone-300 font-bold transition-colors" data-modal-close>انصراف</button>
+        <button type="button" id="submit-order-btn" data-order-submit class="flex-1 py-2.5 rounded-xl bg-[#dfcaa8] hover:bg-amber-200 text-[#1c120c] font-black text-xs shadow-lg shadow-amber-950/40 active:scale-95 transition-all text-center flex items-center justify-center gap-1.5">
+          <span>تأیید و ارسال سفارش به کافه</span>
+          <span>←</span>
         </button>
       </div>
 
