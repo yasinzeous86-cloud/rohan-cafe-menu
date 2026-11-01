@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>منوی دیجیتال کافه — راهنمای نصب و انتشار</title>
+<style>
+  @font-face {
+    font-family: 'Vazirmatn';
+    src: url('assets/fonts/Vazirmatn-Variable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  @page {
+    size: A4;
+    margin: 15mm 15mm;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Arial, sans-serif;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    direction: rtl; text-align: right;
+    color: #221a14; font-size: 12.5px; line-height: 1.95; margin: 0;
+    background: #fff;
+  }
+  h1 { font-size: 26px; color: #7d5038; margin: 0 0 4px; letter-spacing: -.01em; }
+  .sub { color: #8a7a68; font-size: 12px; margin-bottom: 6px; }
+  .rule { height: 3px; background: #dec9a4; border: 0; margin: 14px 0 20px; width: 100%; }
+  h2 {
+    font-size: 16.5px; color: #4a3527; margin: 26px 0 8px;
+    padding-bottom: 6px; border-bottom: 1.5px solid #dec9a4;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 13.5px; color: #7d5038; margin: 16px 0 6px; page-break-after: avoid; }
+  p, li { margin: 6px 0; }
+  ol, ul { padding-right: 22px; margin: 6px 0; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 11.5px; page-break-inside: avoid; }
+  th, td { border: 1px solid #d8cdbd; padding: 6px 9px; text-align: right; vertical-align: top; }
+  th { background: #f4ede2; color: #4a3527; font-weight: 700; }
+  tr:nth-child(even) td { background: #faf7f2; }
+  code, pre { font-family: Consolas, "Courier New", monospace; direction: ltr; unicode-bidi: embed; }
+  code { background: #f1ebe1; padding: 1px 5px; border-radius: 4px; font-size: 11.5px; color: #8a3f10; }
+  pre {
+    background: #1c1613; color: #ede7df; padding: 12px 14px; border-radius: 8px;
+    font-size: 11px; line-height: 1.7; overflow-x: hidden; white-space: pre-wrap;
+    direction: ltr; text-align: left; page-break-inside: avoid;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+  blockquote {
+    margin: 10px 0; padding: 8px 12px; border-right: 4px solid #dec9a4;
+    background: #fbf7f0; color: #5a4635; font-size: 11.5px;
+  }
+  .warn { border-right-color: #d9822b; background: #fdf4ea; }
+  .tree { font-size: 11px; }
+  .kbd { background: #7d5038; color: #fff; padding: 1px 7px; border-radius: 4px; font-size: 11px; }
+  .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #d8cdbd; color: #8a7a68; font-size: 11px; text-align: center; }
+  .nobreak { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<h1>منوی دیجیتال کافه — راهنمای نصب و انتشار</h1>
+<div class="sub">نسخه ۱٫۰ — بسته‌ی آماده‌ی انتشار برای هاست‌های cPanel و DirectAdmin</div>
+<hr class="rule">
+
+<p>سیستم مدیریت منوی کافه: یک منوی آنلاین راست‌چین با پنل مدیریت، دیتابیس SQLite، قابلیت نصب به‌صورت PWA (کار بدون اینترنت بعد از اولین بازدید)، خروجی فایل آفلاین <code>.html</code> و ساخت کیوآر لینک. بدون Composer، بدون Node، بدون MySQL — فقط فایل‌ها را آپلود کنید.</p>
+
+<div class="alert-box" style="margin: 20px 0 26px; padding: 16px 20px; border: 2px solid #e0a33d; border-radius: 10px; background: #fffbf5; box-shadow: 0 4px 14px rgba(224,163,61,0.12);">
+  <h3 style="color: #b4632a; margin: 0 0 10px; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+    ⚠️ نکته بسیار مهم قبل از اجرا (Important Warning)
+  </h3>
+  <p style="font-size: 13px; font-weight: bold; color: #a04010; margin: 0 0 8px; line-height: 1.8;">
+    اگر با دابل‌کلیک مستقیم روی فایل‌های <code>index.html</code> یا <code>admin.html</code> آن‌ها را در کامپیوتر شخصی خود باز کنید، منو بارگذاری نخواهد شد و در کنسول مرورگر خطای <code>Failed to fetch</code> یا صفحه‌ی خالی / پیام خطا مشاهده خواهید کرد. این به هیچ عنوان یک باگ یا نقص اسکریپت نیست.
+  </p>
+  <p style="margin: 0 0 10px; color: #5a4635; font-size: 12px; line-height: 1.85;">
+    <strong>دلیل فنی:</strong> این پروژه یک وب‌اپلیکیشن کامل Full-Stack است که از بک‌اند PHP (<code>api.php</code>) و دیتابیس SQLite (<code>menu.sqlite</code>) برای مدیریت داده‌ها و بارگذاری تصاویر استفاده می‌کند. مرورگرها اجازه اجرای کدهای سرورساید PHP و دیتابیس را به‌صورت مستقیم از فایل‌های محلی ویندوز (<code>file://</code>) نمی‌دهند.
+  </p>
+  <div style="background: #fdf7ee; border: 1px dashed #dec9a4; border-radius: 6px; padding: 10px 14px; margin-top: 8px;">
+    <p style="margin: 0 0 4px; font-weight: bold; color: #7d5038; font-size: 12px;">راهنمای اجرای صحیح و تست:</p>
+    <ul style="margin: 4px 0 0; padding-right: 20px; font-size: 11.5px; color: #4a3527;">
+      <li><strong>روی هاست واقعی:</strong> فایل‌ها را روی یک وب‌سرور واقعی مانند <strong>cPanel</strong> یا <strong>DirectAdmin</strong> آپلود و اکسترکت کنید و آدرس دامنه خود را باز کنید.</li>
+      <li><strong>روی سیستم شخصی (لوکال):</strong> فایل‌ها را حتماً در محیط وب‌سرور محلی مانند <strong>XAMPP</strong> (پوشه <code>htdocs</code>)، <strong>Laragon</strong> (پوشه <code>www</code>) یا با دستور ترمینال <code>php -S localhost:8080</code> اجرا کرده و از طریق <code>http://localhost:8080</code> باز کنید.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>۱. پیش‌نیازها</h2>
+<table>
+  <tr><th>مورد</th><th>الزام</th></tr>
+  <tr><td>هاست</td><td>Apache با دسترسی File Manager (cPanel یا DirectAdmin)</td></tr>
+  <tr><td>PHP</td><td>نسخه ۷٫۴ یا بالاتر</td></tr>
+  <tr><td>پسوند PHP</td><td><code>pdo_sqlite</code> / <code>sqlite3</code> (پیش‌فرض تقریباً همه‌ی هاست‌ها)</td></tr>
+  <tr><td>دیتابیس</td><td>SQLite — نیازی به MySQL و ساخت دیتابیس نیست</td></tr>
+  <tr><td>ابزار ساخت</td><td>هیچ — بدون Composer، بدون npm، بدون مرحله‌ی Build</td></tr>
+  <tr><td>اینترنت روی گوشی مشتری</td><td>فقط برای اولین بازدید؛ پس از آن PWA با استایل محلی <code>assets/style.min.css</code> و فونت‌های لوکال کاملاً بدون اینترنت کار می‌کند (۱۰۰٪ خودکفا، بدون CDN)</td></tr>
+</table>
+<blockquote>نسخه‌ی آفلاین داخل کیوآر و منوی PWA کاملاً خودکفا هستند و برای کارکرد هیچ وابستگی خارجی ندارند.</blockquote>
+
+<h2>۲. ساختار بسته</h2>
+<pre class="tree">cafe-menu/
+├── index.html          منوی عمومی (آنلاین و آفلاین، راست‌چین، واکنش‌گرا با پارالاکس سه‌بعدی)
+├── admin.html          پنل مدیریت (کاملاً راست‌چین و فارسی)
+├── api.php             کل API + دیتابیس + آپلود امن فایل (یک فایل، امن، بدون وابستگی)
+├── sw.js               سرویس‌ورکر PWA (کش آفلاین شل، استایل‌ها و دیتا)
+├── manifest.json       مانیفست نصب روی موبایل (Add to Home Screen)
+├── uploads/            پوشه‌ی نگهداری تصاویر آپلودشده (همراه .htaccess ضداسکریپت)
+├── assets/
+│   ├── style.min.css   استایل‌های کامپایل‌شده‌ی محلی (بدون نیاز به CDN)
+│   ├── app.js          منطق رندر منو و موتور پارالاکس جاوااسکریپت (ES Module)
+│   ├── qr.min.js       کتابخانه‌ی ساخت کیوآر (باندل‌شده، بدون CDN)
+│   ├── menu-bg.jpg     تصویر پس‌زمینه‌ی تکرارشونده‌ی منو
+│   ├── coffee-texture.jpg  تکسچر بخش‌های تزئینی
+│   ├── icon.svg        آیکون PWA (برداری)
+│   ├── icon-192.png    آیکون ۱۹۲×۱۹۲
+│   └── icon-512.png    آیکون ۵۱۲×۵۱۲
+├── menu.sqlite         دیتابیس (با داده‌های نمونه‌ی فارسی)
+├── .htaccess           جلوگیری از دانلود مستقیم دیتابیس (Require all denied)
+├── documentation.md    راهنما
+└── documentation.html  نسخه‌ی وب راهنما</pre>
+
+<h2>۳. نصب گام‌به‌گام در cPanel</h2>
+<ol>
+  <li>وارد <b>cPanel</b> شوید و <b>File Manager</b> را باز کنید.</li>
+  <li>به پوشه‌ی ریشه‌ی سایت بروید: <code>public_html</code> (برای ساب‌دامنه، مسیر مربوط به آن).</li>
+  <li>در <b>Settings</b> گزینه‌ی <b>Show Hidden Files</b> را روشن کنید تا فایل <code>.htaccess</code> آپلودشده دیده شود.</li>
+  <li>دکمه‌ی <b>Upload</b> را بزنید، همه‌ی فایل‌های بسته (شامل <code>.htaccess</code>) و پوشه‌ی <code>assets</code> را انتخاب کنید. اگر بسته را ZIP گرفته‌اید، می‌توانید ZIP را آپلود و با راست‌کلیک → <b>Extract</b> باز کنید.</li>
+  <li>مطمئن شوید ساختار نهایی دقیقاً مطابق بخش ۲ است (فایل‌ها در ریشه، تصاویر و اسکریپت‌ها داخل <code>assets/</code>).</li>
+  <li>دسترسی‌ها را تنظیم کنید — بخش ۵ را بخوانید.</li>
+  <li>آدرس سایت را در مرورگر باز کنید: <code>https://yourdomain.com/</code> → منوی کافه باید بالا بیاید.</li>
+  <li>پنل مدیریت: <code>https://yourdomain.com/admin.html</code> — بخش ۶ و ۷ را بخوانید.</li>
+</ol>
+<p><b>نسخه‌ی PHP:</b> در cPanel به <b>Select PHP Version</b> بروید و مطمئن شوید نسخه‌ی ۷٫۴ به بالا و پسوند <code>pdo_sqlite</code> فعال است.</p>
+
+<h2>۴. نصب گام‌به‌گام در DirectAdmin</h2>
+<ol>
+  <li>وارد DirectAdmin شوید و <b>File Manager</b> را باز کنید.</li>
+  <li>به <code>public_html</code> بروید.</li>
+  <li>بسته‌ی ZIP را آپلود و با <b>Extract</b> باز کنید (یا فایل‌ها را تک‌تک آپلود کنید).</li>
+  <li>فایل‌های مخفی را نمایش دهید تا <code>.htaccess</code> را ببینید.</li>
+  <li>دسترسی‌ها را مطابق بخش ۵ تنظیم کنید.</li>
+  <li>نسخه‌ی PHP را بررسی کنید: <b>Extra Features → Select PHP version</b> (نسخه ۷٫۴ یا ۸٫x و پسوند SQLite فعال).</li>
+  <li>آدرس سایت و سپس <code>/admin.html</code> را باز کنید.</li>
+</ol>
+<blockquote>در هر دو پنل، اگر <code>.htaccess</code> اعمال نشد، مطمئن شوید <code>AllowOverride</code> فعال است (پیش‌فرض Apache روی هاست‌های استاندارد روشن است).</blockquote>
+
+<h2>۵. دسترسی نوشتن برای menu.sqlite (مهم‌ترین بخش)</h2>
+<p>دیتابیس باید توسط PHP قابل <b>خواندن و نوشتن</b> باشد؛ در غیر این صورت پنل مدیریت خطا می‌دهد یا تغییرات ذخیره نمی‌شود.</p>
+<table>
+  <tr><th>مورد</th><th>دسترسی پیشنهادی</th><th>توضیح</th></tr>
+  <tr><td>پوشه‌ی اصلی و <code>assets/</code></td><td><code>755</code></td><td>اگر ذخیره‌ی دیتابیس خطا داد، موقتاً <code>775</code></td></tr>
+  <tr><td><code>menu.sqlite</code></td><td><code>644</code></td><td>اگر خطای نوشتن داد → <code>666</code></td></tr>
+  <tr><td><code>.htaccess</code></td><td><code>644</code></td><td>فقط خواندنی کافی است</td></tr>
+  <tr><td>بقیه‌ی فایل‌ها (html، php، js)</td><td><code>644</code></td><td>نیازی به اجرایی بودن نیست</td></tr>
+</table>
+<p><b>نحوه‌ی تغییر در File Manager:</b> راست‌کلیک روی فایل → <b>Change Permissions</b> → عدد را روی مقدار جدول تنظیم کنید.</p>
+<h3>نکته‌ها</h3>
+<ul>
+  <li>SQLite برای نوشتن، فایل‌های کناری <code>menu.sqlite-wal</code> و <code>menu.sqlite-shm</code> می‌سازد؛ به همین دلیل <b>پوشه</b> هم باید قابل نوشتن باشد، نه فقط فایل.</li>
+  <li>اگر فایل‌ها را با FTP/SFTP آپلود کرده‌اید، مالک فایل باید کاربر هاست (همان اکانت cPanel) باشد. در File Manager با گزینه‌ی <b>Change Ownership</b> (اگر در دسترس بود) مالک را روی اکانت هاست بگذارید.</li>
+  <li><b>بازنشانی کامل:</b> اگر خواستید منو را به حالت اولیه برگردانید، فایل <code>menu.sqlite</code> را پاک کنید؛ در اولین درخواست، سیستم دیتابیس را از صفر می‌سازد و داده‌های نمونه را دوباره وارد می‌کند.</li>
+</ul>
+
+<h2>۶. توکن ادمین (پیش‌فرض و نحوه‌ی تغییر)</h2>
+<p>کل نوشتن‌ها در API با یک توکن انجام می‌شود.</p>
+<ul>
+  <li><b>مقدار پیش‌فرض:</b> <code>change-me-to-a-long-random-string</code></li>
+  <li><b>محل تنظیم:</b> داخل فایل <code>api.php</code>، ثابت <code>ADMIN_TOKEN</code> (خط ۳۷ فایل)</li>
+</ul>
+<pre><code>const ADMIN_TOKEN = 'change-me-to-a-long-random-string';</code></pre>
+<blockquote class="warn"><b>⚠️ حتماً قبل از انتشار عوضش کنید.</b> هر کسی این توکن را داشته باشد می‌تواند منو را ویرایش کند.</blockquote>
+<h3>نحوه‌ی تغییر</h3>
+<ol>
+  <li>در File Manager راست‌کلیک روی <code>api.php</code> → <b>Edit</b> (کدگذاری UTF-8).</li>
+  <li>رشته‌ی داخل <code>''</code> را با یک رشته‌ی تصادفی بلند جایگزین کنید (مثلاً ۳۲ کاراکتر یا بیشتر).</li>
+  <li>فایل را Save کنید. فاصله یا نویسه‌ی خاص اضافه نکنید.</li>
+</ol>
+<h3>نحوه‌ی استفاده در پنل</h3>
+<p>پنل مدیریت هنگام ورود، توکن را از شما می‌پرسد و آن را در <code>localStorage</code> همان مرورگر ذخیره می‌کند (<code>menu_admin_token</code>). دکمه‌ی <span class="kbd">Lock dashboard</span> توکن را پاک می‌کند و در ورود بعدی دوباره باید وارد شود. اگر توکن را عوض کردید، در مرورگرهای دیگر هم باید توکن تازه را وارد کنید.</p>
+<blockquote>توکن هدر <code>X-Admin-Token</code> را می‌فرستد، نه پارامتر URL — چون آدرس‌ها در لاگ سرور ثبت می‌شوند.</blockquote>
+
+<h2>۷. پنل مدیریت — بخش‌ها و امکانات</h2>
+<p>آدرس: <code>/admin.html</code></p>
+<table>
+  <tr><th>بخش</th><th>کارهایی که می‌شود کرد</th></tr>
+  <tr><td><b>آیتم‌های منو</b></td><td>افزودن/ویرایش/حذف محصول: نام، توضیح، قیمت، دسته، وضعیت (نمایش / ناموجود / مخفی) و <b>تصویر محصول</b> (فیلد <code>image_url</code>)</td></tr>
+  <tr><td><b>دسته‌بندی‌ها</b></td><td>افزودن/ویرایش/حذف و ترتیب دسته‌بندی‌ها</td></tr>
+  <tr><td><b>قالب و تنظیمات منو</b></td><td>نام کافه، شعار، متن فوتر، واحد پول، <b>سوئیچ حالت سفارش‌گیری / کاتالوگ</b> (<code>orders_enabled</code>)، <b>پیشنهاد روز</b>، <b>رنگ اصلی</b> (<code>primary_color</code>)، <b>فونت منو</b> (<code>font_family</code>: وزیرمتن، لاله‌زار، دانا، یکان‌بخت)، <b>تصویر پس‌زمینه</b> (<code>custom_bg_url</code>)، <b>نظرات مشتری‌ها</b> (<code>reviews_enabled</code> برای روشن/خاموش کل بخش، <code>reviews_title</code> برای عنوان، و ویرایش تا ۸ نظر با ستاره، آیتم، نام و متن) و <b>باکس‌های پایین منو</b> (<code>highlights_enabled</code> و ویرایش تا ۸ باکس با برچسب، آیکون، تیتر، متن و رنگ پُر/تیره)</td></tr>
+  <tr><td><b>کیوآر و منوی آفلاین</b></td><td><b>دریافت کیوآر کد دائمی منو</b> + <b>تولید دسته‌ای کیوآر کدهای اختصاصی میزها (<code>?table=X</code>) با برچسب و چاپ مستقیم</b> + دانلود خروجی فوق‌العاده باکیفیت مخصوص چاپ (۱۰۲۴×۱۰۲۴ PNG) + کپی لینک + <b>دانلود منوی آفلاین (<code>.html</code>)</b></td></tr>
+</table>
+<h3>درون‌ریزی سریع منوی ایرانی</h3>
+<p>در بالای صفحه‌ی <b>آیتم‌های منو</b> دکمه‌ی <b>➕ درون‌ریزی آیتم‌های پرفروش کافه‌های ایران</b> هست. با یک کلیک، ۸ آیتم پرتقاضای کافه‌ای (اسپرسو، لاته، کاپوچینو، موکا، وی‌۶۰، کیک شکلاتی، چیزکیک، شیک نوتلا) در دسته‌بندی‌های مناسب درج می‌شوند. این عملیات <b>تکرارپذیر</b> است (موارد تکراری رد می‌شوند) و همه‌ی آیتم‌ها با وضعیت <code>hidden</code> ساخته می‌شوند تا صاحب کافه اول قیمت‌ها را ویرایش کند و بعد آن‌ها را <code>available</code> کند؛ تا آن زمان در منوی عمومی دیده نمی‌شوند.</p>
+<p>هر تغییری که ذخیره کنید بلافاصله در منوی عمومی اعمال می‌شود؛ نیازی به هیچ دکمه‌ی انتشار نیست. تغییرات از طریق <code>api.php</code> در <code>menu.sqlite</code> نوشته می‌شود.</p>
+
+<h2>۸. کیوآر، حالت آفلاین (PWA) و خروجی فایلی</h2>
+<h3>کیوآر کد دائمی و تولید دسته‌ای میزها</h3>
+<p>در بخش <b>کیوآر و منوی آفلاین</b>، دو ابزار قدرتمند تعبیه شده است:</p>
+<ul>
+  <li><b>کیوآر کد دائمی منو:</b> مستقیماً به آدرس دائمی منو وصل است و با تغییر قیمت‌ها یا آیتم‌ها نیازی به چاپ مجدد ندارد.</li>
+  <li><b>تولید دسته‌ای کیوآر کد میزها (Table QR Generator):</b> امکان تولید هم‌زمان کیوآر کدهای اختصاصی برای میزهای ۱ تا ۵۰ (لینک‌شده به <code>?table=X</code>) به همراه برچسب گرافیکی حاوی نام کافه و شماره میز با امکان دانلود یکجا یا پرینت مستقیم برچسب‌ها.</li>
+  <li><b>شناسایی و قفل خودکار میز:</b> به محض اسکن کد میز توسط مشتری، شماره میز در بالای صفحه و در مدال سفارش‌گیری ثبت و قفل (Locked) می‌شود.</li>
+</ul>
+<blockquote><b>چرا فقط لینک؟</b> دوربین بیشتر گوشی‌های مدرن لینک‌های <code>data:text/html</code> را به دلایل امنیتی باز نمی‌کنند؛ به همین دلیل سازوکار قدیمی «منو داخل خود QR» حذف شده و جای آن را PWA و فایل آفلاین گرفته است.</blockquote>
+<h3>منوی آفلاین روی گوشی (PWA)</h3>
+<ul>
+  <li>فایل‌های <code>sw.js</code> و <code>manifest.json</code> در ریشه‌ی سایت هستند و <code>index.html</code> آن‌ها را ثبت می‌کند.</li>
+  <li>بعد از <b>اولین بازدید آنلاین</b>، پوسته‌ی منو، تصاویر و پاسخ JSON در حافظه‌ی مرورگر کش می‌شود؛ از آن به بعد منو <b>بدون اینترنت</b> هم بالا می‌آید.</li>
+  <li>روی موبایل، گزینه‌ی <b>Add to Home Screen</b> با آیکون‌های <code>assets/icon-*.png</code> فعال می‌شود و منو مثل یک اپ باز می‌شود.</li>
+  <li>کش با نسخه‌ی <code>VERSION</code> داخل <code>sw.js</code> مدیریت می‌شود؛ اگر منو تغییرات زیادی کرد، عدد نسخه را عوض کنید تا همه‌ی کش‌ها نو شوند.</li>
+</ul>
+<h3>دانلود منوی آفلاین (فایل <code>.html</code>)</h3>
+<p>دکمه‌ی <b>دانلود منوی آفلاین (.html)</b> یک فایل مستقل می‌سازد که:</p>
+<ul>
+  <li>کل منو رندرشده را با همان رنگ‌بندی و پس‌زمینه دارد (تصویر پس‌زمینه به‌صورت base64 داخل فایل است)؛</li>
+  <li>تصاویر محصولات را تا جایی که ممکن باشد به base64 تبدیل می‌کند؛</li>
+  <li>خودِ JSON منو (تنظیمات، دسته‌ها، آیتم‌ها) را داخل تگ <code>&lt;script type="application/json"&gt;</code> همراهش دارد؛</li>
+  <li>بدون اینترنت روی هر دستگاهی باز می‌شود و با کابل/واتس‌اپ قابل انتقال است (<code>menu-offline.html</code>).</li>
+</ul>
+
+<h2>۹. امنیت</h2>
+<ol>
+  <li><b>توکن ادمین</b> را قبل از انتشار عوض کنید (بخش ۶).</li>
+  <li><b><code>.htaccess</code></b> همراه بسته، دسترسی مستقیم مرورگر به <code>menu.sqlite</code> (و فایل‌های <code>-wal</code>/<code>-shm</code>) را مسدود می‌کند. این فایل را حذف نکنید:</li>
+</ol>
+<pre><code>&lt;FilesMatch "^menu\.sqlite"&gt;
+    Require all denied
+&lt;/FilesMatch&gt;</code></pre>
+<ol start="3">
+  <li><b><code>admin.html</code></b> خودش محافظ رمز ندارد؛ امنیت واقعی در سمت سرور (<code>api.php</code>) است — هر درخواستِ نوشتن بدون توکن معتبر با <code>401</code> رد می‌شود.</li>
+  <li>اگر منو و پنل روی دامنه‌ی جداگانه‌ای هستند، <code>CORS_ORIGIN</code> را در <code>api.php</code> روی دامنه‌ی مجاز تنظیم کنید؛ مقدار پیش‌فرض <code>''</code> یعنی فقط همان دامنه مجاز است.</li>
+</ol>
+
+<h2>۱۰. عیب‌یابی</h2>
+<table>
+  <tr><th>علامت</th><th>علت محتمل</th><th>راه‌حل</th></tr>
+  <tr><td>منو پیام «منو بارگذاری نشد» می‌دهد</td><td>مسیر <code>api.php</code> اشتباه است یا PHP خاموش است</td><td>مطمئن شوید <code>api.php</code> کنار <code>index.html</code> است و نسخه PHP فعال است</td></tr>
+  <tr><td>پنل خطای 401 می‌دهد</td><td>توکن اشتباه</td><td>توکن واردشده باید دقیقاً با <code>ADMIN_TOKEN</code> داخل <code>api.php</code> یکی باشد</td></tr>
+  <tr><td>ذخیره در پنل خطا می‌دهد یا 500 می‌گیرد</td><td>دسترسی نوشتن دیتابیس</td><td>دسترسی <code>menu.sqlite</code> را <code>666</code> و پوشه را <code>775</code> کنید (بخش ۵)</td></tr>
+  <tr><td>تغییرات ذخیره می‌شود ولی در منو دیده نمی‌شود</td><td>کش مرورگر</td><td>منو را با Ctrl+F5 رفرش کنید</td></tr>
+  <tr><td>استایل لود نمی‌شود</td><td>مسدود شدن CDN</td><td>فونت‌ها محلی هستند؛ فقط Tailwind از CDN می‌آید — اگر روی سرور مشتری بسته است، آن را به نسخه‌ی محلی منتقل کنید</td></tr>
+  <tr><td>تغییرات در منو دیده نمی‌شود ولی پنل ذخیره کرده</td><td>کش سرویس‌ورکر مرورگر</td><td><code>VERSION</code> داخل <code>sw.js</code> را عوض کنید یا از پنل مرورگر سرویس‌ورکر را Unregister کنید، سپس رفرش بگیرید</td></tr>
+  <tr><td>منو با قطع اینترنت باز نمی‌شود</td><td>اولین بازدید آنلاین انجام نشده</td><td>یک بار آنلاین باز کنید؛ <code>sw.js</code> و <code>manifest.json</code> باید با کد ۲۰۰ جواب بدهند</td></tr>
+  <tr><td>تصویر محصول نمایش داده نمی‌شود</td><td>آدرس تصویر اشتباه است</td><td><code>image_url</code> باید یک آدرس کامل <code>https://...</code> یا مسیر نسبی مثل <code>assets/...</code> باشد</td></tr>
+  <tr><td>کیوآر آفلاین با دوربین باز نمی‌شود</td><td>محدودیت دوربین گوشی</td><td>از حالت لینک استفاده کنید (بخش ۸)</td></tr>
+  <tr><td><code>.htaccess</code> اعمال نشد</td><td><code>AllowOverride</code> غیرفعال</td><td>از هاست بخواهید <code>AllowOverride All</code> را برای پوشه فعال کند</td></tr>
+</table>
+
+<h2>۱۱. نکات فنی برای خریدار</h2>
+<ul>
+  <li><b>بدون فرآیند بیلد:</b> HTML/CSS/JS خالص است؛ هیچ مرحله‌ی کامپایل یا نصب وابستگی وجود ندارد.</li>
+  <li><b>وابستگی‌های خارجی:</b> صفر (۱۰۰٪ خودمیزبان). تمامی استایل‌ها در <code>assets/style.min.css</code> کامپایل شده‌اند و تمامی فونت‌ها داخل <code>assets/fonts</code> همراه بسته هستند؛ بدون نیاز به اینترنت یا CDN.</li>
+  <li><b>تصاویر پیش‌فرض محصولات:</b> چند عکس نمونه از آدرس گوگل لود می‌شوند؛ با وارد کردن <code>image_url</code> برای هر محصول در پنل، تصویر دلخواه خودتان جایگزین می‌شود.</li>
+  <li><b>زبان و جهت:</b> منو کاملاً فارسی و راست‌چین است؛ پنل مدیریت هم از درِ ورود تا همه‌ی برچسب‌ها فارسی است.</li>
+  <li><b>پشتیبانی از موبایل:</b> منو از ابتدا موبایل‌ف‌رست طراحی شده و در همه‌ی عرض‌ها واکنش‌گراست.</li>
+</ul>
+
+<h2>۱۲. راهنمای جامع راه‌اندازی و مدیریت ربات تلگرام (Telegram Bot Integration)</h2>
+<p>نسخه جدید منوی دیجیتال کافه رُهان مجهز به سیستم مدیریت پیشرفته و هوشمند تلگرام است. این سیستم ارتباطی دوطرفه و بلادرنگ (Real-time) میان مشتریان حاضر در کافه و کادر مدیریت / باریستا ایجاد می‌کند؛ به محض ثبت سفارش روی میز، فاکتور کامل همراه با آلارم صوتی در تلگرام ظاهر شده و تمامی امور سفارش‌گیری، کنترل موجودی و تحلیل فروش از داخل پیام‌رسان قابل انجام است.</p>
+
+<h3>۱. آموزش گام‌به‌گام ساخت ربات در BotFather</h3>
+<p>برای ساخت ربات اختصاصی کافه، کمتر از ۲ دقیقه زمان نیاز دارید:</p>
+<ol>
+  <li>در پیام‌رسان تلگرام، شناسه رسمی <b><code>@BotFather</code></b> را جستجو کرده و وارد آن شوید (دارای تیک آبی تلگرام).</li>
+  <li>دکمه <b>Start</b> را بزنید و سپس دستور <code>/newbot</code> را تایپ و ارسال کنید.</li>
+  <li><b>نام نمایشی (Display Name):</b> نام کافه یا برند خود را بفرستید (مثال: <code>کافه رُهان</code>).</li>
+  <li><b>یوزرنیم ربات (Username):</b> یک آیدی انگلیسی یکتا که حتماً به <code>bot</code> ختم شود وارد نمایید (مثال: <code>rohan_cafe_bot</code>).</li>
+  <li><b>دریافت توکن اختصاصی (API Token):</b> بات‌فادر متنی حاوی توکن محرمانه به شما تحویل می‌دهد (رشته‌ای شبیه به <code>8954212952:AAHNET8R_WKNxr7rsWv4IzRXntnLYgO2Rb8</code>). این توکن را کپی کنید.</li>
+  <li><b>پیدا کردن Chat ID مدیر:</b> به آیدی <b><code>@userinfobot</code></b> پیام دهید؛ در پیام دریافتی، عدد روبروی <b><code>Id:</code></b> (مثال: <code>7409446531</code>) شناسه چت اختصاصی شماست.</li>
+</ol>
+
+<h3>۲. اتصال به اسکریپت و ثبت وب‌هوک (Webhook)</h3>
+<ol>
+  <li>وارد پنل مدیریت منو (<code>admin.html</code>) شوید و به بخش <b>تنظیمات و ربات تلگرام</b> بروید.</li>
+  <li>توکن ربات و شناسه چت مدیر را در فیلدهای مربوطه وارد کرده و وضعیت نوتیفیکیشن‌ها را فعال کنید.</li>
+  <li>روی دکمه <b>«ذخیره‌ی تغییرات»</b> کلیک کنید.</li>
+  <li><b>فعال‌سازی نهایی:</b> در تلگرام وارد ربات خود شوید و دکمه <code>/start</code> را بزنید، سپس در پنل ادمین روی دکمه‌ی <b>«ثبت و فعال‌سازی وب‌هوک ربات»</b> کلیک کنید. آدرس <code>webhook.php</code> روی هاست شما ثبت شده و پیام تأیید سبز ظاهر می‌گردد.</li>
+  <li><b>گیت امنیتی:</b> ربات تنها به پیام‌های مدیر (چت‌آیدی ثبت‌شده) پاسخ می‌دهد و از دسترسی سایر افراد کاملاً محافظت شده است.</li>
+</ol>
+
+<h3>۳. معرفی کلیه دکمه‌ها و امکانات ربات تلگرام</h3>
+<ul>
+  <li><b>📦 سفارشات فعال:</b> نمایش فاکتورهای منتظر بررسی همراه با شماره میز، تعداد و اقلام، یادداشت مشتری و دکمه‌های شیشه‌ای <code>✅ تکمیل و تحویل</code> و <code>❌ لغو سفارش</code>.</li>
+  <li><b>📊 گزارش فروش امروز:</b> محاسبه خودکار دخل روزانه به تومان، فاکتورهای تسویه‌شده، در انتظار و لغو شده.</li>
+  <li><b>🏆 آیتم‌های پرفروش (تحلیل هوشمند):</b> تحلیل محبوب‌ترین اقلام منو همراه با دکمه‌های فیلتر آنی <code>[📅 امروز]</code>، <code>[📆 ۷ روز گذشته]</code> و <code>[🗓 ۳۰ روز گذشته]</code>؛ نمایش ۵ آیتم برتر با مدال‌های 🥇، 🥈، 🥉، سهم درصدی از کل فروش و درآمد اختصاصی جهت بهینه‌سازی چینش منو و استراتژی فروش.</li>
+  <li><b>🍔 مدیریت آیتم‌ها (کنترل موجودی از راه دور):</b> تغییر وضعیت زنده اقلام بین <code>✅ موجود</code> و <code>❌ تمام شد</code> بدون نیاز به ورود به مرورگر یا پنل وب.</li>
+  <li><b>💬 بررسی نظرات:</b> مشاهده نظرات ثبت‌شده‌ی مشتریان همراه با امتیازات ستاره‌ای.</li>
+  <li><b>🔔 تنظیمات نوتیفیکیشن:</b> روشن یا خاموش کردن هشدارهای لحظه‌ای سفارش در ساعات تعطیلی کافه.</li>
+</ul>
+
+<h3>۴. رفع خطاهای متداول و الزامات فنی</h3>
+<ul>
+  <li><b>الزام SSL (پروتکل HTTPS):</b> تلگرام برای وب‌هوک نیاز به آدرس دارای گواهی معتبر SSL دارد. مطمئن شوید SSL هاست شما فعال است.</li>
+  <li><b>هاست ایران و دسترسی به API تلگرام:</b> به دلیل فیلترینگ تلگرام در هاست‌های داخلی ایران، پیشنهاد قطعی استفاده از هاست لینوکس خارجی (آلمان، هلند، فرانسه) است. در صورت اجبار به استفاده از هاست ایران، فیلد <code>telegram_proxy</code> در پنل ادمین برای اتصال به پراکسی تعبیه شده است.</li>
+  <li><b>تست لوکال (Localhost):</b> برای تست روی کامپیوتر بدون نیاز به وب‌هوک، اسکریپت <code>bot_poller.php</code> تعبیه شده که با دستور <code>php bot_poller.php</code> فعال شده و با سرعت بسیار بالا کار می‌کند.</li>
+</ul>
+
+<div class="footer">پایان راهنما — منوی دیجیتال کافه نسخه ۱٫۰</div>
+
+</body>
+</html>

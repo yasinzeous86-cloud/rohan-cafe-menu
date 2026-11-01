@@ -4,10 +4,22 @@
 <meta charset="utf-8">
 <title>منوی دیجیتال کافه — راهنمای نصب و انتشار</title>
 <style>
-  @page { size: A4; margin: 16mm 15mm; }
+  @font-face {
+    font-family: 'Vazirmatn';
+    src: url('assets/fonts/Vazirmatn-Variable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  @page {
+    size: A4;
+    margin: 15mm 15mm;
+  }
   * { box-sizing: border-box; }
   body {
-    font-family: "Segoe UI", Tahoma, "Vazirmatn", Arial, sans-serif;
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Arial, sans-serif;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
     direction: rtl; text-align: right;
     color: #221a14; font-size: 12.5px; line-height: 1.95; margin: 0;
     background: #fff;
