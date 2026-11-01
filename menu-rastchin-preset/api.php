@@ -723,6 +723,16 @@ if ($base !== '' && $base !== '/' && strpos($path, $base) === 0) {
 }
 if (isset($_GET['path'])) {                        // fallback: ?path=/items
     $path = (string) $_GET['path'];
+} elseif (isset($_GET['action'])) {                // fallback: ?action=categories
+    $act = trim((string) $_GET['action']);
+    if ($act === 'order') {
+        $act = 'orders';
+    } elseif ($act === 'category') {
+        $act = 'categories';
+    } elseif ($act === 'item') {
+        $act = 'items';
+    }
+    $path = '/' . ltrim($act, '/');
 }
 
 $segments = [];
@@ -739,10 +749,11 @@ foreach (explode('/', $path) as $seg) {
 $resource = $segments[0] ?? '';
 $id       = isset($segments[1]) ? (int) $segments[1] : null;
 
-$is_read  = ($method === 'GET' || $method === 'HEAD');
+$is_read         = ($method === 'GET' || $method === 'HEAD');
 $is_public_order = ($method === 'POST' && $resource === 'orders');
-// Root payload (GET /) and customer checkout (POST /orders) are public.
-$needs_auth = !(($is_read && $resource === '') || $is_public_order);
+$is_public_read  = ($is_read && in_array($resource, ['', 'admin', 'menu', 'categories', 'items'], true));
+// Root payload (GET /), public reads (menu, categories, items) and customer checkout (POST /orders) are public.
+$needs_auth = !($is_public_read || $is_public_order);
 if ($needs_auth) {
     require_admin();
 }
@@ -751,7 +762,7 @@ try {
     $db = db();
 
     /* ---- public payload ---- */
-    if ($resource === '' || $resource === 'admin') {
+    if ($resource === '' || $resource === 'admin' || $resource === 'menu') {
         if ($is_read) {
             ok(public_payload($db));
         }

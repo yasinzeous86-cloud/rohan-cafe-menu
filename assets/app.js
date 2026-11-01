@@ -611,6 +611,7 @@ function showEmpty() {
 
 /** Decode a JSON card setting. null = "leave the markup in index.html alone". */
 function parseCards(raw) {
+  if (Array.isArray(raw)) return raw;
   if (typeof raw !== 'string' || raw.trim() === '') return null;
   try {
     const cards = JSON.parse(raw);
