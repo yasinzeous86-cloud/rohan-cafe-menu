@@ -494,10 +494,6 @@ function renderSection(category, currency, index) {
 
     return itemRow;
   });
-    ]);
-
-    return itemRow;
-  });
 
   const drawer = el('div', {
     id: drawerId,

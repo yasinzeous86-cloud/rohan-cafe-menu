@@ -4,7 +4,7 @@
  * Only GET requests are ever intercepted; writes always reach the server.
  */
 
-const CACHE_VERSION = 'v1.4-table-catalog';
+const CACHE_VERSION = 'v1.5-runtime-fix';
 const VERSION = CACHE_VERSION;
 const SHELL = [
   './',
@@ -14,9 +14,6 @@ const SHELL = [
   './assets/app.js',
   './assets/menu-bg.jpg',
   './assets/coffee-texture.jpg',
-  // Local webfonts. Vazirmatn + Lalezar + Righteous ship with the menu and are
-  // precached; the Dana / YekanBakh picker faces are caught by the cache-first
-  // rule below as soon as someone picks them.
   './assets/fonts/Vazirmatn-Variable.woff2',
   './assets/fonts/Lalezar-Arabic.woff2',
   './assets/fonts/Lalezar-Latin.woff2',
@@ -47,14 +44,19 @@ self.addEventListener('activate', (event) => {
 
 /* api.php answers with Cache-Control: no-store — store a clean copy so the
  * offline fallback is not rejected by the cache. */
-async function cachePayload(request, response) {
-  const cache = await caches.open(VERSION);
-  const copy = new Response(await response.clone().text(), {
-    status: response.status,
-    statusText: response.statusText,
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
-  });
-  await cache.put(request, copy);
+async function cachePayload(request, clonedResponse) {
+  try {
+    const cache = await caches.open(VERSION);
+    const text = await clonedResponse.text();
+    const copy = new Response(text, {
+      status: clonedResponse.status,
+      statusText: clonedResponse.statusText,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    });
+    await cache.put(request, copy);
+  } catch (err) {
+    console.warn('[SW] Failed to cache api payload:', err);
+  }
 }
 
 self.addEventListener('fetch', (event) => {
@@ -68,8 +70,12 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.endsWith('api.php')) {
     event.respondWith(
       fetch(request)
-        .then(async (res) => {
-          if (res.ok) await cachePayload(request, res);
+        .then((res) => {
+          if (res && res.ok) {
+            // Synchronously clone BEFORE returning or consuming
+            const copy = res.clone();
+            cachePayload(request, copy).catch(() => {});
+          }
           return res;
         })
         .catch(async () => (await caches.match(request)) || Response.error()),
@@ -82,8 +88,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(VERSION).then((cache) => cache.put('./index.html', copy));
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(VERSION).then((cache) => cache.put('./index.html', copy)).catch(() => {});
+          }
           return res;
         })
         .catch(async () => (await caches.match('./index.html')) || (await caches.match('./')) || Response.error()),
@@ -96,7 +104,11 @@ self.addEventListener('fetch', (event) => {
     caches.match(request).then((cached) => {
       const network = fetch(request)
         .then((res) => {
-          if (res.ok) caches.open(VERSION).then((cache) => cache.put(request, res.clone()));
+          if (res && res.status === 200 && res.type === 'basic') {
+            // CRITICAL: Synchronously clone immediately before any async chain or body consumption
+            const copy = res.clone();
+            caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
+          }
           return res;
         })
         .catch(() => cached);
