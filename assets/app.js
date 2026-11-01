@@ -229,13 +229,22 @@ window.swapCategoryIcon = function(categorySection, newSrc) {
   if (navImg) targets.push(navImg);
 
   targets.forEach((img) => {
-    img.classList.remove('icon-spin-swap');
-    void img.offsetWidth; // Force DOM reflow to re-trigger transition smoothly
-    img.classList.add('icon-spin-swap');
-    setTimeout(() => {
+    if (img._spinT1) clearTimeout(img._spinT1);
+    if (img._spinT2) clearTimeout(img._spinT2);
+
+    img.classList.remove('animate-icon-swap', 'icon-spin-swap');
+    void img.offsetWidth; // Force DOM reflow to re-trigger keyframe animation cleanly
+    img.classList.add('animate-icon-swap');
+
+    // Swap source during the midpoint plateau (250ms)
+    img._spinT1 = setTimeout(() => {
       img.src = newSrc;
-      img.classList.remove('icon-spin-swap');
     }, 250);
+
+    // Clean up class once 0.55s animation completes
+    img._spinT2 = setTimeout(() => {
+      img.classList.remove('animate-icon-swap', 'icon-spin-swap');
+    }, 560);
   });
 };
 
@@ -254,13 +263,20 @@ window.revertCategoryIcon = function(categorySection) {
   targets.forEach((img) => {
     const defaultSrc = img.dataset.defaultSrc;
     if (defaultSrc) {
-      img.classList.remove('icon-spin-swap');
+      if (img._spinT1) clearTimeout(img._spinT1);
+      if (img._spinT2) clearTimeout(img._spinT2);
+
+      img.classList.remove('animate-icon-swap', 'icon-spin-swap');
       void img.offsetWidth; // Force DOM reflow
-      img.classList.add('icon-spin-swap');
-      setTimeout(() => {
+      img.classList.add('animate-icon-swap');
+
+      img._spinT1 = setTimeout(() => {
         img.src = defaultSrc;
-        img.classList.remove('icon-spin-swap');
       }, 250);
+
+      img._spinT2 = setTimeout(() => {
+        img.classList.remove('animate-icon-swap', 'icon-spin-swap');
+      }, 560);
     }
   });
 };

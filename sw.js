@@ -4,7 +4,8 @@
  * Only GET requests are ever intercepted; writes always reach the server.
  */
 
-const VERSION = 'cafe-menu-v2';
+const CACHE_VERSION = 'v1.1-spin-fix';
+const VERSION = CACHE_VERSION;
 const SHELL = [
   './',
   './index.html',
@@ -34,7 +35,12 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(
+        keys.filter((k) => k !== VERSION).map((k) => {
+          console.log('[SW] Purging old cache:', k);
+          return caches.delete(k);
+        })
+      ))
       .then(() => self.clients.claim()),
   );
 });
