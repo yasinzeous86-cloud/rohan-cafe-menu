@@ -143,29 +143,33 @@
     flex-shrink: 0;
   }
 
-  /* Perfect Circle Asset Gallery */
+  /* Perfect Circle Asset Gallery & Presets UI */
   .aspect-square { aspect-ratio: 1 / 1 !important; }
   .object-cover { object-fit: cover !important; }
   .object-center { object-position: center !important; }
   .rounded-full { border-radius: 9999px !important; }
 
-  .asset-card {
-    transition: all 0.2s ease;
+  .preset-card, .asset-card {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
-    border-radius: 0.65rem;
+    border-radius: 0.75rem;
     padding: 0.35rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1.5px solid transparent;
   }
-  .asset-card:hover {
-    border-color: var(--accent);
-    background: rgba(224, 163, 61, 0.12);
+  .preset-card:hover, .asset-card:hover {
+    border-color: #c69a68;
+    background: rgba(198, 154, 104, 0.12);
     transform: translateY(-2px);
   }
-  .asset-card.active {
-    border-color: var(--accent);
-    background: rgba(224, 163, 61, 0.22);
-    box-shadow: 0 0 10px rgba(224, 163, 61, 0.4);
+  .preset-card.active, .asset-card.active {
+    border-color: #c69a68 !important;
+    background: rgba(198, 154, 104, 0.22) !important;
+    box-shadow: 0 0 12px rgba(198, 154, 104, 0.45);
+  }
+  .preset-card.active img,
+  .preset-card img.ring-active {
+    box-shadow: 0 0 0 2px #c69a68 !important;
   }
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -831,17 +835,30 @@
               </button>
             </div>
 
-            <!-- Default Asset Gallery -->
-            <div class="space-y-1.5 border-t hair pt-2.5">
+            <!-- Presets Section: انتخاب از پریستهای آماده (بدون نیاز به آپلود) -->
+            <div class="space-y-2 border-t hair pt-2.5">
               <div class="flex items-center justify-between">
-                <label class="text-xs font-bold text-white flex items-center gap-1.5">
-                  <span>🎨</span>
-                  <span>گالری تصاویر آماده منو (Default Asset Gallery)</span>
+                <label class="text-xs font-bold text-amber-200 flex items-center gap-1.5">
+                  <span class="text-sm">✨</span>
+                  <span>انتخاب از پریستهای آماده (بدون نیاز به آپلود)</span>
                 </label>
-                <span class="text-[10px] text-amber-300 font-medium">کلیک برای انتخاب سریع</span>
+                <span class="text-[10px] text-[#c69a68] font-bold bg-[#c69a68]/15 px-2 py-0.5 rounded-full border border-[#c69a68]/30">۵۶ پریست شفاف ۵۱۲×۵۱۲</span>
               </div>
-              <div id="default-asset-gallery" class="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl border hair bg-black/40 scroll-smooth">
-                <!-- Javascript dynamically populates images using aspect-square object-cover object-center rounded-full -->
+
+              <!-- Category filter pill bar -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] no-scrollbar" id="preset-cat-filter">
+                <button type="button" class="preset-filter-btn active px-2.5 py-0.5 rounded-full bg-[#c69a68] text-stone-900 font-bold whitespace-nowrap transition-all" data-cat="all">همه</button>
+                <button type="button" class="preset-filter-btn px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-300 font-medium whitespace-nowrap transition-all" data-cat="نوشیدنی سرد و گرم">نوشیدنی</button>
+                <button type="button" class="preset-filter-btn px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-300 font-medium whitespace-nowrap transition-all" data-cat="قهوه و شیک">قهوه و شیک</button>
+                <button type="button" class="preset-filter-btn px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-300 font-medium whitespace-nowrap transition-all" data-cat="غذا و دسر">غذا و پیتزا</button>
+                <button type="button" class="preset-filter-btn px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-300 font-medium whitespace-nowrap transition-all" data-cat="دمنوش و چای">چای و دمنوش</button>
+                <button type="button" class="preset-filter-btn px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-300 font-medium whitespace-nowrap transition-all" data-cat="نان و شیرینی">نان و شیرینی</button>
+                <button type="button" class="preset-filter-btn px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-300 font-medium whitespace-nowrap transition-all" data-cat="صبحانه و برانچ">صبحانه</button>
+              </div>
+
+              <!-- Presets Grid Container -->
+              <div id="presets-gallery" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 gap-2 max-h-52 overflow-y-auto p-2 rounded-xl border hair bg-black/40 scroll-smooth">
+                <!-- Javascript dynamically populates thumbnails using aspect-square object-cover object-center rounded-full -->
               </div>
             </div>
 
@@ -1171,75 +1188,120 @@ function renderCategories() {
 }
 
 /* ---------------------------------------------------------------- *
- *  Default Asset Gallery
+ *  Presets Ready Gallery (assets/presets/) - 56 Icons
  * ---------------------------------------------------------------- */
-const DEFAULT_ASSETS = [
-  { name: 'اسپرسو', file: 'espresso.png' },
-  { name: 'لاته', file: 'latte.png' },
-  { name: 'کاپوچینو', file: 'cappuccino.png' },
-  { name: 'موکا', file: 'mocha.png' },
-  { name: 'فلت وایت', file: 'flat-white.png' },
-  { name: 'کلد برو', file: 'cold-brew.png' },
-  { name: 'وی‌۶۰', file: 'v60.png' },
-  { name: 'آمریکانو', file: 'americano.png' },
-  { name: 'اسپرسو دوبل', file: 'espresso-doppio.png' },
-  { name: 'کارامل ماکیاتو', file: 'caramel-macchiato.png' },
-  { name: 'فراپه', file: 'frappe.png' },
-  { name: 'لیموناد', file: 'lemonade.png' },
-  { name: 'موهیتو', file: 'mojito.png' },
-  { name: 'آب پرتقال', file: 'orange-juice.png' },
-  { name: 'شیک وانیل', file: 'vanilla-shake.png' },
-  { name: 'شکلات گلاسه', file: 'iced-chocolate.png' },
-  { name: 'پیتزا گوشت و قارچ', file: 'pizza-meat-mushroom.png' },
-  { name: 'پیتزا پپرونی', file: 'pizza-pepperoni.png' },
-  { name: 'پیتزا سبزیجات', file: 'pizza-vegetable.png' },
-  { name: 'اسموکی برگر', file: 'smoky-burger.png' },
-  { name: 'سیب‌زمینی سرخ‌شده', file: 'french-fries.png' },
-  { name: 'سالاد سزار', file: 'caesar-salad.png' },
-  { name: 'تست هلومی', file: 'halloumi-toast.png' },
-  { name: 'تست آووکادو', file: 'avocado-toast.png' },
-  { name: 'شکشوعا', file: 'shakshuka.png' },
-  { name: 'بیگل کره‌ای', file: 'bagel.png' },
-  { name: 'کروسان', file: 'croissant.png' },
-  { name: 'چیزکیک', file: 'cheesecake.png' },
-  { name: 'کیک شکلاتی', file: 'chocolate-cake.png' },
-  { name: 'کیک هویج و گردو', file: 'date-cake.png' },
-  { name: 'وافل با توت', file: 'waffle.png' },
-  { name: 'پنکیک', file: 'pancakes.png' },
-  { name: 'براونی', file: 'brownie.png' },
-  { name: 'سینامون رول', file: 'cinnamon-roll.png' },
-  { name: 'مافین بلوبری', file: 'blueberry-muffin.png' },
-  { name: 'کوکی شکلاتی', file: 'cookies.png' },
-  { name: 'آیس لاته', file: 'iced-latte.png' },
-  { name: 'ماچا لاته', file: 'matcha-latte.png' },
-  { name: 'پینک لاته', file: 'pink-latte.png' },
-  { name: 'سودای گلاب', file: 'rose-soda.png' },
-  { name: 'چای ترش', file: 'hibiscus-tea.png' },
-  { name: 'دمنوش نعنا', file: 'mint-tea.png' },
-  { name: 'چای سیاه', file: 'black-tea.png' },
+const PRESET_ASSETS = [
+  { name: 'اسپرسو', file: 'espresso.png', cat: 'نوشیدنی سرد و گرم' },
+  { name: 'کاپوچینو', file: 'cappuccino.png', cat: 'نوشیدنی سرد و گرم' },
+  { name: 'کارامل ماکیاتو', file: 'caramel-macchiato.png', cat: 'نوشیدنی سرد و گرم' },
+  { name: 'فراپه', file: 'frappe.png', cat: 'نوشیدنی سرد و گرم' },
+  { name: 'کلد برو', file: 'cold-brew.png', cat: 'نوشیدنی سرد و گرم' },
+  { name: 'موهیتو', file: 'mojito.png', cat: 'نوشیدنی سرد و گرم' },
+  { name: 'لیموناد', file: 'lemonade.png', cat: 'نوشیدنی سرد و گرم' },
+  { name: 'آب پرتقال', file: 'orange-juice.png', cat: 'نوشیدنی سرد و گرم' },
+  { name: 'قهوه دمی وی ۶۰', file: 'v60.png', cat: 'قهوه و شیک' },
+  { name: 'آیس چاکلت', file: 'iced-chocolate.png', cat: 'قهوه و شیک' },
+  { name: 'میلک شیک وانیل', file: 'vanilla-shake.png', cat: 'قهوه و شیک' },
+  { name: 'آمریکانو', file: 'americano.png', cat: 'قهوه و شیک' },
+  { name: 'کافه لاته', file: 'latte.png', cat: 'قهوه و شیک' },
+  { name: 'فلت وایت', file: 'flat-white.png', cat: 'قهوه و شیک' },
+  { name: 'اسپرسو دوپیو', file: 'espresso-doppio.png', cat: 'قهوه و شیک' },
+  { name: 'کافه موکا', file: 'mocha.png', cat: 'قهوه و شیک' },
+  { name: 'پیتزا پپرونی', file: 'pizza-pepperoni.png', cat: 'غذا و دسر' },
+  { name: 'پیتزا سبزیجات', file: 'pizza-vegetable.png', cat: 'غذا و دسر' },
+  { name: 'پیتزا گوشت و قارچ', file: 'pizza-meat-mushroom.png', cat: 'غذا و دسر' },
+  { name: 'کروسان', file: 'croissant.png', cat: 'غذا و دسر' },
+  { name: 'سالاد سزار', file: 'caesar-salad.png', cat: 'غذا و دسر' },
+  { name: 'سیب‌زمینی سرخ‌کرده', file: 'french-fries.png', cat: 'غذا و دسر' },
+  { name: 'شکشوکا', file: 'shakshuka.png', cat: 'غذا و دسر' },
+  { name: 'اسموکی برگر', file: 'smoky-burger.png', cat: 'غذا و دسر' },
+  { name: 'کیک شکلاتی', file: 'chocolate-cake.png', cat: 'غذا و دسر' },
+  { name: 'کیک خرما', file: 'date-cake.png', cat: 'غذا و دسر' },
+  { name: 'چیزکیک', file: 'cheesecake.png', cat: 'غذا و دسر' },
+  { name: 'وافل بلژیکی', file: 'waffle.png', cat: 'غذا و دسر' },
+  { name: 'قوری چای مخصوص', file: 'tea-pot.png', cat: 'دمنوش و چای' },
+  { name: 'چای لاته ماسالا', file: 'chai-latte.png', cat: 'دمنوش و چای' },
+  { name: 'آیس لاته', file: 'iced-latte.png', cat: 'دمنوش و چای' },
+  { name: 'ماچا لاته', file: 'matcha-latte.png', cat: 'دمنوش و چای' },
+  { name: 'چای سبز', file: 'green-tea.png', cat: 'دمنوش و چای' },
+  { name: 'سودای گلاب و زعفران', file: 'rose-soda.png', cat: 'دمنوش و چای' },
+  { name: 'پینک لاته', file: 'pink-latte.png', cat: 'دمنوش و چای' },
+  { name: 'چای ارل گری', file: 'earl-grey-tea.png', cat: 'دمنوش و چای' },
+  { name: 'دمنوش مرکبات', file: 'citrus-tea.png', cat: 'دمنوش و چای' },
+  { name: 'چای ترش', file: 'hibiscus-tea.png', cat: 'دمنوش و چای' },
+  { name: 'دمنوش نعنا', file: 'mint-tea.png', cat: 'دمنوش و چای' },
+  { name: 'چای سیاه اصیل', file: 'black-tea.png', cat: 'دمنوش و چای' },
+  { name: 'بیگل کنجدی', file: 'bagel.png', cat: 'نان و شیرینی' },
+  { name: 'تست هالومی', file: 'halloumi-toast.png', cat: 'نان و شیرینی' },
+  { name: 'تست آووکادو', file: 'avocado-toast.png', cat: 'نان و شیرینی' },
+  { name: 'پنکیک با سیروپ', file: 'pancakes.png', cat: 'نان و شیرینی' },
+  { name: 'براونی شکلاتی', file: 'brownie.png', cat: 'نان و شیرینی' },
+  { name: 'سینامون رول', file: 'cinnamon-roll.png', cat: 'نان و شیرینی' },
+  { name: 'مافین بلوبری', file: 'blueberry-muffin.png', cat: 'نان و شیرینی' },
+  { name: 'کوکی شکلات تکه‌ای', file: 'cookies.png', cat: 'نان و شیرینی' },
+  { name: 'صبحانه انگلیسی', file: 'english-breakfast.png', cat: 'صبحانه و برانچ' },
+  { name: 'اسکرامبل اگ', file: 'scrambled-eggs.png', cat: 'صبحانه و برانچ' },
+  { name: 'گرانولا بول', file: 'granola-bowl.png', cat: 'صبحانه و برانچ' },
+  { name: 'آسای بول میوه‌ای', file: 'acai-bowl.png', cat: 'صبحانه و برانچ' },
+  { name: 'کلاب ساندویچ', file: 'club-sandwich.png', cat: 'صبحانه و برانچ' },
+  { name: 'پانینی مرغ گریل', file: 'panini.png', cat: 'صبحانه و برانچ' },
+  { name: 'سالاد مرغ ویژه', file: 'chicken-salad.png', cat: 'صبحانه و برانچ' },
+  { name: 'پاستا آلفردو', file: 'pasta.png', cat: 'صبحانه و برانچ' },
 ];
 
-function initDefaultAssetGallery() {
-  const container = document.getElementById('default-asset-gallery');
-  if (!container || container.children.length > 0) return;
-  
-  DEFAULT_ASSETS.forEach(asset => {
-    const assetPath = `assets/defaults/${asset.file}`;
+function initPresetsGallery() {
+  const container = document.getElementById('presets-gallery');
+  if (!container || container.dataset.initialized === 'true') return;
+  container.dataset.initialized = 'true';
+
+  renderPresetsList(PRESET_ASSETS);
+
+  // Category filter buttons
+  const filterBtns = document.querySelectorAll('.preset-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => {
+        b.classList.remove('active', 'bg-[#c69a68]', 'text-stone-900');
+        b.classList.add('bg-white/5', 'text-stone-300');
+      });
+      btn.classList.add('active', 'bg-[#c69a68]', 'text-stone-900');
+      btn.classList.remove('bg-white/5', 'text-stone-300');
+
+      const cat = btn.dataset.cat;
+      const filtered = cat === 'all'
+        ? PRESET_ASSETS
+        : PRESET_ASSETS.filter(p => p.cat === cat);
+      renderPresetsList(filtered);
+    });
+  });
+}
+
+function renderPresetsList(items) {
+  const container = document.getElementById('presets-gallery');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const currentPath = document.getElementById('f-image_url')?.value || '';
+
+  items.forEach(preset => {
+    const assetPath = `assets/presets/${preset.file}`;
+    const isSelected = currentPath === assetPath || currentPath.endsWith(preset.file);
+
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'asset-card flex flex-col items-center gap-1 p-1 rounded-xl transition-all cursor-pointer';
+    btn.className = `preset-card flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all cursor-pointer ${isSelected ? 'active ring-2 ring-[#c69a68]' : ''}`;
     btn.dataset.path = assetPath;
-    btn.title = asset.name;
+    btn.title = `${preset.name} (${preset.cat})`;
 
     btn.innerHTML = `
-      <img src="${assetPath}" alt="${asset.name}" class="w-12 h-12 aspect-square object-cover object-center rounded-full border border-stone-700/60 shadow-sm" loading="lazy">
-      <span class="text-[9px] text-stone-300 font-medium truncate max-w-full text-center">${asset.name}</span>
+      <img src="${assetPath}" alt="${preset.name}" class="w-12 h-12 aspect-square object-cover object-center rounded-full border border-stone-700/60 shadow-sm transition-all ${isSelected ? 'ring-2 ring-[#c69a68]' : ''}" loading="lazy">
+      <span class="text-[9px] text-stone-300 font-medium truncate max-w-[64px] text-center">${preset.name}</span>
     `;
 
     btn.addEventListener('click', () => {
       const imgInput = document.getElementById('f-image_url');
       if (imgInput) imgInput.value = assetPath;
-      
+
       const fileInput = document.getElementById('item_image_file');
       if (fileInput) fileInput.value = '';
 
@@ -1250,28 +1312,38 @@ function initDefaultAssetGallery() {
 
       if (previewBox && previewImg) {
         previewImg.src = assetPath;
-        if (previewName) previewName.textContent = asset.name;
-        if (previewSize) previewSize.textContent = 'تصویر پیش‌فرض انتخاب‌شده';
+        if (previewName) previewName.textContent = preset.name;
+        if (previewSize) previewSize.textContent = `پریست آماده ۵۱۲×۵۱۲ (${preset.cat})`;
         previewBox.hidden = false;
       }
 
-      container.querySelectorAll('.asset-card').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      container.querySelectorAll('.preset-card').forEach(b => {
+        b.classList.remove('active', 'ring-2', 'ring-[#c69a68]');
+        const img = b.querySelector('img');
+        if (img) img.classList.remove('ring-2', 'ring-[#c69a68]');
+      });
+      btn.classList.add('active', 'ring-2', 'ring-[#c69a68]');
+      const thisImg = btn.querySelector('img');
+      if (thisImg) thisImg.classList.add('ring-2', 'ring-[#c69a68]');
     });
 
     container.appendChild(btn);
   });
 }
 
-function highlightDefaultAsset(currentPath) {
-  const container = document.getElementById('default-asset-gallery');
+function highlightPresetAsset(currentPath) {
+  const container = document.getElementById('presets-gallery');
   if (!container) return;
-  container.querySelectorAll('.asset-card').forEach(b => {
-    if (currentPath && b.dataset.path === currentPath) {
-      b.classList.add('active');
+  container.querySelectorAll('.preset-card').forEach(b => {
+    const isMatch = currentPath && (b.dataset.path === currentPath || currentPath.endsWith(b.dataset.path.split('/').pop()));
+    const img = b.querySelector('img');
+    if (isMatch) {
+      b.classList.add('active', 'ring-2', 'ring-[#c69a68]');
+      if (img) img.classList.add('ring-2', 'ring-[#c69a68]');
       b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else {
-      b.classList.remove('active');
+      b.classList.remove('active', 'ring-2', 'ring-[#c69a68]');
+      if (img) img.classList.remove('ring-2', 'ring-[#c69a68]');
     }
   });
 }
@@ -1325,8 +1397,8 @@ function openModal(item = null) {
     previewBox.hidden = true;
   }
 
-  initDefaultAssetGallery();
-  highlightDefaultAsset(item?.image_url);
+  initPresetsGallery();
+  highlightPresetAsset(item?.image_url);
 
   $('#modal').hidden = false;
   document.body.style.overflow = 'hidden';
@@ -1379,11 +1451,13 @@ $('#clear-image-btn')?.addEventListener('click', () => {
   $('#f-image_url').value = '';
   $('#image-preview').src = '';
   $('#image-preview-container').hidden = true;
+  highlightPresetAsset('');
 });
 
 // Manual URL input change listener
 $('#f-image_url')?.addEventListener('input', (e) => {
   const val = e.target.value.trim();
+  highlightPresetAsset(val);
   if (val) {
     $('#image-preview').src = val;
     $('#image-preview-name').textContent = val.split('/').pop() || 'لینک تصویر';

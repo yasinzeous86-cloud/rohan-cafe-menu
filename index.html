@@ -28,7 +28,7 @@
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
 <title>منوی دیجیتال کافه و بار رُهان</title>
 <!-- Local Precompiled Tailwind CSS — 100% Offline & CDN-Free -->
-<link rel="stylesheet" href="assets/style.min.css?v=1.1-spin-fix">
+<link rel="stylesheet" href="assets/style.min.css?v=1.2-presets">
 <!-- Fonts are shipped with the project (assets/fonts) — see the @font-face
      block in the stylesheet below. No third-party font request is made. -->
 <!-- PWA -->
@@ -1200,13 +1200,13 @@
     // Nav active state is driven by app.js watchSections() (IntersectionObserver).
     // Real parallax engine runs directly in assets/app.js via initParallax()
   </script>
-<script type="module" src="assets/app.js?v=1.1-spin-fix"></script>
+<script type="module" src="assets/app.js?v=1.2-presets"></script>
 <script>
   /* PWA: register the service worker so the menu keeps working offline after
      the first visit (it caches the shell, the assets and the JSON payload). */
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=1.1-spin-fix').catch(() => { /* file:// or unsupported */ });
+      navigator.serviceWorker.register('sw.js?v=1.2-presets').catch(() => { /* file:// or unsupported */ });
     });
   }
 </script>

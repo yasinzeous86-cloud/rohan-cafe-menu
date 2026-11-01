@@ -4,7 +4,7 @@
  * Only GET requests are ever intercepted; writes always reach the server.
  */
 
-const CACHE_VERSION = 'v1.1-spin-fix';
+const CACHE_VERSION = 'v1.2-presets';
 const VERSION = CACHE_VERSION;
 const SHELL = [
   './',
