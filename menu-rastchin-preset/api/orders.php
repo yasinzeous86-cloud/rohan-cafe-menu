@@ -143,14 +143,9 @@ fail(405, 'متد ارسالی پشتیبانی نمی‌شود.');
 /**
  * ارسال اعلان تلگرام برای سفارش جدید
  */
-function send_telegram_order_notice(PDO $db, int $orderId, string $tableNumber, array $items, float $totalPrice, string $note): void
+function send_order_notification(PDO $db, int $orderId, string $tableNumber, array $items, float $totalPrice, string $note = ''): void
 {
-    // دریافت تنظیمات از دیتابیس یا مقادیر پیش‌فرض کانفیگ
-    $token = defined('TELEGRAM_BOT_TOKEN') ? TELEGRAM_BOT_TOKEN : '';
-    $chatId = defined('TELEGRAM_CHAT_ID') ? TELEGRAM_CHAT_ID : '';
-    $proxy = defined('TELEGRAM_PROXY') ? TELEGRAM_PROXY : '';
-
-    $stmt = $db->query('SELECT setting_key, setting_value FROM settings WHERE setting_key IN ("telegram_bot_token", "telegram_chat_id", "telegram_proxy", "telegram_notifications_enabled", "currency")');
+    $stmt = $db->query('SELECT setting_key, setting_value FROM settings WHERE setting_key IN ("notification_service", "telegram_bot_token", "telegram_chat_id", "telegram_proxy", "bale_bot_token", "bale_chat_id", "telegram_notifications_enabled", "currency")');
     $dbSettings = [];
     while ($row = $stmt->fetch()) {
         $dbSettings[$row['setting_key']] = $row['setting_value'];
@@ -160,9 +155,23 @@ function send_telegram_order_notice(PDO $db, int $orderId, string $tableNumber, 
         return;
     }
 
-    $token  = trim((string) ($dbSettings['telegram_bot_token'] ?? $token));
-    $chatId = trim((string) ($dbSettings['telegram_chat_id'] ?? $chatId));
-    $proxy  = trim((string) ($dbSettings['telegram_proxy'] ?? $proxy));
+    $service = $dbSettings['notification_service'] ?? (defined('NOTIFICATION_SERVICE') ? NOTIFICATION_SERVICE : 'telegram');
+    if (!in_array($service, ['telegram', 'bale'], true)) {
+        $service = 'telegram';
+    }
+
+    if ($service === 'bale') {
+        $token  = trim((string) ($dbSettings['bale_bot_token'] ?? $dbSettings['telegram_bot_token'] ?? (defined('BALE_BOT_TOKEN') ? BALE_BOT_TOKEN : '')));
+        $chatId = trim((string) ($dbSettings['bale_chat_id'] ?? $dbSettings['telegram_chat_id'] ?? (defined('BALE_CHAT_ID') ? BALE_CHAT_ID : '')));
+        $proxy  = '';
+        $url    = "https://tapi.bale.ai/bot{$token}/sendMessage";
+    } else {
+        $token  = trim((string) ($dbSettings['telegram_bot_token'] ?? (defined('TELEGRAM_BOT_TOKEN') ? TELEGRAM_BOT_TOKEN : '')));
+        $chatId = trim((string) ($dbSettings['telegram_chat_id'] ?? (defined('TELEGRAM_CHAT_ID') ? TELEGRAM_CHAT_ID : '')));
+        $proxy  = trim((string) ($dbSettings['telegram_proxy'] ?? (defined('TELEGRAM_PROXY') ? TELEGRAM_PROXY : '')));
+        $url    = "https://api.telegram.org/bot{$token}/sendMessage";
+    }
+
     $currency = $dbSettings['currency'] ?? 'تومان';
 
     if ($token === '' || $chatId === '') {
@@ -208,8 +217,6 @@ function send_telegram_order_notice(PDO $db, int $orderId, string $tableNumber, 
         'reply_markup' => $keyboard,
     ];
 
-    $url = "https://api.telegram.org/bot{$token}/sendMessage";
-
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -218,10 +225,23 @@ function send_telegram_order_notice(PDO $db, int $orderId, string $tableNumber, 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 8);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        if ($proxy !== '') {
+        if ($service === 'telegram' && $proxy !== '') {
             curl_setopt($ch, CURLOPT_PROXY, $proxy);
+            if (stripos($proxy, 'socks5') === 0) {
+                curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5_HOSTNAME);
+            } elseif (stripos($proxy, 'http') === 0) {
+                curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+            }
         }
         curl_exec($ch);
         curl_close($ch);
     }
+}
+
+/**
+ * نام مستعار جهت حفظ سازگاری کامل
+ */
+function send_telegram_order_notice(PDO $db, int $orderId, string $tableNumber, array $items, float $totalPrice, string $note = ''): void
+{
+    send_order_notification($db, $orderId, $tableNumber, $items, $totalPrice, $note);
 }

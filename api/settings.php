@@ -27,13 +27,20 @@ if ($method === 'GET') {
 
     // پیش‌فرض‌های سیستم در صورت خالی بودن دیتابیس
     $defaults = [
-        'shop_name'      => 'کافینکس | منوی کافه',
-        'tagline'        => 'قهوه‌ی آرام، سرویس سریع — هر روز از ساعت ۷ صبح باز است.',
-        'currency'       => 'تومان',
-        'theme'          => 'espresso',
-        'font_family'    => 'Vazirmatn',
-        'orders_enabled' => '1',
-        'footer_note'    => 'قیمت‌ها شامل مالیات است؛ درباره‌ی شیر جو دو سر، بادام یا سویا از ما بپرسید.',
+        'shop_name'                      => 'کافینکس | منوی کافه',
+        'tagline'                        => 'قهوه‌ی آرام، سرویس سریع — هر روز از ساعت ۷ صبح باز است.',
+        'currency'                       => 'تومان',
+        'theme'                          => 'espresso',
+        'font_family'                    => 'Vazirmatn',
+        'orders_enabled'                 => '1',
+        'notification_service'           => 'telegram',
+        'telegram_bot_token'             => '',
+        'telegram_chat_id'               => '',
+        'telegram_proxy'                 => '',
+        'telegram_notifications_enabled' => '1',
+        'bale_bot_token'                 => '',
+        'bale_chat_id'                   => '',
+        'footer_note'                    => 'قیمت‌ها شامل مالیات است؛ درباره‌ی شیر جو دو سر، بادام یا سویا از ما بپرسید.',
     ];
 
     $merged = array_merge($defaults, $settings);

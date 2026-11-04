@@ -35,7 +35,13 @@ function tg_call(string $botToken, string $method, array $params = [], string $p
         $proxy = (string) $GLOBALS['proxy'];
     }
 
-    $url = "https://api.telegram.org/bot{$botToken}/{$method}";
+    $service = $GLOBALS['service'] ?? 'telegram';
+    if ($service === 'bale') {
+        $url = "https://tapi.bale.ai/bot{$botToken}/{$method}";
+        $proxy = '';
+    } else {
+        $url = "https://api.telegram.org/bot{$botToken}/{$method}";
+    }
 
     if (function_exists('curl_init')) {
         // Reuse curl handle per token for persistent HTTP/1.1 keep-alive (zero TLS handshake latency)
@@ -243,9 +249,18 @@ function get_top_selling_keyboard(int $activeDays = 1): array
  */
 function handle_telegram_update(array $update, PDO $db, array $settings): void
 {
-    $botToken    = trim((string) ($settings['telegram_bot_token'] ?? ''));
-    $adminChatId = trim((string) ($settings['telegram_chat_id'] ?? ''));
-    $proxy       = trim((string) ($settings['telegram_proxy'] ?? ''));
+    $service     = $settings['notification_service'] ?? 'telegram';
+    $GLOBALS['service'] = $service;
+
+    if ($service === 'bale') {
+        $botToken    = trim((string) ($settings['bale_bot_token'] ?? $settings['telegram_bot_token'] ?? ''));
+        $adminChatId = trim((string) ($settings['bale_chat_id'] ?? $settings['telegram_chat_id'] ?? ''));
+        $proxy       = '';
+    } else {
+        $botToken    = trim((string) ($settings['telegram_bot_token'] ?? ''));
+        $adminChatId = trim((string) ($settings['telegram_chat_id'] ?? ''));
+        $proxy       = trim((string) ($settings['telegram_proxy'] ?? ''));
+    }
     $currency    = $settings['currency'] ?? 'تومان';
 
     if ($botToken === '') {

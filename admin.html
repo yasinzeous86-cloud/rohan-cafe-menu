@@ -229,7 +229,7 @@
         <span id="orders-badge" class="badge badge-sold_out text-[10px] px-1.5 py-0.5" hidden>۰</span>
       </button>
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm flex items-center justify-between" data-view="telegram">
-        <span>ربات تلگرام</span>
+        <span>ربات و نوتیفیکیشن‌ها (تلگرام / بله)</span>
         <span class="mono text-xs">🤖</span>
       </button>
       <button class="nav-item w-full text-right px-5 py-2.5 text-sm" data-view="settings">قالب و تنظیمات منو</button>
@@ -367,7 +367,7 @@
         </p>
       </section>
 
-      <!-- ── TELEGRAM BOT PANEL ─────────────────────────────────────── -->
+      <!-- ── TELEGRAM & BALE MESSENGER PANEL ─────────────────────────────────────── -->
       <section id="view-telegram" hidden class="space-y-6">
         <!-- Status & Overview Banner -->
         <div class="panel border rounded-xl p-5 sm:p-6 space-y-4">
@@ -376,20 +376,20 @@
               <span class="w-12 h-12 rounded-xl grid place-items-center text-2xl" style="background:var(--panel-2);border:1px solid var(--line)">🤖</span>
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 class="text-base sm:text-lg font-bold text-white">پنل اختصاصی ربات تلگرام</h2>
+                  <h2 class="text-base sm:text-lg font-bold text-white">ربات و نوتیفیکیشن سفارشات (تلگرام / بله)</h2>
                   <span id="tg-status-badge" class="badge badge-sold_out">در انتظار تنظیم</span>
                 </div>
-                <p class="text-xs muted mt-0.5">دریافت لحظه‌ای فاکتورها، ارسال نوتیفیکیشن صوتی به موبایل و مدیریت سفارشات و موجودی آیتم‌ها</p>
+                <p class="text-xs muted mt-0.5">دریافت لحظه‌ای فاکتورها، ارسال نوتیفیکیشن فوری به موبایل و مدیریت سفارشات بدون نیاز به فیلترشکن</p>
               </div>
             </div>
             <div class="flex items-center gap-2">
               <button type="button" id="tg-panel-test-btn" class="btn btn-ghost text-xs flex items-center gap-1.5">
                 <span>📨</span>
-                <span>ارسال پیام تستی به تلگرام</span>
+                <span id="tg-panel-test-btn-text">ارسال پیام تستی</span>
               </button>
               <button type="button" id="tg-panel-webhook-btn" class="btn btn-primary text-xs flex items-center gap-1.5">
                 <span>🔗</span>
-                <span>فعال‌سازی وب‌هوک ربات</span>
+                <span id="tg-panel-webhook-btn-text">فعال‌سازی وب‌هوک</span>
               </button>
             </div>
           </div>
@@ -397,7 +397,7 @@
           <!-- Webhook live URL display -->
           <div class="p-3.5 rounded-lg border hair bg-[var(--panel-2)] flex flex-wrap items-center justify-between gap-3 text-xs">
             <div class="min-w-0 flex-1">
-              <span class="mono text-[0.62rem] muted block mb-1">آدرس زنده وب‌هوک اختصاصی ربات (Webhook Endpoint):</span>
+              <span class="mono text-[0.62rem] muted block mb-1">آدرس زنده وب‌هوک اختصاصی (Webhook Endpoint):</span>
               <code id="tg-webhook-url" class="mono text-xs select-all text-amber-200 truncate block" dir="ltr">...</code>
             </div>
             <button type="button" id="tg-copy-webhook-btn" class="btn btn-ghost text-xs whitespace-nowrap">کپی آدرس وب‌هوک</button>
@@ -407,39 +407,82 @@
         </div>
 
         <!-- Configuration Grid -->
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] items-start">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] items-start">
           <!-- Credentials Form Card -->
           <form id="telegram-panel-form" class="panel border rounded-xl p-5 sm:p-6 space-y-4">
             <div class="flex items-center justify-between border-b hair pb-3">
-              <h3 class="text-sm font-bold text-white">مشخصات و توکن اتصال</h3>
+              <h3 class="text-sm font-bold text-white">تنظیمات پیام‌رسان اعلان‌ها</h3>
               <label class="flex items-center gap-2 text-xs muted cursor-pointer whitespace-nowrap">
                 <input type="checkbox" id="tg-notify-toggle" style="width:1rem;height:1rem">
                 <span>هشدار سفارش جدید</span>
               </label>
             </div>
 
+            <!-- Provider Selector: Telegram vs Bale -->
             <div>
-              <label class="text-xs muted block mb-1.5 font-medium" for="tg-token-input">توکن ربات تلگرام (Bot Token)</label>
-              <input id="tg-token-input" dir="ltr" class="mono text-xs" maxlength="120" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" required>
-              <p class="text-[11px] muted mt-1">از طریق ربات رسمی <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">BotFather@</a> با دستور newbot/ دریافت کنید.</p>
+              <label class="text-xs muted block mb-1.5 font-medium">سرویس پیام‌رسان اعلان‌ها (Messenger Service)</label>
+              <div class="grid grid-cols-2 gap-2">
+                <label id="label-service-telegram" class="flex items-center gap-2.5 p-2.5 rounded-lg border hair cursor-pointer text-xs transition-colors" style="background:var(--panel-2);border-color:var(--line)">
+                  <input type="radio" name="notification_service" value="telegram" id="service-opt-telegram" checked>
+                  <div>
+                    <span class="font-bold text-white block">✈️ ربات تلگرام</span>
+                    <span class="text-[10px] muted">بین‌المللی / با پروکسی</span>
+                  </div>
+                </label>
+                <label id="label-service-bale" class="flex items-center gap-2.5 p-2.5 rounded-lg border hair cursor-pointer text-xs transition-colors" style="background:var(--panel-2);border-color:var(--line)">
+                  <input type="radio" name="notification_service" value="bale" id="service-opt-bale">
+                  <div>
+                    <span class="font-bold text-white block">🟢 پیام‌رسان بله</span>
+                    <span class="text-[10px] text-emerald-400">بدون فیلتر / هاست ایران</span>
+                  </div>
+                </label>
+              </div>
             </div>
 
-            <div>
-              <label class="text-xs muted block mb-1.5 font-medium" for="tg-chat-input">شناسه عددی چت یا گروه مدیر (Chat ID)</label>
-              <input id="tg-chat-input" dir="ltr" class="mono text-xs" maxlength="60" placeholder="مثلاً: 123456789 یا برای گروه: 100123456789-" required>
-              <p class="text-[11px] muted mt-1">با ارسال یک پیام به ربات <a href="https://t.me/userinfobot" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">userinfobot@</a> عدد شناسه (Id) خود را بردارید.</p>
+            <!-- Telegram Inputs Group -->
+            <div id="telegram-fields-group" class="space-y-4">
+              <div>
+                <label class="text-xs muted block mb-1.5 font-medium" for="tg-token-input">توکن ربات تلگرام (Bot Token)</label>
+                <input id="tg-token-input" dir="ltr" class="mono text-xs" maxlength="120" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+                <p class="text-[11px] muted mt-1">از طریق ربات رسمی <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">BotFather@</a> با دستور newbot/ دریافت کنید.</p>
+              </div>
+
+              <div>
+                <label class="text-xs muted block mb-1.5 font-medium" for="tg-chat-input">شناسه عددی چت یا گروه مدیر در تلگرام (Chat ID)</label>
+                <input id="tg-chat-input" dir="ltr" class="mono text-xs" maxlength="60" placeholder="مثلاً: 123456789 یا برای گروه: 100123456789-">
+                <p class="text-[11px] muted mt-1">با ارسال یک پیام به ربات <a href="https://t.me/userinfobot" target="_blank" rel="noopener" class="underline text-[var(--accent)] font-bold">userinfobot@</a> عدد شناسه (Id) خود را بردارید.</p>
+              </div>
+
+              <div>
+                <label class="text-xs muted block mb-1.5 font-medium" for="tg-proxy-input">🌐 پروکسی اتصال به تلگرام (اختیاری — ویژه هاست‌ها و اینترنت ایران)</label>
+                <input id="tg-proxy-input" dir="ltr" class="mono text-xs" maxlength="200" placeholder="socks5://127.0.0.1:10808 یا http://127.0.0.1:10809">
+                <p class="text-[11px] muted mt-1 leading-relaxed">
+                  برای عبور از فیلترینگ تلگرام روی هاست ایران. در صورتی که سرور خارج از کشور است یا از «پیام‌رسان بله» استفاده می‌کنید، خالی بگذارید.
+                </p>
+              </div>
             </div>
 
-            <div>
-              <label class="text-xs muted block mb-1.5 font-medium" for="tg-proxy-input">🌐 پروکسی اتصال به تلگرام (اختیاری — ویژه هاست‌ها و اینترنت ایران)</label>
-              <input id="tg-proxy-input" dir="ltr" class="mono text-xs" maxlength="200" placeholder="socks5://127.0.0.1:10808 یا http://127.0.0.1:10809">
-              <p class="text-[11px] muted mt-1 leading-relaxed">
-                برای عبور از فیلترینگ تلگرام روی سیستم یا هاست‌های ایران. پروکسی‌های مرسوم (مانند v2rayN) معمولاً <code class="mono text-amber-300">socks5://127.0.0.1:10808</code> یا <code class="mono text-amber-300">http://127.0.0.1:10809</code> هستند. در صورتی که سرور خارج از کشور است خالی بگذارید.
-              </p>
+            <!-- Bale Inputs Group (No VPN/Proxy needed) -->
+            <div id="bale-fields-group" class="space-y-4" hidden>
+              <div class="p-3 rounded-lg border hair bg-emerald-950/20 border-emerald-800/40 text-emerald-300 text-[11px] leading-relaxed">
+                ⚡️ <b>اتصال مستقیم ۱۰۰٪ هاست‌های ایران:</b> پیام‌رسان بله داخلی است و بدون نیاز به هیچ‌گونه پروکسی، فیلترشکن یا تنظیمات شبکه، نوتیفیکیشن سفارشات را فوراً ارسال می‌کند.
+              </div>
+
+              <div>
+                <label class="text-xs muted block mb-1.5 font-medium" for="bale-token-input">توکن بازوی (ربات) بله (Bale Bot Token)</label>
+                <input id="bale-token-input" dir="ltr" class="mono text-xs" maxlength="120" placeholder="مثال: 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+                <p class="text-[11px] muted mt-1">در اپلیکیشن بله، با مراجعه به بازوی رسمی <code class="mono text-[var(--accent)] font-bold">BotFather@</code> با ارسال <code>/newbot</code> توکن ربات بسازید.</p>
+              </div>
+
+              <div>
+                <label class="text-xs muted block mb-1.5 font-medium" for="bale-chat-input">شناسه عددی چت یا کانال مدیر در بله (Bale Chat ID)</label>
+                <input id="bale-chat-input" dir="ltr" class="mono text-xs" maxlength="60" placeholder="مثلاً: 123456789">
+                <p class="text-[11px] muted mt-1">شناسه عددی اکانت شما در بله. (حتماً قبل از تست، در ربات خود دکمه «شروع» یا <code>/start</code> را ارسال کنید).</p>
+              </div>
             </div>
 
             <div class="pt-2 flex items-center justify-between gap-3">
-              <button class="btn btn-primary" type="submit">ذخیره‌ی تنظیمات تلگرام</button>
+              <button class="btn btn-primary" type="submit">ذخیره‌ی تنظیمات پیام‌رسان</button>
               <span id="tg-save-note" class="text-xs muted" aria-live="polite"></span>
             </div>
           </form>
@@ -984,7 +1027,7 @@ const VIEW_TITLE = {
   items: ['آیتم‌های منو', 'هر آنچه در منو هست'],
   categories: ['دسته‌بندی‌ها', 'منو چطور گروه‌بندی شده'],
   orders: ['سفارشات آنلاین', 'مدیریت و پیگیری سفارشات ثبت‌شده مشتریان'],
-  telegram: ['ربات تلگرام و نوتیفیکیشن‌ها', 'اتصال ربات، نوتیفیکیشن زنده و مدیریت دوطرفه سفارشات'],
+  telegram: ['ربات و سرویس نوتیفیکیشن‌ها (تلگرام / بله)', 'اتصال ربات تلگرام یا پیام‌رسان بله، اعلان لحظه‌ای سفارشات و مدیریت آیتم‌ها'],
   settings: ['قالب و تنظیمات منو', 'شخصی‌سازی ظاهر، رنگ‌ها و بخش‌های منو'],
   qr: ['کیوآر و منوی آفلاین', 'کیوآر لینک، منوی آفلاین و PWA'],
 };
@@ -2069,6 +2112,57 @@ function cardSettings() {
   return out;
 }
 
+function updateMessengerView(service) {
+  const isBale = service === 'bale';
+  const tgGroup = $('#telegram-fields-group');
+  const baleGroup = $('#bale-fields-group');
+  const lblTg = $('#label-service-telegram');
+  const lblBale = $('#label-service-bale');
+  const testBtnText = $('#tg-panel-test-btn-text');
+  const webhookBtnText = $('#tg-panel-webhook-btn-text');
+
+  if (tgGroup) tgGroup.hidden = isBale;
+  if (baleGroup) baleGroup.hidden = !isBale;
+
+  if (lblTg && lblBale) {
+    if (isBale) {
+      lblBale.style.borderColor = 'var(--accent)';
+      lblBale.style.background = 'rgba(16, 185, 129, 0.12)';
+      lblTg.style.borderColor = 'var(--line)';
+      lblTg.style.background = 'var(--panel-2)';
+    } else {
+      lblTg.style.borderColor = 'var(--accent)';
+      lblTg.style.background = 'rgba(217, 119, 6, 0.12)';
+      lblBale.style.borderColor = 'var(--line)';
+      lblBale.style.background = 'var(--panel-2)';
+    }
+  }
+
+  if (testBtnText) {
+    testBtnText.textContent = isBale ? 'ارسال پیام تستی به بله' : 'ارسال پیام تستی به تلگرام';
+  }
+  if (webhookBtnText) {
+    webhookBtnText.textContent = isBale ? 'فعال‌سازی وب‌هوک بله' : 'فعال‌سازی وب‌هوک تلگرام';
+  }
+}
+
+function updateMessengerBadge(settings, service) {
+  const tgBadge = $('#tg-status-badge');
+  if (!tgBadge) return;
+  const isBale = service === 'bale';
+  const hasToken = isBale
+    ? (Boolean(settings?.bale_bot_token) && Boolean(settings?.bale_chat_id))
+    : (Boolean(settings?.telegram_bot_token) && Boolean(settings?.telegram_chat_id));
+
+  if (hasToken) {
+    tgBadge.textContent = isBale ? 'بله: متصل و فعال ✅' : 'تلگرام: متصل و فعال ✅';
+    tgBadge.className = 'badge badge-available';
+  } else {
+    tgBadge.textContent = isBale ? 'بله: در انتظار تنظیم 🟡' : 'تلگرام: در انتظار تنظیم 🟡';
+    tgBadge.className = 'badge badge-sold_out';
+  }
+}
+
 function fillSettings() {
   const settings = state.data.settings;
   for (const key of ['shop_name', 'tagline', 'currency', 'footer_note', 'custom_bg_url', 'font_family', 'telegram_bot_token', 'telegram_chat_id', 'telegram_proxy']) {
@@ -2088,28 +2182,35 @@ function fillSettings() {
   const ordersToggle = $('#set-orders_enabled');
   if (ordersToggle) ordersToggle.checked = settings.orders_enabled !== '0';
 
-  // Dedicated Telegram Dashboard Panel Fields
+  // Dedicated Telegram / Bale Messenger Dashboard Panel Fields
+  const currentService = settings.notification_service || 'telegram';
+  const serviceRadio = document.querySelector(`input[name="notification_service"][value="${currentService}"]`);
+  if (serviceRadio) serviceRadio.checked = true;
+  updateMessengerView(currentService);
+  updateMessengerBadge(settings, currentService);
+
   const tgToken = $('#tg-token-input');
   const tgChat = $('#tg-chat-input');
   const tgProxy = $('#tg-proxy-input');
+  const baleToken = $('#bale-token-input');
+  const baleChat = $('#bale-chat-input');
   const tgToggle = $('#tg-notify-toggle');
-  const tgBadge = $('#tg-status-badge');
   const tgUrl = $('#tg-webhook-url');
 
   if (tgToken) tgToken.value = settings.telegram_bot_token || '';
   if (tgChat) tgChat.value = settings.telegram_chat_id || '';
   if (tgProxy) tgProxy.value = settings.telegram_proxy || '';
+  if (baleToken) baleToken.value = settings.bale_bot_token || '';
+  if (baleChat) baleChat.value = settings.bale_chat_id || '';
   if (tgToggle) tgToggle.checked = settings.telegram_notifications_enabled !== '0';
 
-  if (tgBadge) {
-    if (settings.telegram_bot_token && settings.telegram_chat_id) {
-      tgBadge.textContent = 'متصل و فعال ✅';
-      tgBadge.className = 'badge badge-available';
-    } else {
-      tgBadge.textContent = 'در انتظار تنظیم توکن 🟡';
-      tgBadge.className = 'badge badge-sold_out';
-    }
-  }
+  // Keep General Settings inputs in sync so they are never wiped
+  const setTgToken = $('#set-telegram_bot_token');
+  const setTgChat = $('#set-telegram_chat_id');
+  const setTgProxy = $('#set-telegram_proxy');
+  if (setTgToken) setTgToken.value = settings.telegram_bot_token || '';
+  if (setTgChat) setTgChat.value = settings.telegram_chat_id || '';
+  if (setTgProxy) setTgProxy.value = settings.telegram_proxy || '';
 
   if (tgUrl) {
     const base = window.location.href.split('?')[0].split('#')[0];
@@ -2172,9 +2273,12 @@ $('#settings-form').addEventListener('submit', async (event) => {
     reviews_title: $('#set-reviews_title').value.trim(),
     reviews_enabled: $('#set-reviews_enabled').checked ? '1' : '0',
     highlights_enabled: $('#set-highlights_enabled').checked ? '1' : '0',
-    telegram_bot_token: $('#set-telegram_bot_token')?.value.trim() || '',
-    telegram_chat_id: $('#set-telegram_chat_id')?.value.trim() || '',
+    notification_service: document.querySelector('input[name="notification_service"]:checked')?.value || state.data?.settings?.notification_service || 'telegram',
+    telegram_bot_token: $('#set-telegram_bot_token')?.value.trim() || $('#tg-token-input')?.value.trim() || '',
+    telegram_chat_id: $('#set-telegram_chat_id')?.value.trim() || $('#tg-chat-input')?.value.trim() || '',
     telegram_proxy: $('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '',
+    bale_bot_token: $('#bale-token-input')?.value.trim() || state.data?.settings?.bale_bot_token || '',
+    bale_chat_id: $('#bale-chat-input')?.value.trim() || state.data?.settings?.bale_chat_id || '',
     telegram_notifications_enabled: $('#set-telegram_notifications_enabled')?.checked ? '1' : '0',
     orders_enabled: $('#set-orders_enabled')?.checked ? '1' : '0',
     ...cardSettings(),
@@ -2191,30 +2295,44 @@ $('#settings-form').addEventListener('submit', async (event) => {
 });
 
 /* ---------------------------------------------------------------- *
- *  Telegram Bot Actions (Test message & Webhook registration)
+ *  Service Switcher Listeners (Telegram vs Bale)
+ * ---------------------------------------------------------------- */
+document.querySelectorAll('input[name="notification_service"]').forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    updateMessengerView(e.target.value);
+    updateMessengerBadge(state.data?.settings, e.target.value);
+  });
+});
+
+/* ---------------------------------------------------------------- *
+ *  General Settings Messenger Actions (Test message & Webhook)
  * ---------------------------------------------------------------- */
 $('#test-telegram-btn')?.addEventListener('click', async () => {
-  const token = $('#set-telegram_bot_token')?.value.trim();
-  const chatId = $('#set-telegram_chat_id')?.value.trim();
-  const proxy = $('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '';
+  const service = document.querySelector('input[name="notification_service"]:checked')?.value || 'telegram';
+  const isBale = service === 'bale';
+  const token = isBale ? ($('#bale-token-input')?.value.trim() || state.data?.settings?.bale_bot_token) : ($('#set-telegram_bot_token')?.value.trim() || $('#tg-token-input')?.value.trim());
+  const chatId = isBale ? ($('#bale-chat-input')?.value.trim() || state.data?.settings?.bale_chat_id) : ($('#set-telegram_chat_id')?.value.trim() || $('#tg-chat-input')?.value.trim());
+  const proxy = isBale ? '' : ($('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '');
+  const serviceName = isBale ? 'بله' : 'تلگرام';
   const statusNote = $('#telegram-action-status');
+
   if (!token || !chatId) {
-    toast('لطفاً ابتدا توکن ربات و شناسه چت را وارد نمایید.', true);
-    if (statusNote) statusNote.textContent = 'خطا: فیلدهای توکن یا شناسه چت خالی هستند.';
+    toast(`لطفاً ابتدا توکن ربات و شناسه چت ${serviceName} را وارد نمایید.`, true);
+    if (statusNote) statusNote.textContent = `خطا: فیلدهای توکن یا شناسه چت ${serviceName} خالی هستند.`;
     return;
   }
   const btn = $('#test-telegram-btn');
   btn.disabled = true;
-  if (statusNote) statusNote.textContent = 'در حال ارسال پیام به تلگرام…';
+  if (statusNote) statusNote.textContent = `در حال ارسال پیام به ${serviceName}…`;
   try {
     const res = await api('/telegram/test', {
       method: 'POST',
-      body: { token, chat_id: chatId, proxy },
+      body: { service, token, chat_id: chatId, proxy },
     });
-    if (statusNote) statusNote.textContent = res.message || 'پیام تستی با موفقیت در تلگرام دریافت شد!';
-    toast('پیام آزمایشی تلگرام ارسال شد');
+    if (statusNote) statusNote.textContent = res.message || `پیام تستی با موفقیت در ${serviceName} دریافت شد!`;
+    toast(`پیام آزمایشی ${serviceName} ارسال شد`);
   } catch (err) {
-    if (statusNote) statusNote.textContent = 'خطا در ارتباط با تلگرام: ' + err.message;
+    if (statusNote) statusNote.textContent = `خطا در ارتباط با ${serviceName}: ` + err.message;
     toast(err.message, true);
   } finally {
     btn.disabled = false;
@@ -2222,28 +2340,32 @@ $('#test-telegram-btn')?.addEventListener('click', async () => {
 });
 
 $('#set-webhook-btn')?.addEventListener('click', async () => {
-  const token = $('#set-telegram_bot_token')?.value.trim();
-  const proxy = $('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '';
+  const service = document.querySelector('input[name="notification_service"]:checked')?.value || 'telegram';
+  const isBale = service === 'bale';
+  const token = isBale ? ($('#bale-token-input')?.value.trim() || state.data?.settings?.bale_bot_token) : ($('#set-telegram_bot_token')?.value.trim() || $('#tg-token-input')?.value.trim());
+  const proxy = isBale ? '' : ($('#set-telegram_proxy')?.value.trim() || $('#tg-proxy-input')?.value.trim() || '');
+  const serviceName = isBale ? 'بله' : 'تلگرام';
   const statusNote = $('#telegram-action-status');
+
   if (!token) {
-    toast('لطفاً ابتدا توکن ربات تلگرام را وارد نمایید.', true);
-    if (statusNote) statusNote.textContent = 'خطا: توکن ربات خالی است.';
+    toast(`لطفاً ابتدا توکن ربات ${serviceName} را وارد نمایید.`, true);
+    if (statusNote) statusNote.textContent = `خطا: توکن ربات ${serviceName} خالی است.`;
     return;
   }
   const btn = $('#set-webhook-btn');
   btn.disabled = true;
-  if (statusNote) statusNote.textContent = 'در حال ثبت وب‌هوک در سرور تلگرام…';
+  if (statusNote) statusNote.textContent = `در حال ثبت وب‌هوک در سرور ${serviceName}…`;
   try {
     const base = window.location.href.split('?')[0].split('#')[0];
     const webhookUrl = base.substring(0, base.lastIndexOf('/') + 1) + 'webhook.php';
     const res = await api('/telegram/set-webhook', {
       method: 'POST',
-      body: { token, webhook_url: webhookUrl, proxy },
+      body: { service, token, webhook_url: webhookUrl, proxy },
     });
     if (statusNote) statusNote.textContent = (res.message || 'وب‌هوک با موفقیت فعال گردید!') + ` (${webhookUrl})`;
-    toast('وب‌هوک تلگرام تنظیم شد');
+    toast(`وب‌هوک ${serviceName} تنظیم شد`);
   } catch (err) {
-    if (statusNote) statusNote.textContent = 'خطا در تنظیم وب‌هوک: ' + err.message;
+    if (statusNote) statusNote.textContent = `خطا در تنظیم وب‌هوک: ` + err.message;
     toast(err.message, true);
   } finally {
     btn.disabled = false;
@@ -2251,13 +2373,16 @@ $('#set-webhook-btn')?.addEventListener('click', async () => {
 });
 
 /* ---------------------------------------------------------------- *
- *  Dedicated Telegram Bot Dashboard Actions
+ *  Dedicated Messenger Dashboard Actions (Telegram / Bale)
  * ---------------------------------------------------------------- */
 $('#telegram-panel-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const token = $('#tg-token-input')?.value.trim() || '';
-  const chatId = $('#tg-chat-input')?.value.trim() || '';
-  const proxy = $('#tg-proxy-input')?.value.trim() || '';
+  const service = document.querySelector('input[name="notification_service"]:checked')?.value || 'telegram';
+  const tgToken = $('#tg-token-input')?.value.trim() || '';
+  const tgChat = $('#tg-chat-input')?.value.trim() || '';
+  const tgProxy = $('#tg-proxy-input')?.value.trim() || '';
+  const baleToken = $('#bale-token-input')?.value.trim() || '';
+  const baleChat = $('#bale-chat-input')?.value.trim() || '';
   const notify = $('#tg-notify-toggle')?.checked ? '1' : '0';
   const saveNote = $('#tg-save-note');
 
@@ -2265,14 +2390,17 @@ $('#telegram-panel-form')?.addEventListener('submit', async (e) => {
     await api('/settings', {
       method: 'POST',
       body: {
-        telegram_bot_token: token,
-        telegram_chat_id: chatId,
-        telegram_proxy: proxy,
+        notification_service: service,
+        telegram_bot_token: tgToken,
+        telegram_chat_id: tgChat,
+        telegram_proxy: tgProxy,
+        bale_bot_token: baleToken,
+        bale_chat_id: baleChat,
         telegram_notifications_enabled: notify,
       },
     });
-    if (saveNote) saveNote.textContent = 'تنظیمات ربات تلگرام با موفقیت ذخیره شد!';
-    toast('تنظیمات ربات تلگرام با موفقیت ذخیره شد');
+    if (saveNote) saveNote.textContent = 'تنظیمات پیام‌رسان با موفقیت ذخیره شد!';
+    toast('تنظیمات پیام‌رسان با موفقیت ذخیره شد');
     await load();
   } catch (err) {
     if (saveNote) saveNote.textContent = err.message;
@@ -2281,15 +2409,18 @@ $('#telegram-panel-form')?.addEventListener('submit', async (e) => {
 });
 
 $('#tg-panel-test-btn')?.addEventListener('click', async () => {
-  const token = $('#tg-token-input')?.value.trim();
-  const chatId = $('#tg-chat-input')?.value.trim();
-  const proxy = $('#tg-proxy-input')?.value.trim() || '';
+  const service = document.querySelector('input[name="notification_service"]:checked')?.value || 'telegram';
+  const isBale = service === 'bale';
+  const token = isBale ? $('#bale-token-input')?.value.trim() : $('#tg-token-input')?.value.trim();
+  const chatId = isBale ? $('#bale-chat-input')?.value.trim() : $('#tg-chat-input')?.value.trim();
+  const proxy = isBale ? '' : ($('#tg-proxy-input')?.value.trim() || '');
   const alertBox = $('#tg-feedback-alert');
+  const serviceName = isBale ? 'بله' : 'تلگرام';
 
   if (!token || !chatId) {
-    toast('لطفاً توکن ربات و شناسه چت را وارد نمایید.', true);
+    toast(`لطفاً ابتدا توکن ربات و شناسه چت ${serviceName} را وارد نمایید.`, true);
     if (alertBox) {
-      alertBox.textContent = '⚠️ خطا: ابتدا فیلدهای توکن ربات و شناسه چت را تکمیل کنید.';
+      alertBox.textContent = `⚠️ خطا: ابتدا فیلدهای توکن ربات و شناسه چت ${serviceName} را تکمیل کنید.`;
       alertBox.style.color = 'var(--danger)';
       alertBox.style.borderColor = 'var(--danger)';
       alertBox.style.background = '#221114';
@@ -2300,25 +2431,25 @@ $('#tg-panel-test-btn')?.addEventListener('click', async () => {
 
   const btn = $('#tg-panel-test-btn');
   btn.disabled = true;
-  const origText = btn.textContent;
-  btn.textContent = 'در حال ارسال…';
+  const origText = btn.innerHTML;
+  btn.innerHTML = '<span>⏳</span><span>در حال ارسال…</span>';
 
   try {
     const res = await api('/telegram/test', {
       method: 'POST',
-      body: { token, chat_id: chatId, proxy },
+      body: { service, token, chat_id: chatId, proxy },
     });
     if (alertBox) {
-      alertBox.textContent = '✅ ' + (res.message || 'پیام تستی با موفقیت در تلگرام شما دریافت شد!');
+      alertBox.textContent = '✅ ' + (res.message || `پیام تستی با موفقیت در ${serviceName} شما دریافت شد!`);
       alertBox.style.color = 'var(--ok)';
       alertBox.style.borderColor = 'var(--ok)';
       alertBox.style.background = '#132018';
       alertBox.hidden = false;
     }
-    toast('پیام آزمایشی تلگرام ارسال شد');
+    toast(`پیام آزمایشی ${serviceName} ارسال شد`);
   } catch (err) {
     if (alertBox) {
-      alertBox.textContent = '❌ خطا در ارسال پیام به تلگرام: ' + err.message;
+      alertBox.textContent = `❌ خطا در ارسال پیام به ${serviceName}: ` + err.message;
       alertBox.style.color = 'var(--danger)';
       alertBox.style.borderColor = 'var(--danger)';
       alertBox.style.background = '#221114';
@@ -2327,19 +2458,22 @@ $('#tg-panel-test-btn')?.addEventListener('click', async () => {
     toast(err.message, true);
   } finally {
     btn.disabled = false;
-    btn.textContent = origText;
+    btn.innerHTML = origText;
   }
 });
 
 $('#tg-panel-webhook-btn')?.addEventListener('click', async () => {
-  const token = $('#tg-token-input')?.value.trim();
-  const proxy = $('#tg-proxy-input')?.value.trim() || '';
+  const service = document.querySelector('input[name="notification_service"]:checked')?.value || 'telegram';
+  const isBale = service === 'bale';
+  const token = isBale ? $('#bale-token-input')?.value.trim() : $('#tg-token-input')?.value.trim();
+  const proxy = isBale ? '' : ($('#tg-proxy-input')?.value.trim() || '');
   const alertBox = $('#tg-feedback-alert');
+  const serviceName = isBale ? 'بله' : 'تلگرام';
 
   if (!token) {
-    toast('لطفاً ابتدا توکن ربات تلگرام را وارد نمایید.', true);
+    toast(`لطفاً ابتدا توکن ربات ${serviceName} را وارد نمایید.`, true);
     if (alertBox) {
-      alertBox.textContent = '⚠️ خطا: فیلد توکن ربات تلگرام خالی است.';
+      alertBox.textContent = `⚠️ خطا: فیلد توکن ربات ${serviceName} خالی است.`;
       alertBox.style.color = 'var(--danger)';
       alertBox.style.borderColor = 'var(--danger)';
       alertBox.style.background = '#221114';
@@ -2350,27 +2484,27 @@ $('#tg-panel-webhook-btn')?.addEventListener('click', async () => {
 
   const btn = $('#tg-panel-webhook-btn');
   btn.disabled = true;
-  const origText = btn.textContent;
-  btn.textContent = 'در حال ثبت…';
+  const origText = btn.innerHTML;
+  btn.innerHTML = '<span>⏳</span><span>در حال ثبت…</span>';
 
   try {
     const base = window.location.href.split('?')[0].split('#')[0];
     const webhookUrl = base.substring(0, base.lastIndexOf('/') + 1) + 'webhook.php';
     const res = await api('/telegram/set-webhook', {
       method: 'POST',
-      body: { token, webhook_url: webhookUrl, proxy },
+      body: { service, token, webhook_url: webhookUrl, proxy },
     });
     if (alertBox) {
-      alertBox.textContent = '✅ وب‌هوک با موفقیت در سرورهای تلگرام فعال شد: ' + webhookUrl;
+      alertBox.textContent = `✅ وب‌هوک با موفقیت در سرورهای ${serviceName} فعال شد: ` + webhookUrl;
       alertBox.style.color = 'var(--ok)';
       alertBox.style.borderColor = 'var(--ok)';
       alertBox.style.background = '#132018';
       alertBox.hidden = false;
     }
-    toast('وب‌هوک تلگرام فعال گردید');
+    toast(`وب‌هوک ${serviceName} فعال گردید`);
   } catch (err) {
     if (alertBox) {
-      alertBox.textContent = '❌ خطا در تنظیم وب‌هوک: ' + err.message;
+      alertBox.textContent = `❌ خطا در تنظیم وب‌هوک ${serviceName}: ` + err.message;
       alertBox.style.color = 'var(--danger)';
       alertBox.style.borderColor = 'var(--danger)';
       alertBox.style.background = '#221114';
@@ -2379,7 +2513,7 @@ $('#tg-panel-webhook-btn')?.addEventListener('click', async () => {
     toast(err.message, true);
   } finally {
     btn.disabled = false;
-    btn.textContent = origText;
+    btn.innerHTML = origText;
   }
 });
 

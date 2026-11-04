@@ -129,7 +129,7 @@ function require_admin(): void
 
     // ۳. بررسی پارامتر ارسالی در درخواست (GET / POST)
     if ($token === '') {
-        $token = trim((string)($_GET['admin_token'] ?? $_POST['admin_token'] ?? $_GET['admin_key'] ?? $_POST['admin_key'] ?? $_GET['token'] ?? $_POST['token'] ?? ''));
+        $token = trim((string)($_GET['admin_token'] ?? $_POST['admin_token'] ?? $_GET['admin_password'] ?? $_POST['admin_password'] ?? $_GET['admin_key'] ?? $_POST['admin_key'] ?? $_GET['token'] ?? $_POST['token'] ?? ''));
     }
 
     // مقدار معتبر مستقیماً از config.php خوانده می‌شود

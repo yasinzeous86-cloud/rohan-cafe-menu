@@ -240,11 +240,14 @@ const SETTING_RULES = [
     'reviews'            => 6000,
     'highlights_enabled' => 3,
     'highlights'         => 6000,
-    // Telegram bot integration & notifications
+    // Telegram & Bale bot integration & notifications
+    'notification_service'           => 20,
     'telegram_bot_token'             => 120,
     'telegram_chat_id'               => 60,
     'telegram_notifications_enabled' => 3,
     'telegram_proxy'                 => 255,
+    'bale_bot_token'                 => 120,
+    'bale_chat_id'                   => 60,
     // Order system toggle: '1' = ordering enabled, '0' = catalog-only mode
     'orders_enabled'                 => 3,
 ];
@@ -288,10 +291,13 @@ function default_settings(): array
         'reviews'                        => json_encode($reviews, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'highlights_enabled'             => '1',
         'highlights'                     => json_encode($highlights, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'notification_service'           => 'telegram',
         'telegram_bot_token'             => '',
         'telegram_chat_id'               => '',
         'telegram_notifications_enabled' => '1',
         'telegram_proxy'                 => '',
+        'bale_bot_token'                 => '',
+        'bale_chat_id'                   => '',
         'orders_enabled'                 => '1',
     ];
 }
@@ -305,6 +311,12 @@ const FONT_CHOICES = ['Vazirmatn', 'Lalezar', 'Dana', 'YekanBakh'];
  */
 function check_setting(string $key, string $text): void
 {
+    if ($key === 'notification_service') {
+        if ($text !== '' && !in_array($text, ['telegram', 'bale'], true)) {
+            fail(422, "تنظیم notification_service باید یکی از مقادیر 'telegram' یا 'bale' باشد.");
+        }
+        return;
+    }
     if (in_array($key, ['reviews_enabled', 'highlights_enabled', 'telegram_notifications_enabled', 'orders_enabled'], true)) {
         if ($text !== '' && !in_array($text, ['0', '1'], true)) {
             fail(422, "Setting '$key' must be 0 (hidden/off) or 1 (shown/on)");
@@ -725,7 +737,7 @@ function require_admin(): void
 
     // ۳. بررسی پارامتر ارسالی در درخواست (GET / POST)
     if ($token === '') {
-        $token = trim((string)($_GET['admin_token'] ?? $_POST['admin_token'] ?? $_GET['admin_key'] ?? $_POST['admin_key'] ?? $_GET['token'] ?? $_POST['token'] ?? ''));
+        $token = trim((string)($_GET['admin_token'] ?? $_POST['admin_token'] ?? $_GET['admin_password'] ?? $_POST['admin_password'] ?? $_GET['admin_key'] ?? $_POST['admin_key'] ?? $_GET['token'] ?? $_POST['token'] ?? ''));
     }
 
     $validPassword = defined('ADMIN_PASSWORD') ? (string)ADMIN_PASSWORD : (defined('ADMIN_KEY') ? (string)ADMIN_KEY : (defined('ADMIN_TOKEN') ? (string)ADMIN_TOKEN : 'admin123'));
@@ -1047,62 +1059,87 @@ try {
         fail(404, 'Not found');
     }
 
-    /* ---- telegram actions ---- */
+    /* ---- telegram & bale messenger actions ---- */
     if ($resource === 'telegram') {
         $sub = $segments[1] ?? '';
         if ($sub === 'test' && $method === 'POST') {
             $in       = body();
             $settings = all_settings($db);
-            $token    = trim((string) ($in['token'] ?? $settings['telegram_bot_token'] ?? ''));
-            $chatId   = trim((string) ($in['chat_id'] ?? $settings['telegram_chat_id'] ?? ''));
-            $proxy    = trim((string) ($in['proxy'] ?? $settings['telegram_proxy'] ?? ''));
-
-            if ($token === '' || $chatId === '') {
-                fail(422, 'توکن ربات یا شناسه چت تنظیم نشده است.');
+            $service  = trim((string) ($in['service'] ?? $settings['notification_service'] ?? 'telegram'));
+            if (!in_array($service, ['telegram', 'bale'], true)) {
+                $service = 'telegram';
             }
 
-            $testMsg = "☕️ <b>تست اتصال ربات منوی کافه رُهان</b>\n\n" .
+            if ($service === 'bale') {
+                $token  = trim((string) ($in['token'] ?? $settings['bale_bot_token'] ?? $settings['telegram_bot_token'] ?? ''));
+                $chatId = trim((string) ($in['chat_id'] ?? $settings['bale_chat_id'] ?? $settings['telegram_chat_id'] ?? ''));
+                $proxy  = '';
+            } else {
+                $token  = trim((string) ($in['token'] ?? $settings['telegram_bot_token'] ?? ''));
+                $chatId = trim((string) ($in['chat_id'] ?? $settings['telegram_chat_id'] ?? ''));
+                $proxy  = trim((string) ($in['proxy'] ?? $settings['telegram_proxy'] ?? ''));
+            }
+
+            $serviceTitle = ($service === 'bale') ? 'پیام‌رسان بله' : 'ربات تلگرام';
+
+            if ($token === '' || $chatId === '') {
+                fail(422, "توکن ربات یا شناسه چت {$serviceTitle} تنظیم نشده است.");
+            }
+
+            $testMsg = "☕️ <b>تست اتصال {$serviceTitle} — منوی کافینکس (Cafinex)</b>\n\n" .
                        "اتصال با موفقیت برقرار شد! سیستم ارسال نوتیفیکیشن سفارشات آنلاین آماده به کار است.\n\n" .
                        ($proxy !== '' ? "🌐 پروکسی فعال: <code>" . htmlspecialchars($proxy, ENT_QUOTES, 'UTF-8') . "</code>\n\n" : '') .
                        "🕒 زمان تست: " . date('Y/m/d H:i:s');
 
-            $res = send_telegram_request($token, 'sendMessage', [
+            $res = send_messenger_api_request($service, $token, 'sendMessage', [
                 'chat_id'    => $chatId,
                 'text'       => $testMsg,
                 'parse_mode' => 'HTML',
             ], $proxy);
 
             if (empty($res['ok'])) {
-                fail(400, 'خطا در ارتباط با تلگرام: ' . ($res['description'] ?? $res['error'] ?? 'خطای نامشخص'));
+                fail(400, 'خطا در ارتباط با ' . $serviceTitle . ': ' . ($res['error'] ?? 'خطای نامشخص'));
             }
 
-            ok(['telegram_response' => $res, 'message' => 'پیام آزمایشی به تلگرام ارسال شد!']);
+            ok(['response' => $res, 'message' => "پیام آزمایشی با موفقیت به {$serviceTitle} ارسال شد!"]);
         }
 
         if ($sub === 'set-webhook' && $method === 'POST') {
             $in       = body();
             $settings = all_settings($db);
-            $token    = trim((string) ($in['token'] ?? $settings['telegram_bot_token'] ?? ''));
-            $url      = trim((string) ($in['webhook_url'] ?? ''));
-            $proxy    = trim((string) ($in['proxy'] ?? $settings['telegram_proxy'] ?? ''));
+            $service  = trim((string) ($in['service'] ?? $settings['notification_service'] ?? 'telegram'));
+            if (!in_array($service, ['telegram', 'bale'], true)) {
+                $service = 'telegram';
+            }
+
+            if ($service === 'bale') {
+                $token = trim((string) ($in['token'] ?? $settings['bale_bot_token'] ?? $settings['telegram_bot_token'] ?? ''));
+                $proxy = '';
+            } else {
+                $token = trim((string) ($in['token'] ?? $settings['telegram_bot_token'] ?? ''));
+                $proxy = trim((string) ($in['proxy'] ?? $settings['telegram_proxy'] ?? ''));
+            }
+            $url = trim((string) ($in['webhook_url'] ?? ''));
+
+            $serviceTitle = ($service === 'bale') ? 'پیام‌رسان بله' : 'ربات تلگرام';
 
             if ($token === '') {
-                fail(422, 'توکن ربات تنظیم نشده است.');
+                fail(422, "توکن ربات {$serviceTitle} تنظیم نشده است.");
             }
             if ($url === '') {
                 fail(422, 'آدرس وب‌هوک ارسال نشده است.');
             }
 
-            $res = send_telegram_request($token, 'setWebhook', [
+            $res = send_messenger_api_request($service, $token, 'setWebhook', [
                 'url' => $url,
                 'allowed_updates' => ['message', 'callback_query'],
             ], $proxy);
 
             if (empty($res['ok'])) {
-                fail(400, 'خطا در ثبت وب‌هوک: ' . ($res['description'] ?? $res['error'] ?? 'خطای نامشخص'));
+                fail(400, "خطا در ثبت وب‌هوک {$serviceTitle}: " . ($res['error'] ?? 'خطای نامشخص'));
             }
 
-            ok(['telegram_response' => $res, 'message' => 'وب‌هوک ربات تلگرام با موفقیت ثبت شد!']);
+            ok(['response' => $res, 'message' => "وب‌هوک با موفقیت در سرورهای {$serviceTitle} فعال شد!"]);
         }
 
         fail(404, 'Not found');
@@ -1353,20 +1390,30 @@ function item_values(PDO $db, array $in, ?array $current): array
 }
 
 /* ------------------------------------------------------------------ *
- *  Telegram Bot API Integration
+ *  Unified Messenger API Integration (Telegram & Bale)
  * ------------------------------------------------------------------ */
 
 /**
- * Send an HTTP request to the Telegram Bot API with optional proxy and resilient SSL.
+ * Send an HTTP request to Telegram or Bale Bot API with resilient cURL, proxy & error parsing.
  */
-function send_telegram_request(string $botToken, string $method, array $params = [], string $proxy = ''): array
+function send_messenger_api_request(string $service, string $token, string $method, array $params = [], string $proxy = ''): array
 {
-    $botToken = trim($botToken);
-    if ($botToken === '') {
-        return ['ok' => false, 'error' => 'Bot token is empty'];
+    $token = trim($token);
+    if ($token === '') {
+        return ['ok' => false, 'error' => 'توکن ربات وارد نشده است.'];
     }
 
-    $url = "https://api.telegram.org/bot{$botToken}/{$method}";
+    $service = strtolower(trim($service));
+    if ($service !== 'bale') {
+        $service = 'telegram';
+    }
+
+    if ($service === 'bale') {
+        $url = "https://tapi.bale.ai/bot{$token}/{$method}";
+        $proxy = ''; // پیام‌رسان بله داخلی است و در ایران بدون نیاز به پروکسی عمل می‌کند
+    } else {
+        $url = "https://api.telegram.org/bot{$token}/{$method}";
+    }
 
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
@@ -1382,11 +1429,11 @@ function send_telegram_request(string $botToken, string $method, array $params =
         ];
 
         $proxy = trim($proxy);
-        if ($proxy !== '') {
+        if ($service === 'telegram' && $proxy !== '') {
             $curlOpts[CURLOPT_PROXY] = $proxy;
-            if (stripos($proxy, 'socks5://') === 0 || stripos($proxy, 'socks5h://') === 0) {
+            if (stripos($proxy, 'socks5') === 0) {
                 $curlOpts[CURLOPT_PROXYTYPE] = CURLPROXY_SOCKS5_HOSTNAME;
-            } elseif (stripos($proxy, 'http://') === 0 || stripos($proxy, 'https://') === 0) {
+            } elseif (stripos($proxy, 'http') === 0) {
                 $curlOpts[CURLOPT_PROXYTYPE] = CURLPROXY_HTTP;
             }
         }
@@ -1394,15 +1441,29 @@ function send_telegram_request(string $botToken, string $method, array $params =
         curl_setopt_array($ch, $curlOpts);
         $response = curl_exec($ch);
         $err = curl_error($ch);
+        $errno = curl_errno($ch);
         curl_close($ch);
 
-        if ($err !== '' || $response === false) {
-            return ['ok' => false, 'error' => $err ?: 'Network error connecting to Telegram API'];
+        if ($errno !== 0 || $response === false) {
+            $persianErr = format_curl_error_message($errno, $err, $service);
+            return ['ok' => false, 'error' => $persianErr, 'raw_curl_error' => $err];
         }
+
         $data = json_decode((string) $response, true);
-        return is_array($data) ? $data : ['ok' => false, 'error' => 'Invalid JSON from Telegram'];
+        if (!is_array($data)) {
+            return ['ok' => false, 'error' => 'پاسخ دریافتی از سرور پیام‌رسان در قالب JSON معتبر نیست.'];
+        }
+
+        if (empty($data['ok'])) {
+            $desc = (string) ($data['description'] ?? $data['error'] ?? 'خطای نامشخص');
+            $persianDesc = format_messenger_api_error($desc, $service);
+            return ['ok' => false, 'error' => $persianDesc, 'raw_description' => $desc];
+        }
+
+        return $data;
     }
 
+    // fallback when cURL is not available
     $httpOpts = [
         'method'        => 'POST',
         'header'        => "Content-Type: application/json; charset=utf-8\r\n",
@@ -1411,7 +1472,7 @@ function send_telegram_request(string $botToken, string $method, array $params =
         'ignore_errors' => true,
     ];
     $proxy = trim($proxy);
-    if ($proxy !== '') {
+    if ($service === 'telegram' && $proxy !== '') {
         $httpOpts['proxy'] = $proxy;
         $httpOpts['request_fulluri'] = true;
     }
@@ -1425,24 +1486,96 @@ function send_telegram_request(string $botToken, string $method, array $params =
     $response = @file_get_contents($url, false, $ctx);
     if ($response === false) {
         $lastErr = error_get_last();
-        return ['ok' => false, 'error' => 'Connection to Telegram API failed: ' . ($lastErr['message'] ?? 'Network unreachable')];
+        return ['ok' => false, 'error' => 'ارتباط با سرور پیام‌رسان برقرار نشد: ' . ($lastErr['message'] ?? 'Network unreachable')];
     }
     $data = json_decode($response, true);
-    return is_array($data) ? $data : ['ok' => false, 'error' => 'Invalid JSON from Telegram'];
+    return is_array($data) ? $data : ['ok' => false, 'error' => 'پاسخ نامعتبر از سرور'];
 }
 
 /**
- * Format and dispatch real-time Telegram order notification to admin.
+ * Format cURL errors into clear, friendly Persian messages.
  */
-function notify_telegram_new_order(PDO $db, int $orderId, string $tableNumber, array $items, float $totalPrice, string $note = ''): bool
+function format_curl_error_message(int $errno, string $rawErr, string $service): string
+{
+    $serviceName = ($service === 'bale') ? 'پیام‌رسان بله' : 'تلگرام';
+
+    switch ($errno) {
+        case 28: // Operation timeout
+            if ($service === 'telegram') {
+                return 'خطای مهلت زمانی (Timeout): سرور هاست شما موفق به اتصال به تلگرام نشد. لطفاً در تنظیمات پروکسی وارد کنید، یا سرویس پیام‌رسان را روی «بله» قرار دهید که در هاست‌های ایران بدون فیلترشکن کار می‌کند.';
+            }
+            return 'خطای مهلت زمانی (Timeout): ارتباط با سرور بله برقرار نشد. لطفاً اتصال اینترنت هاست را بررسی نمایید.';
+
+        case 6: // Couldn't resolve host
+            return "خطای شناسایی دامنه (DNS): دامنه سرور {$serviceName} توسط DNS سرور هاست شما شناخته نشد.";
+
+        case 7: // Couldn't connect
+            if ($service === 'telegram') {
+                return 'عدم برقراری ارتباط با تلگرام: سرور هاست امکان اتصال مستقیم را ندارد. پیشنهاد می‌شود از پیام‌رسان بله یا پروکسی استفاده فرمایید.';
+            }
+            return 'عدم برقراری ارتباط با بله: اتصال خروجی پورت ۴۴۳ هاست مسدود است.';
+
+        case 35: // SSL error
+            return "خطای گواهی امنیتی SSL در اتصال به سرور {$serviceName}.";
+
+        default:
+            return "خطای شبکه ({$errno}) در اتصال به {$serviceName}: {$rawErr}";
+    }
+}
+
+/**
+ * Format messenger API errors into friendly Persian messages.
+ */
+function format_messenger_api_error(string $desc, string $service): string
+{
+    $serviceName = ($service === 'bale') ? 'بله' : 'تلگرام';
+
+    if (stripos($desc, 'Not Found') !== false || stripos($desc, 'Unauthorized') !== false) {
+        return "توکن ربات {$serviceName} نامعتبر یا منقضی است. لطفاً توکن دریافتی از BotFather را بررسی کنید.";
+    }
+    if (stripos($desc, 'chat not found') !== false) {
+        return "شناسه چت (Chat ID) یافت نشد. توجه مهم: مدیر ابتدا باید در ربات دکمه /start را ارسال کند تا ربات مجاز به ارسال پیام باشد.";
+    }
+    if (stripos($desc, 'bot was blocked by the user') !== false) {
+        return "ربات توسط این شناسه چت مسدود (Block) شده است. ربات را از حالت بلاک خارج نمایید.";
+    }
+    if (stripos($desc, 'message text is empty') !== false) {
+        return "متن پیام ارسالی به {$serviceName} خالی است.";
+    }
+    return "خطای اعلام‌شده از سوی سرور {$serviceName}: {$desc}";
+}
+
+/**
+ * Backward compatibility wrapper for send_telegram_request
+ */
+function send_telegram_request(string $botToken, string $method, array $params = [], string $proxy = ''): array
+{
+    return send_messenger_api_request('telegram', $botToken, $method, $params, $proxy);
+}
+
+/**
+ * Format and dispatch real-time order notification to admin via Telegram or Bale.
+ */
+function notify_order_messenger(PDO $db, int $orderId, string $tableNumber, array $items, float $totalPrice, string $note = ''): bool
 {
     $settings = all_settings($db);
     $enabled  = ($settings['telegram_notifications_enabled'] ?? '1') !== '0';
-    $token    = trim((string) ($settings['telegram_bot_token'] ?? ''));
-    $chatId   = trim((string) ($settings['telegram_chat_id'] ?? ''));
-    $proxy    = trim((string) ($settings['telegram_proxy'] ?? ''));
+    if (!$enabled) {
+        return false;
+    }
 
-    if (!$enabled || $token === '' || $chatId === '') {
+    $service  = $settings['notification_service'] ?? 'telegram';
+    if ($service === 'bale') {
+        $token  = trim((string) ($settings['bale_bot_token'] ?? $settings['telegram_bot_token'] ?? ''));
+        $chatId = trim((string) ($settings['bale_chat_id'] ?? $settings['telegram_chat_id'] ?? ''));
+        $proxy  = '';
+    } else {
+        $token  = trim((string) ($settings['telegram_bot_token'] ?? ''));
+        $chatId = trim((string) ($settings['telegram_chat_id'] ?? ''));
+        $proxy  = trim((string) ($settings['telegram_proxy'] ?? ''));
+    }
+
+    if ($token === '' || $chatId === '') {
         return false;
     }
 
@@ -1482,7 +1615,7 @@ function notify_telegram_new_order(PDO $db, int $orderId, string $tableNumber, a
         ],
     ];
 
-    $res = send_telegram_request($token, 'sendMessage', [
+    $res = send_messenger_api_request($service, $token, 'sendMessage', [
         'chat_id'      => $chatId,
         'text'         => $msg,
         'parse_mode'   => 'HTML',
@@ -1490,4 +1623,12 @@ function notify_telegram_new_order(PDO $db, int $orderId, string $tableNumber, a
     ], $proxy);
 
     return !empty($res['ok']);
+}
+
+/**
+ * Backward-compatible alias for notify_telegram_new_order
+ */
+function notify_telegram_new_order(PDO $db, int $orderId, string $tableNumber, array $items, float $totalPrice, string $note = ''): bool
+{
+    return notify_order_messenger($db, $orderId, $tableNumber, $items, $totalPrice, $note);
 }
