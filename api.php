@@ -31,15 +31,33 @@
 
 declare(strict_types=1);
 
+// تنظیم اجباری هدر JSON و کاراکترست UTF-8
+header('Content-Type: application/json; charset=utf-8');
+
 /* ------------------------------------------------------------------ *
- *  Config — change these two lines, nothing else
+ *  Config — load from central config.php with safe fallbacks
  * ------------------------------------------------------------------ */
-const DB_FILE     = __DIR__ . '/menu.sqlite';
-const ADMIN_TOKEN = 'change-me-to-a-long-random-string';
-const CORS_ORIGIN = ''; // '' = same origin only, or 'https://yourdomain.com'
+if (file_exists(__DIR__ . '/config.php')) {
+    require_once __DIR__ . '/config.php';
+}
+
+if (!defined('ADMIN_PASSWORD')) {
+    define('ADMIN_PASSWORD', 'admin123');
+}
+if (!defined('ADMIN_TOKEN')) {
+    define('ADMIN_TOKEN', ADMIN_PASSWORD);
+}
+if (!defined('DB_FILE')) {
+    define('DB_FILE', __DIR__ . '/menu.sqlite');
+}
+if (!defined('CORS_ORIGIN')) {
+    define('CORS_ORIGIN', ''); // '' = same origin only, or 'https://yourdomain.com'
+}
 
 // Upload configuration
-const UPLOADS_DIR        = __DIR__ . '/uploads';
+if (!defined('UPLOADS_DIR')) {
+    define('UPLOADS_DIR', __DIR__ . '/uploads');
+}
 const MAX_UPLOAD_BYTES   = 2 * 1024 * 1024; // 2MB
 const ALLOWED_MIME_TYPES = [
     'image/jpeg' => 'jpg',
@@ -64,7 +82,7 @@ if (function_exists('header_remove')) {
 
 if (CORS_ORIGIN !== '') {
     header('Access-Control-Allow-Origin: ' . CORS_ORIGIN);
-    header('Access-Control-Allow-Headers: Content-Type, X-Admin-Token');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Admin-Token, X-API-Key');
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
     header('Vary: Origin');
 }
@@ -79,7 +97,7 @@ register_shutdown_function(static function (): void {
     $e = error_get_last();
     if ($e !== null && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
         http_response_code(500);
-        echo json_encode(['ok' => false, 'error' => 'Server error']);
+        echo json_encode(['ok' => false, 'error' => 'Server error'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 });
 
@@ -688,18 +706,32 @@ function public_payload(PDO $pdo): array
 
 function require_admin(): void
 {
-    $header = $_SERVER['HTTP_AUTHORIZATION']
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION']
         ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
         ?? '';
     $token = '';
-    if (preg_match('/^Bearer\s+(\S+)$/i', $header, $m) === 1) {
-        $token = $m[1];
+
+    // ۱. بررسی هدر استاندارد Authorization با یا بدون Bearer
+    if (preg_match('/^Bearer\s+(.+)$/i', trim($authHeader), $m) === 1) {
+        $token = trim($m[1]);
+    } elseif (trim($authHeader) !== '') {
+        $token = trim($authHeader);
     }
+
+    // ۲. بررسی هدرهای اختصاصی X-Admin-Token یا X-API-Key
     if ($token === '') {
-        $token = $_SERVER['HTTP_X_ADMIN_TOKEN'] ?? '';
+        $token = trim($_SERVER['HTTP_X_ADMIN_TOKEN'] ?? $_SERVER['HTTP_X_API_KEY'] ?? '');
     }
-    if ($token === '' || !hash_equals(ADMIN_TOKEN, $token)) {
-        fail(401, 'Invalid or missing admin token');
+
+    // ۳. بررسی پارامتر ارسالی در درخواست (GET / POST)
+    if ($token === '') {
+        $token = trim((string)($_GET['admin_token'] ?? $_POST['admin_token'] ?? $_GET['admin_key'] ?? $_POST['admin_key'] ?? $_GET['token'] ?? $_POST['token'] ?? ''));
+    }
+
+    $validPassword = defined('ADMIN_PASSWORD') ? (string)ADMIN_PASSWORD : (defined('ADMIN_KEY') ? (string)ADMIN_KEY : (defined('ADMIN_TOKEN') ? (string)ADMIN_TOKEN : 'admin123'));
+
+    if ($token === '' || !hash_equals($validPassword, $token)) {
+        fail(401, 'خطای احراز هویت: توکن یا رمز عبور مدیر نامعتبر است (Unauthorized: Invalid or missing admin token).');
     }
 }
 
@@ -751,7 +783,7 @@ $id       = isset($segments[1]) ? (int) $segments[1] : null;
 
 $is_read         = ($method === 'GET' || $method === 'HEAD');
 $is_public_order = ($method === 'POST' && $resource === 'orders');
-$is_public_read  = ($is_read && in_array($resource, ['', 'admin', 'menu', 'categories', 'items'], true));
+$is_public_read  = ($is_read && in_array($resource, ['', 'menu', 'categories', 'items'], true));
 // Root payload (GET /), public reads (menu, categories, items) and customer checkout (POST /orders) are public.
 $needs_auth = !($is_public_read || $is_public_order);
 if ($needs_auth) {

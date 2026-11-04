@@ -29,3 +29,6 @@ ehthumbs.db
 uploads/*
 !uploads/.htaccess
 !uploads/.gitkeep
+
+# Internal Agent Artifacts
+.agents/

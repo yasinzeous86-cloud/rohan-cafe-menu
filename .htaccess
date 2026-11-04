@@ -1,11 +1,14 @@
-# Cafe Menu — Apache hardening.
-# The database and its write-ahead-log siblings must never be downloadable.
-<FilesMatch "^menu\.sqlite">
+# Force UTF-8 Encoding
+AddDefaultCharset UTF-8
+AddCharset UTF-8 .html .css .js .json .php
+
+# Protect sensitive files: database and config file
+<FilesMatch "^(menu\.sqlite|config\.php)">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
     <IfModule !mod_authz_core.c>
-        Order deny,allow
+        Order allow,deny
         Deny from all
     </IfModule>
 </FilesMatch>

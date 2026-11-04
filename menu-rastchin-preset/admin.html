@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl" class="dark">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>پنل مدیریت منوی کافه</title>
 <!-- Local Precompiled Tailwind CSS — 100% Offline & CDN-Free -->
@@ -184,7 +184,7 @@
       <p class="mono text-[0.65rem] muted mb-2">مدیریت منوی کافه</p>
       <h1 class="text-xl font-semibold mb-2">ورود به پنل مدیریت</h1>
       <p class="text-xs muted leading-relaxed">
-        توکن مدیر را وارد کنید (مقدار <span class="mono text-[0.75rem]" dir="ltr">ADMIN_TOKEN</span> در ابتدای فایل <span class="mono text-[0.75rem]" dir="ltr">api.php</span>).
+        رمز عبور یا توکن مدیر را وارد کنید (مقدار <span class="mono text-[0.75rem]" dir="ltr">ADMIN_PASSWORD</span> در فایل <span class="mono text-[0.75rem]" dir="ltr">config.php</span> — پیش‌فرض: <span class="mono text-[0.75rem]" dir="ltr">admin123</span>).
       </p>
     </div>
 
@@ -195,9 +195,9 @@
     </div>
 
     <div>
-      <input id="gate-token" type="password" autocomplete="current-password" placeholder="توکن مدیر" required>
+      <input id="gate-token" type="password" autocomplete="current-password" placeholder="رمز عبور مدیر (پیش‌فرض: admin123)" required>
       <button type="button" id="fill-default-token" class="text-[0.7rem] block mt-1.5 hover:underline" style="color:var(--accent)">
-        درج خودکار توکن پیش‌فرض اولیه
+        درج خودکار رمز پیش‌فرض (admin123)
       </button>
     </div>
 
@@ -999,6 +999,7 @@ async function api(path, { method = 'GET', body } = {}) {
     headers: {
       Accept: 'application/json',
       ...(!isFormData && body ? { 'Content-Type': 'application/json' } : {}),
+      'Authorization': 'Bearer ' + state.token,
       'X-Admin-Token': state.token,
     },
     body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
@@ -1037,7 +1038,7 @@ if (window.location.protocol === 'file:') {
 $('#fill-default-token')?.addEventListener('click', () => {
   const input = $('#gate-token');
   if (input) {
-    input.value = 'change-me-to-a-long-random-string';
+    input.value = 'admin123';
     input.type = 'text';
     setTimeout(() => { input.type = 'password'; }, 2000);
   }
@@ -1059,7 +1060,7 @@ async function unlock(token) {
     state.data = null;
     let msg = error.message || 'خطا در ارتباط با سرور';
     if (error.auth) {
-      msg = 'این توکن پذیرفته نشد. توکن پیش‌فرض change-me-to-a-long-random-string است یا آن را در api.php بررسی کنید.';
+      msg = 'این رمز/توکن پذیرفته نشد. رمز پیش‌فرض admin123 است یا آن را در config.php بررسی کنید.';
     } else if (window.location.protocol === 'file:') {
       msg = 'خطا: فایل‌های PHP از روی پروتکل file:// اجرا نمی‌شوند. لطفاً فایل‌ها را روی وب‌سرور یا هاست اجرا کنید.';
     }
