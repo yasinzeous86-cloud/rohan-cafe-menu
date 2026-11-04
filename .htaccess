@@ -2,8 +2,8 @@
 AddDefaultCharset UTF-8
 AddCharset UTF-8 .html .css .js .json .php
 
-# Protect sensitive files: database and config file
-<FilesMatch "^(menu\.sqlite|config\.php)">
+# Protect sensitive files: database, sqlite journals (-wal, -shm), env and config files
+<FilesMatch "(\.sqlite(-.*)?|\.env|config\.php)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Telegram Bot Webhook Receiver — Rohan Cafe Menu
+ * Telegram Bot Webhook Receiver — Cafinex Menu
  *
  * Receives incoming updates from Telegram Bot API, handles admin commands,
  * interactive menus, order status changes and menu stock management.
@@ -12,7 +12,12 @@ error_reporting(E_ALL);
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
 
-const DB_FILE = __DIR__ . '/menu.sqlite';
+if (file_exists(__DIR__ . '/config.php')) {
+    require_once __DIR__ . '/config.php';
+}
+if (!defined('DB_FILE')) {
+    define('DB_FILE', __DIR__ . '/menu.sqlite');
+}
 
 /**
  * Send request to Telegram Bot API with connection reuse and optional proxy.
@@ -44,7 +49,7 @@ function tg_call(string $botToken, string $method, array $params = [], string $p
         $curlOpts = [
             CURLOPT_URL            => $url,
             CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => json_encode($params, JSON_UNESCAPED_UNICODE),
+            CURLOPT_POSTFIELDS     => json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 10,
@@ -85,7 +90,7 @@ function tg_call(string $botToken, string $method, array $params = [], string $p
     $httpOpts = [
         'method'        => 'POST',
         'header'        => "Content-Type: application/json; charset=utf-8\r\n",
-        'content'       => json_encode($params, JSON_UNESCAPED_UNICODE),
+        'content'       => json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'timeout'       => 10,
         'ignore_errors' => true,
     ];
@@ -633,7 +638,7 @@ if (php_sapi_name() !== 'cli' || (isset($_SERVER['REQUEST_METHOD']) && $_SERVER[
 
     if (!file_exists(DB_FILE)) {
         http_response_code(500);
-        echo json_encode(['ok' => false, 'error' => 'Database not found']);
+        echo json_encode(['ok' => false, 'error' => 'Database not found'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
@@ -646,7 +651,7 @@ if (php_sapi_name() !== 'cli' || (isset($_SERVER['REQUEST_METHOD']) && $_SERVER[
         @$db->exec('PRAGMA journal_mode = WAL');
     } catch (Throwable $e) {
         http_response_code(500);
-        echo json_encode(['ok' => false, 'error' => 'Database connection failed']);
+        echo json_encode(['ok' => false, 'error' => 'Database connection failed'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
@@ -657,17 +662,17 @@ if (php_sapi_name() !== 'cli' || (isset($_SERVER['REQUEST_METHOD']) && $_SERVER[
 
     $rawInput = file_get_contents('php://input');
     if ($rawInput === false || trim($rawInput) === '') {
-        echo json_encode(['ok' => true, 'service' => 'Rohan Cafe Telegram Webhook Active']);
+        echo json_encode(['ok' => true, 'service' => 'Cafinex Telegram Webhook Active'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
     $update = json_decode($rawInput, true);
     if (!is_array($update)) {
         http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => 'Invalid JSON']);
+        echo json_encode(['ok' => false, 'error' => 'Invalid JSON'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
     handle_telegram_update($update, $db, $settings);
-    echo json_encode(['ok' => true]);
+    echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }

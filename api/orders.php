@@ -68,7 +68,7 @@ if ($method === 'POST' && $id === null) {
         fail(422, 'اقلام ارسالی نامعتبر است.');
     }
 
-    $itemsJson = json_encode($sanitizedItems, JSON_UNESCAPED_UNICODE);
+    $itemsJson = json_encode($sanitizedItems, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $stmt = $db->prepare('INSERT INTO orders (table_number, items_json, total_price, status, customer_note) VALUES (?, ?, ?, "pending", ?)');
     $stmt->execute([$tableNumber, $itemsJson, $totalPrice, $note]);
     $orderId = (int) $db->lastInsertId();
@@ -213,7 +213,7 @@ function send_telegram_order_notice(PDO $db, int $orderId, string $tableNumber, 
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json; charset=utf-8']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 8);

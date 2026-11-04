@@ -285,9 +285,9 @@ function default_settings(): array
     return [
         'reviews_enabled'                => '1',
         'reviews_title'                  => 'مشتری‌ها درباره ما چی میگن',
-        'reviews'                        => json_encode($reviews, JSON_UNESCAPED_UNICODE),
+        'reviews'                        => json_encode($reviews, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'highlights_enabled'             => '1',
-        'highlights'                     => json_encode($highlights, JSON_UNESCAPED_UNICODE),
+        'highlights'                     => json_encode($highlights, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'telegram_bot_token'             => '',
         'telegram_chat_id'               => '',
         'telegram_notifications_enabled' => '1',
@@ -1005,7 +1005,7 @@ try {
                 }
             }
 
-            $itemsJson = json_encode($cleanItems, JSON_UNESCAPED_UNICODE);
+            $itemsJson = json_encode($cleanItems, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $stmt = $db->prepare('INSERT INTO orders (table_number, items_json, total_price, customer_note, status) VALUES (?, ?, ?, ?, ?)');
             $stmt->execute([$tableNumber, $itemsJson, $totalPrice, $note, 'pending']);
             $orderId = (int) $db->lastInsertId();
@@ -1372,7 +1372,7 @@ function send_telegram_request(string $botToken, string $method, array $params =
         $ch = curl_init($url);
         $curlOpts = [
             CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => json_encode($params, JSON_UNESCAPED_UNICODE),
+            CURLOPT_POSTFIELDS     => json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 12,
@@ -1406,7 +1406,7 @@ function send_telegram_request(string $botToken, string $method, array $params =
     $httpOpts = [
         'method'        => 'POST',
         'header'        => "Content-Type: application/json; charset=utf-8\r\n",
-        'content'       => json_encode($params, JSON_UNESCAPED_UNICODE),
+        'content'       => json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'timeout'       => 12,
         'ignore_errors' => true,
     ];
